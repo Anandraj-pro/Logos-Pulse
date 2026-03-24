@@ -1,0 +1,58 @@
+{
+  "version": "1.0.0",
+  "project": {
+    "name": "Daily_Assignment",
+    "root": "/Users/bhargavigunnam/PycharmProjects/Daily_Assignment",
+    "created": "2026-03-23",
+    "methodology": "BMAD"
+  },
+  "agents": {
+    "bmad-orchestrator": {
+      "icon": "Orchestrator",
+      "title": "BMad Master Orchestrator",
+      "description": "Workflow coordination, multi-agent tasks, role switching guidance"
+    },
+    "analyst": {
+      "icon": "Analyst",
+      "title": "Business Analyst",
+      "description": "Requirements gathering, user stories, acceptance criteria"
+    },
+    "architect": {
+      "icon": "Architect",
+      "title": "Solution Architect",
+      "description": "System design, architecture decisions, technical specifications"
+    },
+    "developer": {
+      "icon": "Developer",
+      "title": "Developer Agent",
+      "description": "Implementation, coding, code review, debugging"
+    },
+    "pm": {
+      "icon": "PM",
+      "title": "Project Manager",
+      "description": "Planning, tracking, task management, sprint coordination"
+    },
+    "qa": {
+      "icon": "QA",
+      "title": "Quality Assurance",
+      "description": "Testing strategy, test plans, quality validation"
+    }
+  },
+  "workflow": {
+    "phases": [
+      "discovery",
+      "analysis",
+      "architecture",
+      "planning",
+      "implementation",
+      "testing",
+      "review",
+      "deployment"
+    ],
+    "currentPhase": "discovery"
+  },
+  "sessions": {
+    "storageDir": ".bmad/sessions",
+    "historyRetention": "full"
+  }
+}

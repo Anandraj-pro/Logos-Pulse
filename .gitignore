@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+data/tracker.db
+.env
+.DS_Store
+*.egg-info/
+dist/
+build/
+.idea/
+.venv/
+*.iml

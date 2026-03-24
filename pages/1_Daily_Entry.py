@@ -1,0 +1,325 @@
+import streamlit as st
+import json
+from datetime import date
+from modules import db
+from modules.utils import format_chapters_display, is_valid_youtube_url, format_prayer_duration
+from modules.message import format_whatsapp_message
+from modules.chapter_splitter import get_today_suggestion
+from modules.bible_data import get_book_names, get_chapter_count
+from modules.clipboard import copy_button
+from modules.bible_reader import fetch_chapter
+
+db.init_db()
+
+# ==================== CSS ====================
+st.markdown("""
+<style>
+    .de-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 20px;
+        color: white;
+    }
+    .de-title { font-size: 24px; font-weight: 700; }
+    .de-sub { font-size: 13px; color: rgba(255,255,255,0.7); margin-top: 4px; }
+    .section-label {
+        font-size: 12px; color: #999; text-transform: uppercase;
+        letter-spacing: 1.5px; font-weight: 600; margin: 16px 0 8px 0;
+    }
+    .report-card {
+        background: linear-gradient(135deg, #FFF9F0, #FFFEF8);
+        border: 1px solid #E8DCC8;
+        border-radius: 14px;
+        padding: 24px;
+        font-family: Georgia, serif;
+        font-size: 16px;
+        line-height: 1.8;
+        color: #3C2F1E;
+        white-space: pre-line;
+    }
+    .goal-banner {
+        background: linear-gradient(135deg, #E8EAF6, #F3E5F5);
+        border: 1px solid #D1C4E9;
+        border-radius: 12px;
+        padding: 12px 16px;
+        font-size: 14px;
+        color: #4527A0;
+        font-weight: 500;
+        margin-bottom: 12px;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+settings = db.get_all_settings()
+default_prayer = int(settings.get("default_prayer_minutes", "60"))
+greeting_name = settings.get("greeting_name", "Anna")
+omit_sermon = settings.get("omit_empty_sermon", "false") == "true"
+
+formatted_date = date.today().strftime("%A, %B %d")
+
+# Header
+st.markdown(f"""
+<div class="de-header">
+    <div class="de-title">\u270f\ufe0f Daily Entry</div>
+    <div class="de-sub">{formatted_date}</div>
+</div>
+""", unsafe_allow_html=True)
+
+# Date selection
+entry_date = st.date_input("Date", value=date.today(), max_value=date.today(), label_visibility="collapsed")
+entry_date_str = entry_date.isoformat()
+
+existing = db.get_entry_by_date(entry_date_str)
+assignment = db.get_active_assignment()
+suggestion = get_today_suggestion(entry_date, assignment)
+
+if suggestion:
+    st.markdown(f"""
+    <div class="goal-banner">
+        \U0001f4d6 Today's reading goal: <b>{suggestion['book']} {suggestion['range']}</b>
+    </div>
+    """, unsafe_allow_html=True)
+
+# --- Tabs ---
+tab_read, tab_log, tab_report = st.tabs(["\U0001f4d6 Read Bible", "\u270f\ufe0f Log Entry", "\U0001f4cb Report"])
+
+# ==================== TAB 1: Read Bible ====================
+with tab_read:
+    book_names = get_book_names()
+
+    if suggestion and suggestion["book"] in book_names:
+        default_read_book = book_names.index(suggestion["book"])
+    elif existing and existing.get("bible_book") and existing["bible_book"] in book_names:
+        default_read_book = book_names.index(existing["bible_book"])
+    else:
+        default_read_book = book_names.index("Luke") if "Luke" in book_names else 0
+
+    if "nav_chapter" in st.session_state:
+        st.session_state["read_chapter"] = st.session_state.pop("nav_chapter")
+
+    if "completed_book" not in st.session_state:
+        st.session_state["completed_book"] = None
+    if "completed_chapters" not in st.session_state:
+        st.session_state["completed_chapters"] = set()
+
+    col_book, col_ch = st.columns([3, 1])
+    with col_book:
+        read_book = st.selectbox("Book", options=book_names, index=default_read_book, key="read_book", label_visibility="collapsed")
+    max_ch = get_chapter_count(read_book)
+    default_ch = suggestion["chapters"][0] if suggestion and suggestion["book"] == read_book else 1
+    default_ch_idx = min(default_ch - 1, max_ch - 1)
+    with col_ch:
+        read_chapter = st.selectbox("Ch", options=list(range(1, max_ch + 1)), index=default_ch_idx, key="read_chapter", label_visibility="collapsed")
+
+    if st.session_state["completed_book"] != read_book:
+        st.session_state["completed_book"] = read_book
+        st.session_state["completed_chapters"] = set()
+    completed = st.session_state["completed_chapters"]
+
+    # Reading progress
+    if suggestion and suggestion["book"] == read_book:
+        target_chapters = suggestion["chapters"]
+        done_count = len(completed.intersection(set(target_chapters)))
+        total_target = len(target_chapters)
+        progress = done_count / total_target if total_target > 0 else 0
+        st.progress(progress, text=f"Today: {done_count}/{total_target} chapters")
+
+    # Chapter heading
+    st.markdown(f"""
+    <div style="text-align:center; padding:8px 0 4px 0;">
+        <span style="font-size:13px; color:#999; text-transform:uppercase; letter-spacing:2px;">{read_book}</span><br/>
+        <span style="font-size:26px; font-weight:700; color:#4A3728;">Chapter {read_chapter}</span>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Completed pills
+    if completed:
+        sorted_done = sorted(completed)
+        pills = " ".join(f'<span style="display:inline-block; background:#E8F5E9; color:#2E7D32; border-radius:12px; padding:3px 10px; margin:2px; font-size:12px; font-weight:600;">Ch {c}</span>' for c in sorted_done)
+        st.markdown(f"<div style='text-align:center; padding:4px 0 8px 0;'>{pills}</div>", unsafe_allow_html=True)
+
+    # Fetch chapter
+    with st.spinner(""):
+        chapter_data = fetch_chapter(read_book, read_chapter)
+
+    if chapter_data:
+        verses_html = ""
+        if chapter_data.get("verses"):
+            for verse in chapter_data["verses"]:
+                v_num = verse.get("verse", "")
+                v_text = verse.get("text", "").strip()
+                verses_html += (
+                    f'<span style="color:#667eea; font-weight:700; font-size:11px; '
+                    f'vertical-align:super; margin-right:2px;">{v_num}</span>'
+                    f'<span>{v_text} </span>'
+                )
+        elif chapter_data.get("text"):
+            verses_html = chapter_data["text"]
+
+        st.markdown(f"""
+        <div style="background:linear-gradient(135deg, #FFF9F0, #FFFEF8);
+                    border:1px solid #E8DCC8; border-radius:14px;
+                    padding:24px 22px; margin:8px 0;
+                    font-family:Georgia,'Times New Roman',serif;
+                    font-size:17px; line-height:1.9; color:#3C2F1E;
+                    max-height:480px; overflow-y:auto;
+                    box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+            {verses_html}
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        st.warning("Could not load chapter. Check your internet connection.")
+
+    # Bottom bar
+    st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+    is_completed = read_chapter in completed
+    col_prev, col_mark, col_next = st.columns([1, 2, 1])
+
+    with col_prev:
+        if read_chapter > 1:
+            if st.button("\u25c0 Prev", use_container_width=True):
+                st.session_state["nav_chapter"] = read_chapter - 1
+                st.rerun()
+    with col_mark:
+        if is_completed:
+            st.markdown(f"""
+            <div style="text-align:center; background:#E8F5E9; border-radius:10px;
+                        padding:10px; color:#2E7D32; font-weight:600;">
+                \u2705 Chapter {read_chapter} Done
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            if st.button(f"Mark Chapter {read_chapter} Done", type="primary", use_container_width=True):
+                st.session_state["completed_chapters"].add(read_chapter)
+                if read_chapter < max_ch:
+                    st.session_state["nav_chapter"] = read_chapter + 1
+                st.rerun()
+    with col_next:
+        if read_chapter < max_ch:
+            if st.button("Next \u25b6", use_container_width=True):
+                st.session_state["nav_chapter"] = read_chapter + 1
+                st.rerun()
+
+# ==================== TAB 2: Log Entry ====================
+with tab_log:
+    with st.form("daily_entry_form"):
+        # Prayer
+        st.markdown('<div class="section-label">\U0001f64f Prayer</div>', unsafe_allow_html=True)
+        prayer_options = list(range(15, 195, 15))
+        default_idx = (
+            prayer_options.index(existing["prayer_minutes"])
+            if existing and existing["prayer_minutes"] in prayer_options
+            else prayer_options.index(default_prayer) if default_prayer in prayer_options else 3
+        )
+        prayer_minutes = st.select_slider("Duration (minutes)", options=prayer_options, value=prayer_options[default_idx])
+
+        # Bible Reading
+        st.markdown('<div class="section-label">\U0001f4d6 Bible Reading</div>', unsafe_allow_html=True)
+
+        read_completed = st.session_state.get("completed_chapters", set())
+        read_completed_book = st.session_state.get("completed_book")
+
+        if read_completed and read_completed_book and read_completed_book in book_names:
+            default_book_idx = book_names.index(read_completed_book)
+        elif existing and existing.get("bible_book") and existing["bible_book"] in book_names:
+            default_book_idx = book_names.index(existing["bible_book"])
+        elif suggestion and suggestion["book"] in book_names:
+            default_book_idx = book_names.index(suggestion["book"])
+        else:
+            default_book_idx = 0
+
+        bible_book = st.selectbox("Book", options=book_names, index=default_book_idx, key="log_book")
+        max_chapters = get_chapter_count(bible_book)
+
+        if read_completed and read_completed_book == bible_book:
+            default_chapters = sorted(c for c in read_completed if 1 <= c <= max_chapters)
+        elif existing and existing.get("chapters_read"):
+            existing_chapters = json.loads(existing["chapters_read"]) if isinstance(existing["chapters_read"], str) else existing["chapters_read"]
+            default_chapters = [c for c in existing_chapters if 1 <= c <= max_chapters]
+        elif suggestion and suggestion["book"] == bible_book:
+            default_chapters = suggestion["chapters"]
+        else:
+            default_chapters = []
+
+        if read_completed and read_completed_book == bible_book:
+            st.success(f"Auto-filled: {len(default_chapters)} chapters from Read Bible tab")
+
+        chapters = st.multiselect("Chapters read", options=list(range(1, max_chapters + 1)), default=default_chapters)
+
+        # Sermon
+        st.markdown('<div class="section-label">\U0001f3a7 Listening to the Word (optional)</div>', unsafe_allow_html=True)
+        sermon_title = st.text_input("Sermon Title", value=existing.get("sermon_title", "") if existing else "")
+        sermon_speaker = st.text_input("Speaker", value=existing.get("sermon_speaker", "") if existing else "Ps. Samuel Patta")
+        youtube_link = st.text_input("YouTube Link", value=existing.get("youtube_link", "") if existing else "")
+
+        submitted = st.form_submit_button("Save & Generate Report", type="primary", use_container_width=True)
+
+    if submitted:
+        if not chapters:
+            st.error("Please select at least one chapter.")
+        elif youtube_link and not is_valid_youtube_url(youtube_link):
+            st.error("Please enter a valid YouTube URL.")
+        else:
+            chapters_display = format_chapters_display(bible_book, chapters)
+            db.upsert_daily_entry(
+                entry_date=entry_date_str, prayer_minutes=prayer_minutes,
+                bible_book=bible_book, chapters_read=sorted(chapters),
+                chapters_display=chapters_display,
+                sermon_title=sermon_title.strip() if sermon_title else "",
+                sermon_speaker=sermon_speaker.strip() if sermon_speaker else "",
+                youtube_link=youtube_link.strip() if youtube_link else "",
+            )
+            st.success("Entry saved! Go to the **Report** tab to copy your WhatsApp message.")
+
+# ==================== TAB 3: Report ====================
+with tab_report:
+    entry_for_report = db.get_entry_by_date(entry_date_str)
+
+    if entry_for_report:
+        message = format_whatsapp_message(
+            entry_date=entry_date,
+            prayer_minutes=entry_for_report["prayer_minutes"],
+            chapters_display=entry_for_report.get("chapters_display", ""),
+            sermon_title=entry_for_report.get("sermon_title") or None,
+            sermon_speaker=entry_for_report.get("sermon_speaker") or None,
+            youtube_link=entry_for_report.get("youtube_link") or None,
+            greeting_name=greeting_name,
+            omit_empty_sermon=omit_sermon,
+        )
+
+        st.markdown(f"""
+        <div style="font-size:12px; color:#999; text-transform:uppercase;
+                    letter-spacing:1.5px; font-weight:600; margin-bottom:12px;">
+            WhatsApp Report Preview
+        </div>
+        <div class="report-card">{message}</div>
+        """, unsafe_allow_html=True)
+
+        st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
+        copy_button(message, "\U0001f4cb Copy to Clipboard")
+        db.mark_report_copied(entry_date_str)
+
+        # Summary below
+        duration = format_prayer_duration(entry_for_report["prayer_minutes"])
+        st.markdown(f"""
+        <div style="margin-top:16px; padding:14px 18px; background:#E8F5E9; border-radius:12px;">
+            <div style="font-size:13px; font-weight:600; color:#2E7D32; margin-bottom:6px;">
+                \u2705 Entry Summary
+            </div>
+            <div style="font-size:14px; color:#333; line-height:1.6;">
+                Prayer: {duration}<br/>
+                Reading: {entry_for_report.get('chapters_display', 'N/A')}<br/>
+                {"Sermon: " + entry_for_report['sermon_title'] + "<br/>" if entry_for_report.get('sermon_title') else ""}
+                Report: {"Copied" if entry_for_report.get('report_copied') else "Ready to copy"}
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        st.markdown("""
+        <div style="text-align:center; padding:40px; color:#ccc;">
+            <div style="font-size:48px; margin-bottom:8px;">\U0001f4cb</div>
+            <div style="font-size:16px; color:#999;">No entry for this date yet</div>
+            <div style="font-size:13px; color:#bbb;">Fill in the "Log Entry" tab first</div>
+        </div>
+        """, unsafe_allow_html=True)
