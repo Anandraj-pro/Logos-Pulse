@@ -52,6 +52,14 @@ def create_account(email: str, first_name: str, last_name: str, role: str,
 
         admin.table("user_profiles").insert(profile).execute()
 
+        # Auto-seed default data for prayer warriors
+        if role == "prayer_warrior":
+            try:
+                from modules.seed import seed_user_data
+                seed_user_data(user.id, first_name, prayer_benchmark)
+            except Exception:
+                pass  # Non-critical — user can still use the app without seed data
+
         return {"success": True, "user_id": user.id}
 
     except Exception as e:
