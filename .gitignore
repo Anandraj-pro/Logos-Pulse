@@ -2,6 +2,8 @@ __pycache__/
 *.pyc
 data/tracker.db
 .env
+.streamlit/secrets.toml
+secrets/
 .DS_Store
 *.egg-info/
 dist/

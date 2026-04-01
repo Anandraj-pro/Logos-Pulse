@@ -2,7 +2,12 @@ import streamlit as st
 from datetime import date, timedelta, datetime
 from modules import db
 from modules.utils import calculate_streaks, format_prayer_duration
+from modules.styles import inject_styles, section_label, spacer
+from modules.auth import require_login, require_password_changed
 import json
+
+require_login()
+require_password_changed()
 
 db.init_db()
 
@@ -45,189 +50,10 @@ else:
 
 formatted_date = today.strftime("%A, %B %d, %Y")
 
-# ==================== CUSTOM CSS ====================
-st.markdown("""
-<style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-
-    .hero-section {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 20px;
-        padding: 40px 32px;
-        margin-bottom: 24px;
-        position: relative;
-        overflow: hidden;
-    }
-    .hero-section::before {
-        content: '';
-        position: absolute;
-        top: -50%;
-        right: -20%;
-        width: 400px;
-        height: 400px;
-        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-        border-radius: 50%;
-    }
-    .hero-section::after {
-        content: '';
-        position: absolute;
-        bottom: -30%;
-        left: -10%;
-        width: 300px;
-        height: 300px;
-        background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
-        border-radius: 50%;
-    }
-    .hero-greeting {
-        font-size: 15px;
-        color: rgba(255,255,255,0.7);
-        letter-spacing: 1.5px;
-        text-transform: uppercase;
-        margin-bottom: 6px;
-        font-weight: 500;
-    }
-    .hero-name {
-        font-size: 36px;
-        font-weight: 700;
-        color: white;
-        margin-bottom: 4px;
-        line-height: 1.2;
-    }
-    .hero-date {
-        font-size: 14px;
-        color: rgba(255,255,255,0.6);
-    }
-    .hero-verse {
-        margin-top: 20px;
-        padding: 14px 18px;
-        background: rgba(255,255,255,0.12);
-        border-radius: 12px;
-        font-family: Georgia, serif;
-        font-style: italic;
-        font-size: 15px;
-        color: rgba(255,255,255,0.9);
-        line-height: 1.6;
-        backdrop-filter: blur(4px);
-    }
-
-    .metric-card {
-        background: white;
-        border: 1px solid #F0EBF8;
-        border-radius: 16px;
-        padding: 20px;
-        text-align: center;
-        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.06);
-    }
-    .metric-value {
-        font-size: 32px;
-        font-weight: 700;
-        line-height: 1;
-        margin-bottom: 4px;
-    }
-    .metric-label {
-        font-size: 13px;
-        color: #888;
-        text-transform: uppercase;
-        letter-spacing: 0.8px;
-        font-weight: 500;
-    }
-
-    .section-card {
-        background: white;
-        border: 1px solid #F0EBF8;
-        border-radius: 16px;
-        padding: 24px;
-        margin-bottom: 16px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-        transition: box-shadow 0.2s, transform 0.2s;
-    }
-    .section-card:hover {
-        box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-    }
-    .section-icon {
-        font-size: 32px;
-        margin-bottom: 8px;
-    }
-    .section-title {
-        font-size: 18px;
-        font-weight: 600;
-        color: #2C2C2C;
-        margin-bottom: 4px;
-    }
-    .section-desc {
-        font-size: 13px;
-        color: #888;
-        line-height: 1.5;
-    }
-
-    .today-card {
-        border-radius: 16px;
-        padding: 20px 24px;
-        margin-bottom: 16px;
-    }
-    .today-done {
-        background: linear-gradient(135deg, #E8F5E9, #F1F8E9);
-        border: 1px solid #C8E6C9;
-    }
-    .today-pending {
-        background: linear-gradient(135deg, #FFF3E0, #FFF8E1);
-        border: 1px solid #FFE0B2;
-    }
-    .today-title {
-        font-size: 16px;
-        font-weight: 600;
-        margin-bottom: 8px;
-    }
-    .today-detail {
-        font-size: 14px;
-        color: #555;
-        line-height: 1.6;
-    }
-
-    .progress-section {
-        background: white;
-        border: 1px solid #F0EBF8;
-        border-radius: 16px;
-        padding: 20px 24px;
-        margin-bottom: 16px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-    }
-    .progress-title {
-        font-size: 14px;
-        font-weight: 600;
-        color: #555;
-        margin-bottom: 12px;
-    }
-    .progress-bar-bg {
-        background: #F0EBF8;
-        border-radius: 8px;
-        height: 10px;
-        overflow: hidden;
-    }
-    .progress-bar-fill {
-        height: 100%;
-        border-radius: 8px;
-        transition: width 0.5s ease;
-    }
-    .progress-label {
-        font-size: 12px;
-        color: #999;
-        margin-top: 6px;
-    }
-
-    .prayer-pill {
-        display: inline-block;
-        padding: 6px 14px;
-        border-radius: 20px;
-        font-size: 13px;
-        font-weight: 500;
-        margin: 3px 4px;
-    }
-</style>
-""", unsafe_allow_html=True)
+# ==================== STYLES ====================
+inject_styles()
 
 # ==================== HERO SECTION ====================
-# Daily verse rotation
 verses = [
     ("Proverbs 3:5-6", "Trust in the Lord with all your heart and lean not on your own understanding; in all your ways submit to him, and he will make your paths straight."),
     ("Philippians 4:13", "I can do all things through Christ who strengthens me."),
@@ -246,7 +72,7 @@ st.markdown(f"""
     <div class="hero-date">{formatted_date}</div>
     <div class="hero-verse">
         \u201c{verse_text}\u201d
-        <br/><span style="font-style:normal; font-size:12px; color:rgba(255,255,255,0.5);">\u2014 {verse_ref}</span>
+        <br/><span style="font-style:normal; font-size:12px; color:rgba(255,255,255,0.45);">\u2014 {verse_ref}</span>
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -255,7 +81,7 @@ st.markdown(f"""
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    streak_color = "#4CAF50" if current_streak >= 7 else "#FF9800" if current_streak >= 3 else "#7B68EE"
+    streak_color = "#3A8F5C" if current_streak >= 7 else "#D4853A" if current_streak >= 3 else "#5B4FC4"
     st.markdown(f"""
     <div class="metric-card">
         <div class="metric-value" style="color:{streak_color};">{current_streak}</div>
@@ -266,21 +92,21 @@ with col1:
 with col2:
     st.markdown(f"""
     <div class="metric-card">
-        <div class="metric-value" style="color:#7B68EE;">{longest_streak}</div>
+        <div class="metric-value" style="color:#5B4FC4;">{longest_streak}</div>
         <div class="metric-label">Best Streak</div>
     </div>
     """, unsafe_allow_html=True)
 
 with col3:
-    week_color = "#4CAF50" if week_count >= 5 else "#FF9800" if week_count >= 3 else "#E91E63"
+    week_color = "#3A8F5C" if week_count >= 5 else "#D4853A" if week_count >= 3 else "#C44B5B"
     st.markdown(f"""
     <div class="metric-card">
-        <div class="metric-value" style="color:{week_color};">{week_count}<span style="font-size:18px; color:#ccc;">/6</span></div>
+        <div class="metric-value" style="color:{week_color};">{week_count}<span style="font-size:18px; color:#D0C8DB;">/6</span></div>
         <div class="metric-label">This Week</div>
     </div>
     """, unsafe_allow_html=True)
 
-st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
+spacer()
 
 # ==================== TODAY'S STATUS ====================
 if today_entry:
@@ -288,7 +114,7 @@ if today_entry:
     reading = today_entry.get("chapters_display", "N/A")
     sermon = today_entry.get("sermon_title", "")
     report_status = "Copied" if today_entry.get("report_copied") else "Not yet copied"
-    report_color = "#4CAF50" if today_entry.get("report_copied") else "#FF9800"
+    report_color = "#3A8F5C" if today_entry.get("report_copied") else "#D4853A"
 
     details = f"Prayer: {duration} &nbsp;&bull;&nbsp; Reading: {reading}"
     if sermon:
@@ -343,25 +169,19 @@ if assignment:
     <div class="progress-section">
         <div class="progress-title">\U0001f4d6 Weekly Reading \u2014 {assignment['book']} {assignment['start_chapter']}\u2013{assignment['end_chapter']}</div>
         <div class="progress-bar-bg">
-            <div class="progress-bar-fill" style="width:{progress_pct}%; background:linear-gradient(90deg, #667eea, #764ba2);"></div>
+            <div class="progress-bar-fill" style="width:{progress_pct}%;"></div>
         </div>
         <div class="progress-label">{done_count}/{total_assigned} chapters completed ({progress_pct}%)</div>
     </div>
     """, unsafe_allow_html=True)
 
-st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+spacer(8)
 
 # ==================== 3 SECTION CARDS ====================
-st.markdown("""
-<div style="font-size:12px; color:#999; text-transform:uppercase; letter-spacing:1.5px;
-            font-weight:600; margin-bottom:12px;">
-    Your Spiritual Toolkit
-</div>
-""", unsafe_allow_html=True)
+section_label("Your Spiritual Toolkit")
 
 col1, col2, col3 = st.columns(3)
 
-# --- Daily Assignment Card ---
 with col1:
     total_entries = len(all_dates)
     st.markdown(f"""
@@ -372,17 +192,15 @@ with col1:
             Track prayer, Bible reading & sermons.<br/>
             Send daily report to Ps. Deepak.
         </div>
-        <div style="margin-top:14px; padding-top:12px; border-top:1px solid #F0EBF8;">
-            <span style="font-size:24px; font-weight:700; color:#7B68EE;">{total_entries}</span>
-            <span style="font-size:12px; color:#999; margin-left:4px;">entries logged</span>
+        <div style="margin-top:14px; padding-top:12px; border-top:1px solid #EDE8F5;">
+            <span style="font-family:'DM Serif Display',Georgia,serif; font-size:24px; color:#5B4FC4;">{total_entries}</span>
+            <span style="font-size:12px; color:#9E96AB; margin-left:4px;">entries logged</span>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-# --- Sermon Notes Card ---
 with col2:
     notes_count = len(sermon_notes)
-    latest_sermon = sermon_notes[0]["title"][:25] + "..." if sermon_notes else "None yet"
     st.markdown(f"""
     <div class="section-card">
         <div class="section-icon">\U0001f4dd</div>
@@ -391,14 +209,13 @@ with col2:
             Capture sermon insights with<br/>
             auto Bible scripture lookup.
         </div>
-        <div style="margin-top:14px; padding-top:12px; border-top:1px solid #F0EBF8;">
-            <span style="font-size:24px; font-weight:700; color:#FF9800;">{notes_count}</span>
-            <span style="font-size:12px; color:#999; margin-left:4px;">notes saved</span>
+        <div style="margin-top:14px; padding-top:12px; border-top:1px solid #EDE8F5;">
+            <span style="font-family:'DM Serif Display',Georgia,serif; font-size:24px; color:#D4853A;">{notes_count}</span>
+            <span style="font-size:12px; color:#9E96AB; margin-left:4px;">notes saved</span>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-# --- Prayer Journal Card ---
 with col3:
     total_prayers = sum(c["total"] for c in prayer_counts.values())
     answered = sum(c["answered"] for c in prayer_counts.values())
@@ -410,25 +227,33 @@ with col3:
             Confessions, declarations &<br/>
             scripture-backed prayers.
         </div>
-        <div style="margin-top:14px; padding-top:12px; border-top:1px solid #F0EBF8;">
-            <span style="font-size:24px; font-weight:700; color:#4CAF50;">{total_prayers}</span>
-            <span style="font-size:12px; color:#999; margin-left:4px;">prayers</span>
-            {"<span style='margin-left:12px; font-size:24px; font-weight:700; color:#E91E63;'>" + str(answered) + "</span><span style='font-size:12px; color:#999; margin-left:4px;'>answered</span>" if answered else ""}
+        <div style="margin-top:14px; padding-top:12px; border-top:1px solid #EDE8F5;">
+            <span style="font-family:'DM Serif Display',Georgia,serif; font-size:24px; color:#3A8F5C;">{total_prayers}</span>
+            <span style="font-size:12px; color:#9E96AB; margin-left:4px;">prayers</span>
+            {"<span style='margin-left:12px; font-family:DM Serif Display,Georgia,serif; font-size:24px; color:#C44B5B;'>" + str(answered) + "</span><span style='font-size:12px; color:#9E96AB; margin-left:4px;'>answered</span>" if answered else ""}
         </div>
     </div>
     """, unsafe_allow_html=True)
 
 # ==================== PRAYER CATEGORIES PILLS ====================
 if prayer_categories:
-    st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+    spacer(8)
+
+    def hex_to_rgba(hex_color, alpha):
+        hex_color = hex_color.lstrip("#")
+        r, g, b = int(hex_color[0:2], 16), int(hex_color[2:4], 16), int(hex_color[4:6], 16)
+        return f"rgba({r},{g},{b},{alpha})"
+
     pills_html = ""
     for cat in prayer_categories:
         count = prayer_counts.get(cat["id"], {})
         total = count.get("total", 0)
         ongoing = count.get("ongoing", 0)
-        color = cat.get("color", "#7B68EE")
+        color = cat.get("color", "#5B4FC4")
+        bg = hex_to_rgba(color, 0.08)
+        border = hex_to_rgba(color, 0.2)
         pills_html += f"""
-        <span class="prayer-pill" style="background:{color}15; color:{color}; border:1px solid {color}30;">
+        <span class="prayer-pill" style="background:{bg}; color:{color}; border:1px solid {border};">
             {cat['icon']} {cat['name']}
             <span style="font-weight:700; margin-left:4px;">{total}</span>
             {"<span style='font-size:11px; opacity:0.7; margin-left:2px;'>(" + str(ongoing) + " active)</span>" if ongoing else ""}
@@ -443,28 +268,20 @@ if prayer_categories:
 
 # ==================== RECENT SERMON NOTES ====================
 if sermon_notes:
-    st.markdown("""
-    <div style="font-size:12px; color:#999; text-transform:uppercase; letter-spacing:1.5px;
-                font-weight:600; margin:16px 0 12px 0;">
-        Recent Sermon Notes
-    </div>
-    """, unsafe_allow_html=True)
+    section_label("Recent Sermon Notes")
 
     for note in sermon_notes[:3]:
         preview = (note.get("notes_text", "") or "")[:80]
         if len(note.get("notes_text", "") or "") > 80:
             preview += "..."
         st.markdown(f"""
-        <div style="background:white; border:1px solid #F0EBF8; border-radius:12px;
-                    padding:14px 18px; margin-bottom:8px; display:flex;
-                    justify-content:space-between; align-items:center;
-                    box-shadow:0 1px 4px rgba(0,0,0,0.02);">
+        <div class="entry-card" style="display:flex; justify-content:space-between; align-items:center;">
             <div>
-                <div style="font-weight:600; color:#4A3728; font-size:15px;">{note['title']}</div>
-                <div style="font-size:13px; color:#7B68EE;">{note['speaker']}</div>
-                <div style="font-size:12px; color:#aaa; margin-top:2px;">{preview}</div>
+                <div style="font-family:'DM Serif Display',Georgia,serif; font-weight:400; color:#2A2438; font-size:15px;">{note['title']}</div>
+                <div style="font-size:13px; color:#5B4FC4;">{note['speaker']}</div>
+                <div style="font-size:12px; color:#9E96AB; margin-top:2px;">{preview}</div>
             </div>
-            <div style="font-size:12px; color:#ccc; white-space:nowrap; margin-left:16px;">
+            <div style="font-size:12px; color:#D0C8DB; white-space:nowrap; margin-left:16px;">
                 {note['sermon_date']}
             </div>
         </div>

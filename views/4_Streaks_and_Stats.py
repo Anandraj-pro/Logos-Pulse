@@ -4,82 +4,15 @@ import calendar
 import json
 from modules import db
 from modules.utils import calculate_streaks, format_prayer_duration
+from modules.styles import inject_styles, section_label, spacer
+from modules.auth import require_login, require_password_changed
+
+require_login()
+require_password_changed()
 
 db.init_db()
 
-# ==================== CSS ====================
-st.markdown("""
-<style>
-    .streak-hero {
-        background: linear-gradient(135deg, #FF6B35 0%, #F7C948 100%);
-        border-radius: 16px;
-        padding: 32px 28px;
-        margin-bottom: 20px;
-        color: white;
-        text-align: center;
-    }
-    .streak-num {
-        font-size: 64px;
-        font-weight: 800;
-        line-height: 1;
-    }
-    .streak-label {
-        font-size: 14px;
-        color: rgba(255,255,255,0.8);
-        text-transform: uppercase;
-        letter-spacing: 1.5px;
-        margin-top: 4px;
-    }
-    .stat-card {
-        background: white;
-        border: 1px solid #F0EBF8;
-        border-radius: 14px;
-        padding: 20px;
-        text-align: center;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.03);
-    }
-    .stat-value {
-        font-size: 28px;
-        font-weight: 700;
-        line-height: 1;
-    }
-    .stat-label {
-        font-size: 12px;
-        color: #999;
-        text-transform: uppercase;
-        letter-spacing: 0.8px;
-        margin-top: 4px;
-    }
-    .heatmap-day {
-        text-align: center;
-        border-radius: 8px;
-        padding: 6px 4px;
-        font-size: 13px;
-        font-weight: 500;
-        margin: 2px;
-    }
-    .heatmap-done {
-        background: linear-gradient(135deg, #667eea, #764ba2);
-        color: white;
-        font-weight: 700;
-    }
-    .heatmap-missed {
-        background: #FFEBEE;
-        color: #FFAB91;
-    }
-    .heatmap-future {
-        color: #ddd;
-    }
-    .heatmap-header {
-        text-align: center;
-        font-size: 11px;
-        color: #999;
-        font-weight: 600;
-        text-transform: uppercase;
-        padding: 4px;
-    }
-</style>
-""", unsafe_allow_html=True)
+inject_styles()
 
 # --- Data ---
 all_dates = db.get_all_entry_dates()
@@ -90,7 +23,7 @@ col1, col2 = st.columns(2)
 with col1:
     streak_emoji = "\U0001f525" if current_streak >= 7 else "\u2b50" if current_streak >= 3 else "\U0001f331"
     st.markdown(f"""
-    <div class="streak-hero">
+    <div class="streak-hero" style="background:linear-gradient(135deg, #E85D3A 0%, #D4A843 100%);">
         <div style="font-size:40px; margin-bottom:4px;">{streak_emoji}</div>
         <div class="streak-num">{current_streak}</div>
         <div class="streak-label">Day Streak</div>
@@ -99,7 +32,7 @@ with col1:
 
 with col2:
     st.markdown(f"""
-    <div class="streak-hero" style="background:linear-gradient(135deg, #667eea, #764ba2);">
+    <div class="streak-hero" style="background:linear-gradient(135deg, #5B4FC4, #9B5FA8);">
         <div style="font-size:40px; margin-bottom:4px;">\U0001f3c6</div>
         <div class="streak-num">{longest_streak}</div>
         <div class="streak-label">Best Streak</div>
@@ -111,12 +44,7 @@ if current_streak in [7, 30, 50, 100, 365]:
     st.success(f"Congratulations! {current_streak}-day streak!")
 
 # ==================== MONTHLY HEATMAP ====================
-st.markdown("""
-<div style="font-size:12px; color:#999; text-transform:uppercase; letter-spacing:1.5px;
-            font-weight:600; margin:16px 0 8px 0;">
-    Monthly Activity
-</div>
-""", unsafe_allow_html=True)
+section_label("Monthly Activity")
 
 if "stats_year" not in st.session_state:
     st.session_state.stats_year = date.today().year
@@ -134,7 +62,7 @@ with col1:
         st.rerun()
 with col2:
     month_name = calendar.month_name[st.session_state.stats_month]
-    st.markdown(f"<h3 style='text-align:center; color:#2C2C2C;'>{month_name} {st.session_state.stats_year}</h3>", unsafe_allow_html=True)
+    st.markdown(f"<h3 style='text-align:center;'>{month_name} {st.session_state.stats_year}</h3>", unsafe_allow_html=True)
 with col3:
     if st.button("Next \u25b6", key="stats_next", use_container_width=True):
         if st.session_state.stats_month == 12:
@@ -179,12 +107,7 @@ for week in weeks:
                     st.markdown(f"<div class='heatmap-day heatmap-future'>{day}</div>", unsafe_allow_html=True)
 
 # ==================== MONTHLY SUMMARY ====================
-st.markdown("""
-<div style="font-size:12px; color:#999; text-transform:uppercase; letter-spacing:1.5px;
-            font-weight:600; margin:24px 0 12px 0;">
-    Monthly Summary
-</div>
-""", unsafe_allow_html=True)
+section_label("Monthly Summary")
 
 days_in_month = calendar.monthrange(year, month)[1]
 days_passed = min(date.today().day, days_in_month) if year == date.today().year and month == date.today().month else days_in_month
@@ -203,19 +126,19 @@ for e in entries:
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
-    pct_color = "#4CAF50" if completion_pct >= 80 else "#FF9800" if completion_pct >= 50 else "#E91E63"
+    pct_color = "#3A8F5C" if completion_pct >= 80 else "#D4853A" if completion_pct >= 50 else "#C44B5B"
     st.markdown(f"""
     <div class="stat-card">
         <div class="stat-value" style="color:{pct_color};">{completion_pct}%</div>
         <div class="stat-label">Completion</div>
-        <div style="font-size:11px; color:#bbb; margin-top:2px;">{days_logged}/{days_passed} days</div>
+        <div style="font-size:11px; color:#C0B8CC; margin-top:2px;">{days_logged}/{days_passed} days</div>
     </div>
     """, unsafe_allow_html=True)
 
 with col2:
     st.markdown(f"""
     <div class="stat-card">
-        <div class="stat-value" style="color:#667eea;">{total_prayer_hours}</div>
+        <div class="stat-value" style="color:#5B4FC4;">{total_prayer_hours}</div>
         <div class="stat-label">Prayer Hours</div>
     </div>
     """, unsafe_allow_html=True)
@@ -223,7 +146,7 @@ with col2:
 with col3:
     st.markdown(f"""
     <div class="stat-card">
-        <div class="stat-value" style="color:#764ba2;">{total_chapters}</div>
+        <div class="stat-value" style="color:#9B5FA8;">{total_chapters}</div>
         <div class="stat-label">Chapters Read</div>
     </div>
     """, unsafe_allow_html=True)
@@ -232,7 +155,7 @@ with col4:
     sermons_count = sum(1 for e in entries if e.get("sermon_title"))
     st.markdown(f"""
     <div class="stat-card">
-        <div class="stat-value" style="color:#FF9800;">{sermons_count}</div>
+        <div class="stat-value" style="color:#D4853A;">{sermons_count}</div>
         <div class="stat-label">Sermons</div>
     </div>
     """, unsafe_allow_html=True)

@@ -3,10 +3,15 @@ import json
 from datetime import date
 from modules import db
 from modules.scripture_lookup import parse_references, render_reference_with_text
+from modules.styles import inject_styles, page_header, section_label, empty_state, spacer
+from modules.auth import require_login, require_password_changed
+
+require_login()
+require_password_changed()
 
 db.init_db()
 
-st.title("\U0001f4dd Sermon Notes")
+inject_styles()
 
 DEFAULT_SPEAKERS = [
     "Bishop Samuel Patta",
@@ -17,7 +22,6 @@ DEFAULT_SPEAKERS = [
 # Collect unique speakers from existing notes for filter
 all_notes = db.get_all_sermon_notes()
 all_speakers = sorted(set(n.get("speaker", "") for n in all_notes if n.get("speaker")))
-# Merge with defaults
 for s in DEFAULT_SPEAKERS:
     if s not in all_speakers:
         all_speakers.insert(0, s)
@@ -36,14 +40,11 @@ def _count_takeaways(note):
     return len(lines)
 
 
-def _render_scripture_card(ref, color="#7B68EE"):
+def _render_scripture_card(ref, color="#5B4FC4"):
     enriched = render_reference_with_text(ref)
     if enriched.get("scripture_text"):
         st.markdown(f"""
-        <div style="background:#FFF9F0; border-left:3px solid {color};
-                    padding:10px 14px; margin:8px 0; border-radius:6px;
-                    font-family:Georgia,'Times New Roman',serif; font-size:15px;
-                    color:#3C2F1E; line-height:1.7;">
+        <div class="scripture-block" style="border-color:{color};">
             <b style="color:{color}; font-size:13px; letter-spacing:0.5px;">{enriched['reference']}</b><br/>
             <i>{enriched['scripture_text']}</i>
         </div>
@@ -62,19 +63,18 @@ if "view_sermon_id" in st.session_state:
             st.rerun()
 
         # --- Full-page read-only view ---
-        # Header
         st.markdown(f"""
         <div style="text-align:center; padding:20px 0 10px 0;">
-            <div style="font-size:12px; color:#999; text-transform:uppercase; letter-spacing:2px;">
+            <div style="font-size:11px; color:#9E96AB; text-transform:uppercase; letter-spacing:2px;">
                 Sermon Notes
             </div>
-            <div style="font-size:28px; font-weight:700; color:#4A3728; margin:8px 0;">
+            <div style="font-family:'DM Serif Display',Georgia,serif; font-size:28px; color:#2A2438; margin:8px 0;">
                 {note['title']}
             </div>
-            <div style="font-size:15px; color:#7B68EE; font-weight:500;">
+            <div style="font-size:15px; color:#5B4FC4; font-weight:500;">
                 {note['speaker']}
             </div>
-            <div style="font-size:13px; color:#aaa; margin-top:4px;">
+            <div style="font-size:13px; color:#9E96AB; margin-top:4px;">
                 {note['sermon_date']}
             </div>
         </div>
@@ -89,8 +89,8 @@ if "view_sermon_id" in st.session_state:
             with col_notes:
                 if note.get("notes_text"):
                     st.markdown(f"""
-                    <div style="background:#FAFAFA; border-radius:10px; padding:20px;
-                                font-size:16px; line-height:1.8; color:#333;">
+                    <div style="background:#FAFAF8; border-radius:10px; padding:20px;
+                                font-size:16px; line-height:1.8; color:#2A2438;">
                         {note['notes_text'].replace(chr(10), '<br/>')}
                     </div>
                     """, unsafe_allow_html=True)
@@ -101,7 +101,7 @@ if "view_sermon_id" in st.session_state:
                 ) else note.get("bible_references", [])
                 if refs and isinstance(refs, list):
                     st.markdown(f"""
-                    <div style="font-size:12px; color:#999; text-transform:uppercase;
+                    <div style="font-size:11px; color:#9E96AB; text-transform:uppercase;
                                 letter-spacing:1px; margin-bottom:8px;">
                         Scripture References ({len(refs)})
                     </div>
@@ -115,11 +115,11 @@ if "view_sermon_id" in st.session_state:
             st.divider()
             st.markdown(f"""
             <div style="margin:10px 0;">
-                <div style="font-size:12px; color:#7B68EE; text-transform:uppercase;
+                <div style="font-size:11px; color:#5B4FC4; text-transform:uppercase;
                             letter-spacing:1.5px; font-weight:600; margin-bottom:8px;">
                     What I Learned
                 </div>
-                <div style="background:linear-gradient(135deg, #F5F0FF, #FFF9F0);
+                <div style="background:linear-gradient(135deg, #EDEBFA, #FFF9F0);
                             border-radius:10px; padding:16px 20px;
                             font-size:16px; line-height:1.8; color:#3C2F1E;">
                     {note['learnings'].replace(chr(10), '<br/>')}
@@ -130,7 +130,7 @@ if "view_sermon_id" in st.session_state:
         if note.get("key_takeaways"):
             st.markdown(f"""
             <div style="margin:10px 0;">
-                <div style="font-size:12px; color:#4CAF50; text-transform:uppercase;
+                <div style="font-size:11px; color:#3A8F5C; text-transform:uppercase;
                             letter-spacing:1.5px; font-weight:600; margin-bottom:8px;">
                     Key Takeaways
                 </div>
@@ -144,7 +144,7 @@ if "view_sermon_id" in st.session_state:
         if note.get("additional_thoughts"):
             st.markdown(f"""
             <div style="margin:10px 0;">
-                <div style="font-size:12px; color:#FF9800; text-transform:uppercase;
+                <div style="font-size:11px; color:#D4853A; text-transform:uppercase;
                             letter-spacing:1.5px; font-weight:600; margin-bottom:8px;">
                     Additional Thoughts
                 </div>
@@ -188,7 +188,9 @@ if "view_sermon_id" in st.session_state:
         st.rerun()
 
 else:
-    # --- Normal mode: tabs ---
+    # --- Normal mode: header + tabs ---
+    page_header("\U0001f4dd", "Sermon Notes", f"{len(all_notes)} notes saved")
+
     tab_new, tab_browse = st.tabs(["\u270f\ufe0f Write Note", "\U0001f4da Browse Notes"])
 
     # ==================== WRITE NOTE ====================
@@ -199,7 +201,7 @@ else:
             editing_note = db.get_sermon_note(editing_id)
             if editing_note:
                 st.markdown(f"""
-                <div style="background:#FFF3E0; border-left:4px solid #FF9800;
+                <div style="background:#FFF3E0; border-left:4px solid #D4853A;
                             padding:10px 16px; border-radius:6px; margin-bottom:16px;">
                     <b style="color:#E65100;">Editing:</b> {editing_note['title']}
                 </div>
@@ -209,12 +211,7 @@ else:
                     st.rerun()
 
         # --- Sermon details ---
-        st.markdown("""
-        <div style="font-size:12px; color:#999; text-transform:uppercase;
-                    letter-spacing:1.5px; margin-bottom:4px;">
-            Sermon Details
-        </div>
-        """, unsafe_allow_html=True)
+        section_label("Sermon Details")
 
         title = st.text_input(
             "Sermon Title",
@@ -224,13 +221,12 @@ else:
 
         col1, col2 = st.columns(2)
         with col1:
-            # Speaker with default options + custom
             speaker_options = DEFAULT_SPEAKERS + ["Other"]
             existing_speaker = editing_note["speaker"] if editing_note else ""
             if existing_speaker in DEFAULT_SPEAKERS:
                 speaker_idx = DEFAULT_SPEAKERS.index(existing_speaker)
             elif existing_speaker:
-                speaker_idx = len(DEFAULT_SPEAKERS)  # "Other"
+                speaker_idx = len(DEFAULT_SPEAKERS)
             else:
                 speaker_idx = 0
             speaker_choice = st.selectbox("Speaker", options=speaker_options, index=speaker_idx)
@@ -253,13 +249,8 @@ else:
         st.divider()
 
         # --- Notes: Left / Right ---
-        st.markdown("""
-        <div style="font-size:12px; color:#999; text-transform:uppercase;
-                    letter-spacing:1.5px; margin-bottom:4px;">
-            Notes & Scripture
-        </div>
-        """, unsafe_allow_html=True)
-        st.caption("Write notes on the left. Add Bible references on the right — scripture appears automatically.")
+        section_label("Notes & Scripture")
+        st.caption("Write notes on the left. Add Bible references on the right \u2014 scripture appears automatically.")
 
         col_notes, col_refs = st.columns([3, 2])
 
@@ -303,12 +294,7 @@ else:
         st.divider()
 
         # --- Reflections ---
-        st.markdown("""
-        <div style="font-size:12px; color:#999; text-transform:uppercase;
-                    letter-spacing:1.5px; margin-bottom:4px;">
-            Reflection
-        </div>
-        """, unsafe_allow_html=True)
+        section_label("Reflection")
 
         learnings = st.text_area(
             "\U0001f4a1 What I learned from this",
@@ -375,15 +361,7 @@ else:
         notes = db.get_all_sermon_notes()
 
         if not notes:
-            st.markdown("""
-            <div style="text-align:center; padding:40px 20px; color:#aaa;">
-                <div style="font-size:48px; margin-bottom:12px;">\U0001f4dd</div>
-                <div style="font-size:18px; font-weight:500;">No sermon notes yet</div>
-                <div style="font-size:14px; margin-top:4px;">
-                    Create your first note in the "Write Note" tab
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+            empty_state("\U0001f4dd", "No sermon notes yet", 'Create your first note in the "Write Note" tab')
         else:
             # --- Filters row ---
             col_search, col_speaker_filter = st.columns([3, 2])
@@ -425,7 +403,7 @@ else:
                 # Badges
                 badges = []
                 if ref_count > 0:
-                    badges.append(f'<span style="background:#E8EAF6; color:#3F51B5; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600;">\U0001f4d6 {ref_count} ref{"s" if ref_count != 1 else ""}</span>')
+                    badges.append(f'<span style="background:#EDEBFA; color:#5B4FC4; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600;">\U0001f4d6 {ref_count} ref{"s" if ref_count != 1 else ""}</span>')
                 if takeaway_count > 0:
                     badges.append(f'<span style="background:#E8F5E9; color:#2E7D32; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600;">\u2705 {takeaway_count} takeaway{"s" if takeaway_count != 1 else ""}</span>')
                 if note.get("learnings"):
@@ -440,25 +418,21 @@ else:
                         preview += "..."
 
                 st.markdown(f"""
-                <div style="background:linear-gradient(135deg, #FEFEFE, #FFF9F0);
-                            border:1px solid #E8DCC8; border-radius:12px;
-                            padding:18px 22px; margin:10px 0;
-                            box-shadow:0 1px 4px rgba(0,0,0,0.04);
-                            transition: box-shadow 0.2s;">
+                <div class="sermon-card">
                     <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                         <div>
-                            <div style="font-size:18px; font-weight:600; color:#4A3728;">
+                            <div style="font-family:'DM Serif Display',Georgia,serif; font-size:18px; color:#2A2438;">
                                 {note['title']}
                             </div>
-                            <div style="font-size:14px; color:#7B68EE; font-weight:500; margin-top:2px;">
+                            <div style="font-size:14px; color:#5B4FC4; font-weight:500; margin-top:2px;">
                                 {note['speaker']}
                             </div>
                         </div>
-                        <div style="font-size:13px; color:#aaa; white-space:nowrap;">
+                        <div style="font-size:13px; color:#9E96AB; white-space:nowrap;">
                             {note['sermon_date']}
                         </div>
                     </div>
-                    {"<div style='font-size:14px; color:#777; margin-top:8px; line-height:1.5;'>" + preview + "</div>" if preview else ""}
+                    {"<div style='font-size:14px; color:#6B6580; margin-top:8px; line-height:1.5;'>" + preview + "</div>" if preview else ""}
                     <div style="margin-top:10px;">
                         {badges_html}
                     </div>

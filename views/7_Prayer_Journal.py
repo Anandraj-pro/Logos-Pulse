@@ -2,132 +2,22 @@ import streamlit as st
 import json
 from modules import db
 from modules.scripture_lookup import parse_references, render_reference_with_text
+from modules.styles import inject_styles, page_header, section_label, empty_state, spacer
+from modules.auth import require_login, require_password_changed
+
+require_login()
+require_password_changed()
 
 db.init_db()
 
-# ==================== SHARED CSS ====================
-st.markdown("""
-<style>
-    .pj-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 16px;
-        padding: 28px 24px;
-        margin-bottom: 20px;
-        color: white;
-    }
-    .pj-header-title {
-        font-size: 28px;
-        font-weight: 700;
-    }
-    .pj-header-sub {
-        font-size: 14px;
-        color: rgba(255,255,255,0.7);
-        margin-top: 4px;
-    }
-    .cat-card {
-        border-radius: 14px;
-        padding: 18px;
-        text-align: center;
-        cursor: pointer;
-        transition: transform 0.15s, box-shadow 0.15s;
-        border: 2px solid transparent;
-    }
-    .cat-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    }
-    .cat-card-active {
-        border: 2px solid currentColor;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    .cat-icon { font-size: 28px; margin-bottom: 4px; }
-    .cat-name { font-size: 13px; font-weight: 600; }
-    .cat-count { font-size: 11px; opacity: 0.7; }
-    .wizard-step {
-        background: white;
-        border: 1px solid #F0EBF8;
-        border-radius: 14px;
-        padding: 20px 24px;
-        margin-bottom: 16px;
-        box-shadow: 0 1px 6px rgba(0,0,0,0.03);
-    }
-    .wizard-step-num {
-        display: inline-block;
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
-        text-align: center;
-        line-height: 28px;
-        font-size: 14px;
-        font-weight: 700;
-        color: white;
-        margin-right: 10px;
-    }
-    .wizard-step-title {
-        font-size: 16px;
-        font-weight: 600;
-        color: #2C2C2C;
-        display: inline;
-    }
-    .wizard-step-desc {
-        font-size: 13px;
-        color: #999;
-        margin: 4px 0 12px 38px;
-    }
-    .prayer-card {
-        background: white;
-        border: 1px solid #F0EBF8;
-        border-radius: 14px;
-        padding: 18px 22px;
-        margin-bottom: 12px;
-        box-shadow: 0 1px 6px rgba(0,0,0,0.03);
-    }
-    .prayer-title-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-    .prayer-name {
-        font-size: 16px;
-        font-weight: 600;
-        color: #2C2C2C;
-    }
-    .status-badge {
-        display: inline-block;
-        padding: 3px 10px;
-        border-radius: 12px;
-        font-size: 11px;
-        font-weight: 600;
-    }
-    .scripture-block {
-        background: #FFF9F0;
-        border-left: 3px solid;
-        padding: 10px 14px;
-        margin: 6px 0;
-        border-radius: 6px;
-        font-family: Georgia, serif;
-        font-size: 14px;
-        line-height: 1.7;
-        color: #3C2F1E;
-    }
-    .confession-block {
-        background: #E8F5E9;
-        border-radius: 10px;
-        padding: 12px 16px;
-        font-weight: 500;
-        color: #2E7D32;
-        line-height: 1.7;
-    }
-    .declaration-block {
-        background: #FFF3E0;
-        border-radius: 10px;
-        padding: 12px 16px;
-        font-weight: 600;
-        color: #E65100;
-        line-height: 1.7;
-    }
-</style>
-""", unsafe_allow_html=True)
+inject_styles()
+
+
+def hex_to_rgba(hex_color, alpha):
+    h = hex_color.lstrip("#")
+    r, g, b = int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
+    return f"rgba({r},{g},{b},{alpha})"
+
 
 # ==================== HEADER ====================
 categories = db.get_prayer_categories()
@@ -135,15 +25,9 @@ total_prayers = 0
 for cat in categories:
     total_prayers += len(db.get_prayers_by_category(cat["id"]))
 
-st.markdown(f"""
-<div class="pj-header">
-    <div class="pj-header-title">\U0001f64f Prayer Journal</div>
-    <div class="pj-header-sub">{total_prayers} prayers across {len(categories)} categories</div>
-</div>
-""", unsafe_allow_html=True)
+page_header("\U0001f64f", "Prayer Journal", f"{total_prayers} prayers across {len(categories)} categories")
 
 # ==================== CATEGORY SELECTOR ====================
-# Build category cards
 cat_counts = {}
 for cat in categories:
     prayers = db.get_prayers_by_category(cat["id"])
@@ -159,11 +43,11 @@ for i, cat in enumerate(categories):
     with cols[i]:
         count = cat_counts.get(cat["id"], 0)
         is_active = st.session_state.get("pj_category") == cat["id"]
-        color = cat.get("color", "#7B68EE")
+        color = cat.get("color", "#5B4FC4")
         active_class = "cat-card-active" if is_active else ""
 
         st.markdown(f"""
-        <div class="cat-card {active_class}" style="background:{color}10; color:{color};">
+        <div class="cat-card {active_class}" style="background:{hex_to_rgba(color, 0.06)}; color:{color};">
             <div class="cat-icon">{cat['icon']}</div>
             <div class="cat-name">{cat['name']}</div>
             <div class="cat-count">{count} prayer{"s" if count != 1 else ""}</div>
@@ -177,7 +61,7 @@ for i, cat in enumerate(categories):
 # New category button
 with cols[-1]:
     st.markdown("""
-    <div class="cat-card" style="background:#F5F5F5; color:#999;">
+    <div class="cat-card" style="background:#F5F5F5; color:#9E96AB;">
         <div class="cat-icon">+</div>
         <div class="cat-name">New</div>
         <div class="cat-count">Category</div>
@@ -187,13 +71,13 @@ with cols[-1]:
         st.session_state["pj_category"] = "new"
         st.rerun()
 
-st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
+spacer(12)
 
 # ==================== NEW CATEGORY ====================
 if st.session_state.get("pj_category") == "new":
-    st.markdown("""
+    st.markdown(f"""
     <div class="wizard-step">
-        <span class="wizard-step-num" style="background:#667eea;">+</span>
+        <span class="wizard-step-num" style="background:#5B4FC4;">+</span>
         <span class="wizard-step-title">Create New Category</span>
     </div>
     """, unsafe_allow_html=True)
@@ -204,8 +88,8 @@ if st.session_state.get("pj_category") == "new":
         with col1:
             cat_icon = st.text_input("Emoji Icon", value="\U0001f4d6", max_chars=2)
         with col2:
-            cat_colors = {"Purple": "#7B68EE", "Green": "#4CAF50", "Pink": "#E91E63",
-                          "Orange": "#FF9800", "Blue": "#2196F3", "Teal": "#009688"}
+            cat_colors = {"Purple": "#5B4FC4", "Green": "#3A8F5C", "Pink": "#C44B5B",
+                          "Orange": "#D4853A", "Blue": "#2196F3", "Teal": "#009688"}
             cat_color = st.selectbox("Color", options=list(cat_colors.keys()))
 
         if st.form_submit_button("Create Category", type="primary", use_container_width=True):
@@ -226,7 +110,7 @@ elif st.session_state.get("pj_category"):
         st.session_state["pj_category"] = categories[0]["id"] if categories else None
         st.rerun()
     else:
-        cat_color = category.get("color", "#7B68EE")
+        cat_color = category.get("color", "#5B4FC4")
 
         tab_list, tab_new = st.tabs(["\U0001f4cb My Prayers", "\u2795 New Prayer"])
 
@@ -244,35 +128,23 @@ elif st.session_state.get("pj_category"):
                     label_visibility="collapsed",
                 )
             with col_count:
-                st.markdown(f"<div style='text-align:right; padding-top:8px; font-size:13px; color:#999;'>{len(prayers)} total</div>", unsafe_allow_html=True)
+                st.markdown(f"<div style='text-align:right; padding-top:8px; font-size:13px; color:#9E96AB;'>{len(prayers)} total</div>", unsafe_allow_html=True)
 
             if status_filter and status_filter != "All":
                 status_key = status_filter.lower().replace(" ", "_")
                 prayers = [p for p in prayers if p.get("status") == status_key]
 
             if not prayers:
-                st.markdown(f"""
-                <div style="text-align:center; padding:40px; color:#ccc;">
-                    <div style="font-size:48px; margin-bottom:8px;">{category['icon']}</div>
-                    <div style="font-size:16px; color:#999;">No prayers here yet</div>
-                    <div style="font-size:13px; color:#bbb;">Add your first prayer in the "New Prayer" tab</div>
-                </div>
-                """, unsafe_allow_html=True)
+                empty_state(category['icon'], "No prayers here yet", 'Add your first prayer in the "New Prayer" tab')
             else:
                 for prayer in prayers:
                     status = prayer.get("status", "ongoing")
                     status_config = {
-                        "ongoing": ("#FF9800", "#FFF3E0", "Ongoing"),
-                        "answered": ("#4CAF50", "#E8F5E9", "Answered"),
-                        "standing_in_faith": ("#7B68EE", "#F0EBF8", "Standing in Faith"),
+                        "ongoing": ("#D4853A", "#FFF3E0", "Ongoing"),
+                        "answered": ("#3A8F5C", "#E8F5E9", "Answered"),
+                        "standing_in_faith": ("#5B4FC4", "#EDEBFA", "Standing in Faith"),
                     }
                     s_color, s_bg, s_label = status_config.get(status, ("#888", "#F5F5F5", status))
-
-                    # Count scriptures
-                    ref_count = 0
-                    if prayer.get("scriptures"):
-                        refs = json.loads(prayer["scriptures"]) if isinstance(prayer["scriptures"], str) else prayer["scriptures"]
-                        ref_count = len(refs) if isinstance(refs, list) else 0
 
                     st.markdown(f"""
                     <div class="prayer-card">
@@ -287,8 +159,8 @@ elif st.session_state.get("pj_category"):
                         # Prayer text
                         if prayer.get("prayer_text"):
                             st.markdown(f"""
-                            <div style="background:#F5F0FF; border-radius:10px; padding:14px 18px;
-                                        font-style:italic; color:#4A3728; line-height:1.8; font-size:15px;">
+                            <div style="background:#EDEBFA; border-radius:10px; padding:14px 18px;
+                                        font-style:italic; color:#2A2438; line-height:1.8; font-size:15px;">
                                 {prayer['prayer_text'].replace(chr(10), '<br/>')}
                             </div>
                             """, unsafe_allow_html=True)
@@ -300,7 +172,7 @@ elif st.session_state.get("pj_category"):
                             ) else prayer["scriptures"]
                             if refs:
                                 st.markdown(f"""
-                                <div style="font-size:12px; color:{cat_color}; text-transform:uppercase;
+                                <div style="font-size:11px; color:{cat_color}; text-transform:uppercase;
                                             letter-spacing:1px; font-weight:600; margin:16px 0 8px 0;">
                                     Scriptures ({len(refs)})
                                 </div>
@@ -319,7 +191,7 @@ elif st.session_state.get("pj_category"):
                         # Confessions
                         if prayer.get("confessions"):
                             st.markdown("""
-                            <div style="font-size:12px; color:#2E7D32; text-transform:uppercase;
+                            <div style="font-size:11px; color:#2E7D32; text-transform:uppercase;
                                         letter-spacing:1px; font-weight:600; margin:16px 0 8px 0;">
                                 Confessions
                             </div>
@@ -333,7 +205,7 @@ elif st.session_state.get("pj_category"):
                         # Declarations
                         if prayer.get("declarations"):
                             st.markdown("""
-                            <div style="font-size:12px; color:#E65100; text-transform:uppercase;
+                            <div style="font-size:11px; color:#E65100; text-transform:uppercase;
                                         letter-spacing:1px; font-weight:600; margin:16px 0 8px 0;">
                                 Declarations
                             </div>
@@ -345,7 +217,7 @@ elif st.session_state.get("pj_category"):
                             """, unsafe_allow_html=True)
 
                         # Actions row
-                        st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
+                        spacer(12)
                         col_s, col_d = st.columns([3, 1])
                         with col_s:
                             new_status = st.selectbox(
@@ -405,11 +277,11 @@ elif st.session_state.get("pj_category"):
                     dot_style = f"background:{cat_color}; color:white;"
                     label_style = f"color:{cat_color}; font-weight:600;"
                 elif s_num == step:
-                    dot_style = f"background:{cat_color}; color:white; box-shadow:0 0 0 4px {cat_color}30;"
+                    dot_style = f"background:{cat_color}; color:white; box-shadow:0 0 0 4px {hex_to_rgba(cat_color, 0.2)};"
                     label_style = f"color:{cat_color}; font-weight:700;"
                 else:
-                    dot_style = "background:#E0E0E0; color:#999;"
-                    label_style = "color:#bbb;"
+                    dot_style = "background:#E0E0E0; color:#9E96AB;"
+                    label_style = "color:#C0B8CC;"
                 progress_html += f"""
                 <div style="text-align:center; flex:1;">
                     <div style="width:32px; height:32px; border-radius:50%; {dot_style}
@@ -587,12 +459,7 @@ elif st.session_state.get("pj_category"):
                 st.divider()
 
                 # Review summary
-                st.markdown(f"""
-                <div style="font-size:12px; color:#999; text-transform:uppercase;
-                            letter-spacing:1.5px; font-weight:600; margin-bottom:8px;">
-                    Review Your Prayer
-                </div>
-                """, unsafe_allow_html=True)
+                section_label("Review Your Prayer")
 
                 st.markdown(f"**Title:** {data.get('title', '')}")
                 if data.get("prayer_text"):
@@ -604,7 +471,7 @@ elif st.session_state.get("pj_category"):
                 if declarations:
                     st.markdown(f"**Declarations:** {declarations[:80]}...")
 
-                st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
+                spacer(12)
 
                 col1, col2 = st.columns([1, 2])
                 with col1:

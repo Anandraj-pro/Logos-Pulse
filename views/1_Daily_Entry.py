@@ -8,48 +8,15 @@ from modules.chapter_splitter import get_today_suggestion
 from modules.bible_data import get_book_names, get_chapter_count
 from modules.clipboard import copy_button
 from modules.bible_reader import fetch_chapter
+from modules.styles import inject_styles, page_header, section_label, spacer
+from modules.auth import require_login, require_password_changed
+
+require_login()
+require_password_changed()
 
 db.init_db()
 
-# ==================== CSS ====================
-st.markdown("""
-<style>
-    .de-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 16px;
-        padding: 24px;
-        margin-bottom: 20px;
-        color: white;
-    }
-    .de-title { font-size: 24px; font-weight: 700; }
-    .de-sub { font-size: 13px; color: rgba(255,255,255,0.7); margin-top: 4px; }
-    .section-label {
-        font-size: 12px; color: #999; text-transform: uppercase;
-        letter-spacing: 1.5px; font-weight: 600; margin: 16px 0 8px 0;
-    }
-    .report-card {
-        background: linear-gradient(135deg, #FFF9F0, #FFFEF8);
-        border: 1px solid #E8DCC8;
-        border-radius: 14px;
-        padding: 24px;
-        font-family: Georgia, serif;
-        font-size: 16px;
-        line-height: 1.8;
-        color: #3C2F1E;
-        white-space: pre-line;
-    }
-    .goal-banner {
-        background: linear-gradient(135deg, #E8EAF6, #F3E5F5);
-        border: 1px solid #D1C4E9;
-        border-radius: 12px;
-        padding: 12px 16px;
-        font-size: 14px;
-        color: #4527A0;
-        font-weight: 500;
-        margin-bottom: 12px;
-    }
-</style>
-""", unsafe_allow_html=True)
+inject_styles()
 
 settings = db.get_all_settings()
 default_prayer = int(settings.get("default_prayer_minutes", "60"))
@@ -58,13 +25,7 @@ omit_sermon = settings.get("omit_empty_sermon", "false") == "true"
 
 formatted_date = date.today().strftime("%A, %B %d")
 
-# Header
-st.markdown(f"""
-<div class="de-header">
-    <div class="de-title">\u270f\ufe0f Daily Entry</div>
-    <div class="de-sub">{formatted_date}</div>
-</div>
-""", unsafe_allow_html=True)
+page_header("\u270f\ufe0f", "Daily Entry", formatted_date)
 
 # Date selection
 entry_date = st.date_input("Date", value=date.today(), max_value=date.today(), label_visibility="collapsed")
@@ -128,8 +89,8 @@ with tab_read:
     # Chapter heading
     st.markdown(f"""
     <div style="text-align:center; padding:8px 0 4px 0;">
-        <span style="font-size:13px; color:#999; text-transform:uppercase; letter-spacing:2px;">{read_book}</span><br/>
-        <span style="font-size:26px; font-weight:700; color:#4A3728;">Chapter {read_chapter}</span>
+        <span style="font-size:11px; color:#9E96AB; text-transform:uppercase; letter-spacing:2px;">{read_book}</span><br/>
+        <span style="font-family:'DM Serif Display',Georgia,serif; font-size:26px; color:#2A2438;">Chapter {read_chapter}</span>
     </div>
     """, unsafe_allow_html=True)
 
@@ -150,7 +111,7 @@ with tab_read:
                 v_num = verse.get("verse", "")
                 v_text = verse.get("text", "").strip()
                 verses_html += (
-                    f'<span style="color:#667eea; font-weight:700; font-size:11px; '
+                    f'<span style="color:#5B4FC4; font-weight:700; font-size:11px; '
                     f'vertical-align:super; margin-right:2px;">{v_num}</span>'
                     f'<span>{v_text} </span>'
                 )
@@ -161,10 +122,10 @@ with tab_read:
         <div style="background:linear-gradient(135deg, #FFF9F0, #FFFEF8);
                     border:1px solid #E8DCC8; border-radius:14px;
                     padding:24px 22px; margin:8px 0;
-                    font-family:Georgia,'Times New Roman',serif;
+                    font-family:'DM Serif Display',Georgia,'Times New Roman',serif;
                     font-size:17px; line-height:1.9; color:#3C2F1E;
                     max-height:480px; overflow-y:auto;
-                    box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+                    box-shadow:0 2px 8px rgba(0,0,0,0.03);">
             {verses_html}
         </div>
         """, unsafe_allow_html=True)
@@ -172,7 +133,7 @@ with tab_read:
         st.warning("Could not load chapter. Check your internet connection.")
 
     # Bottom bar
-    st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+    spacer(8)
     is_completed = read_chapter in completed
     col_prev, col_mark, col_next = st.columns([1, 2, 1])
 
@@ -205,7 +166,7 @@ with tab_read:
 with tab_log:
     with st.form("daily_entry_form"):
         # Prayer
-        st.markdown('<div class="section-label">\U0001f64f Prayer</div>', unsafe_allow_html=True)
+        section_label("\U0001f64f Prayer")
         prayer_options = list(range(15, 195, 15))
         default_idx = (
             prayer_options.index(existing["prayer_minutes"])
@@ -215,7 +176,7 @@ with tab_log:
         prayer_minutes = st.select_slider("Duration (minutes)", options=prayer_options, value=prayer_options[default_idx])
 
         # Bible Reading
-        st.markdown('<div class="section-label">\U0001f4d6 Bible Reading</div>', unsafe_allow_html=True)
+        section_label("\U0001f4d6 Bible Reading")
 
         read_completed = st.session_state.get("completed_chapters", set())
         read_completed_book = st.session_state.get("completed_book")
@@ -248,7 +209,7 @@ with tab_log:
         chapters = st.multiselect("Chapters read", options=list(range(1, max_chapters + 1)), default=default_chapters)
 
         # Sermon
-        st.markdown('<div class="section-label">\U0001f3a7 Listening to the Word (optional)</div>', unsafe_allow_html=True)
+        section_label("\U0001f3a7 Listening to the Word (optional)")
         sermon_title = st.text_input("Sermon Title", value=existing.get("sermon_title", "") if existing else "")
         sermon_speaker = st.text_input("Speaker", value=existing.get("sermon_speaker", "") if existing else "Ps. Samuel Patta")
         youtube_link = st.text_input("YouTube Link", value=existing.get("youtube_link", "") if existing else "")
@@ -288,15 +249,10 @@ with tab_report:
             omit_empty_sermon=omit_sermon,
         )
 
-        st.markdown(f"""
-        <div style="font-size:12px; color:#999; text-transform:uppercase;
-                    letter-spacing:1.5px; font-weight:600; margin-bottom:12px;">
-            WhatsApp Report Preview
-        </div>
-        <div class="report-card">{message}</div>
-        """, unsafe_allow_html=True)
+        section_label("WhatsApp Report Preview")
+        st.markdown(f'<div class="report-card">{message}</div>', unsafe_allow_html=True)
 
-        st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
+        spacer()
         copy_button(message, "\U0001f4cb Copy to Clipboard")
         db.mark_report_copied(entry_date_str)
 
@@ -317,9 +273,9 @@ with tab_report:
         """, unsafe_allow_html=True)
     else:
         st.markdown("""
-        <div style="text-align:center; padding:40px; color:#ccc;">
-            <div style="font-size:48px; margin-bottom:8px;">\U0001f4cb</div>
-            <div style="font-size:16px; color:#999;">No entry for this date yet</div>
-            <div style="font-size:13px; color:#bbb;">Fill in the "Log Entry" tab first</div>
+        <div class="empty-state">
+            <div class="empty-state-icon">\U0001f4cb</div>
+            <div class="empty-state-title">No entry for this date yet</div>
+            <div class="empty-state-sub">Fill in the "Log Entry" tab first</div>
         </div>
         """, unsafe_allow_html=True)

@@ -1,46 +1,22 @@
 import streamlit as st
 import json
 from modules import db
+from modules.styles import inject_styles, page_header, section_label
+from modules.auth import require_login, require_password_changed
+
+require_login()
+require_password_changed()
 
 db.init_db()
 
-st.markdown("""
-<style>
-    .settings-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 16px;
-        padding: 24px;
-        margin-bottom: 20px;
-        color: white;
-    }
-    .settings-title { font-size: 24px; font-weight: 700; }
-    .settings-sub { font-size: 13px; color: rgba(255,255,255,0.7); margin-top: 4px; }
-    .settings-section {
-        background: white;
-        border: 1px solid #F0EBF8;
-        border-radius: 14px;
-        padding: 20px 24px;
-        margin-bottom: 16px;
-        box-shadow: 0 1px 6px rgba(0,0,0,0.03);
-    }
-    .section-label {
-        font-size: 12px; color: #999; text-transform: uppercase;
-        letter-spacing: 1.5px; font-weight: 600; margin-bottom: 12px;
-    }
-</style>
-""", unsafe_allow_html=True)
+inject_styles()
 
-st.markdown("""
-<div class="settings-header">
-    <div class="settings-title">\u2699\ufe0f Settings</div>
-    <div class="settings-sub">Configure your app preferences</div>
-</div>
-""", unsafe_allow_html=True)
+page_header("\u2699\ufe0f", "Settings", "Configure your app preferences")
 
 settings = db.get_all_settings()
 
 # --- Profile Settings ---
-st.markdown('<div class="section-label">\U0001f464 Profile</div>', unsafe_allow_html=True)
+section_label("\U0001f464 Profile")
 
 with st.form("settings_form"):
     col1, col2 = st.columns(2)
@@ -80,7 +56,7 @@ with st.form("settings_form"):
         st.rerun()
 
 # --- Data Management ---
-st.markdown('<div class="section-label">\U0001f4be Data Management</div>', unsafe_allow_html=True)
+section_label("\U0001f4be Data Management")
 
 col1, col2 = st.columns(2)
 

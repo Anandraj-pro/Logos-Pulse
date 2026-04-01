@@ -5,42 +5,17 @@ from modules import db
 from modules.bible_data import get_book_names, get_chapter_count
 from modules.chapter_splitter import split_chapters
 from modules.utils import get_next_monday
+from modules.styles import inject_styles, page_header, section_label, empty_state, spacer
+from modules.auth import require_login, require_password_changed
+
+require_login()
+require_password_changed()
 
 db.init_db()
 
-st.markdown("""
-<style>
-    .wa-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 16px;
-        padding: 24px;
-        margin-bottom: 20px;
-        color: white;
-    }
-    .wa-title { font-size: 24px; font-weight: 700; }
-    .wa-sub { font-size: 13px; color: rgba(255,255,255,0.7); margin-top: 4px; }
-    .day-row {
-        display: flex;
-        align-items: center;
-        padding: 12px 16px;
-        margin: 4px 0;
-        border-radius: 10px;
-        font-size: 15px;
-    }
-    .day-done { background: #E8F5E9; }
-    .day-pending { background: #FFF3E0; }
-    .day-name { font-weight: 600; width: 100px; }
-    .day-chapters { flex: 1; color: #555; }
-    .day-status { font-size: 18px; }
-</style>
-""", unsafe_allow_html=True)
+inject_styles()
 
-st.markdown("""
-<div class="wa-header">
-    <div class="wa-title">\U0001f4d6 Weekly Assignment</div>
-    <div class="wa-sub">Bible reading goals from your pastor</div>
-</div>
-""", unsafe_allow_html=True)
+page_header("\U0001f4d6", "Weekly Assignment", "Bible reading goals from your pastor")
 
 tab1, tab2, tab3 = st.tabs(["\U0001f4ca Current", "\u2795 New Assignment", "\U0001f4c1 History"])
 
@@ -69,10 +44,10 @@ with tab1:
         # Book title
         st.markdown(f"""
         <div style="text-align:center; padding:8px 0;">
-            <span style="font-size:13px; color:#999; text-transform:uppercase; letter-spacing:2px;">
+            <span style="font-size:11px; color:#9E96AB; text-transform:uppercase; letter-spacing:2px;">
                 {assignment['week_start_date']} \u2014 {assignment['week_end_date']}
             </span><br/>
-            <span style="font-size:28px; font-weight:700; color:#4A3728;">
+            <span style="font-family:'DM Serif Display',Georgia,serif; font-size:28px; color:#2A2438;">
                 {assignment['book']} {assignment['start_chapter']}\u2013{assignment['end_chapter']}
             </span>
         </div>
@@ -81,11 +56,10 @@ with tab1:
         # Progress bar
         st.markdown(f"""
         <div style="margin:12px 0;">
-            <div style="background:#F0EBF8; border-radius:8px; height:12px; overflow:hidden;">
-                <div style="width:{progress_pct}%; height:100%; border-radius:8px;
-                            background:linear-gradient(90deg, #667eea, #764ba2);"></div>
+            <div class="progress-bar-bg" style="height:12px;">
+                <div class="progress-bar-fill" style="width:{progress_pct}%;"></div>
             </div>
-            <div style="text-align:center; font-size:13px; color:#999; margin-top:6px;">
+            <div style="text-align:center; font-size:13px; color:#9E96AB; margin-top:6px;">
                 {done_count}/{total} chapters ({progress_pct}%)
             </div>
         </div>
@@ -116,13 +90,7 @@ with tab1:
             st.balloons()
             st.success("Assignment completed! Praise the Lord!")
     else:
-        st.markdown("""
-        <div style="text-align:center; padding:40px; color:#ccc;">
-            <div style="font-size:48px; margin-bottom:8px;">\U0001f4d6</div>
-            <div style="font-size:16px; color:#999;">No active assignment</div>
-            <div style="font-size:13px; color:#bbb;">Create one in the "New Assignment" tab</div>
-        </div>
-        """, unsafe_allow_html=True)
+        empty_state("\U0001f4d6", "No active assignment", 'Create one in the "New Assignment" tab')
 
 # ==================== NEW ====================
 with tab2:
@@ -155,12 +123,7 @@ with tab2:
             st.session_state["preview_week_start"] = week_start
 
     if "preview_breakdown" in st.session_state:
-        st.markdown("""
-        <div style="font-size:12px; color:#999; text-transform:uppercase;
-                    letter-spacing:1.5px; font-weight:600; margin:16px 0 8px 0;">
-            Daily Breakdown Preview
-        </div>
-        """, unsafe_allow_html=True)
+        section_label("Daily Breakdown Preview")
 
         breakdown = st.session_state["preview_breakdown"]
         day_labels = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
@@ -177,7 +140,7 @@ with tab2:
                 </div>
                 """, unsafe_allow_html=True)
 
-        st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
+        spacer(12)
         if st.button("Confirm Assignment", type="primary", use_container_width=True):
             ws = st.session_state["preview_week_start"]
             week_end = ws + timedelta(days=5)
@@ -198,30 +161,23 @@ with tab2:
 with tab3:
     history = db.get_assignment_history()
     if not history:
-        st.markdown("""
-        <div style="text-align:center; padding:40px; color:#ccc;">
-            <div style="font-size:48px; margin-bottom:8px;">\U0001f4c1</div>
-            <div style="font-size:16px; color:#999;">No history yet</div>
-        </div>
-        """, unsafe_allow_html=True)
+        empty_state("\U0001f4c1", "No history yet")
     else:
         for a in history:
             status_config = {
-                "COMPLETED": ("#4CAF50", "#E8F5E9", "\u2705"),
-                "ACTIVE": ("#FF9800", "#FFF3E0", "\U0001f7e1"),
+                "COMPLETED": ("#3A8F5C", "#E8F5E9", "\u2705"),
+                "ACTIVE": ("#D4853A", "#FFF3E0", "\U0001f7e1"),
             }
             s_color, s_bg, s_icon = status_config.get(a["status"], ("#888", "#F5F5F5", "\u26aa"))
 
             st.markdown(f"""
-            <div style="background:white; border:1px solid #F0EBF8; border-radius:12px;
-                        padding:14px 18px; margin-bottom:8px;
-                        box-shadow:0 1px 4px rgba(0,0,0,0.02);">
+            <div class="entry-card">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                     <div>
-                        <span style="font-weight:600; color:#4A3728; font-size:15px;">
+                        <span style="font-family:'DM Serif Display',Georgia,serif; font-weight:400; color:#2A2438; font-size:15px;">
                             {s_icon} {a['book']} {a['start_chapter']}\u2013{a['end_chapter']}
                         </span>
-                        <span style="font-size:12px; color:#999; margin-left:8px;">
+                        <span style="font-size:12px; color:#9E96AB; margin-left:8px;">
                             {a['total_chapters']} chapters
                         </span>
                     </div>
@@ -232,7 +188,7 @@ with tab3:
                         </span>
                     </div>
                 </div>
-                <div style="font-size:12px; color:#aaa; margin-top:4px;">
+                <div style="font-size:12px; color:#9E96AB; margin-top:4px;">
                     Week of {a['week_start_date']}
                 </div>
             </div>

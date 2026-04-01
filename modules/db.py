@@ -1,128 +1,70 @@
-import sqlite3
-import json
-import os
-from contextlib import contextmanager
-from typing import Optional
-from datetime import datetime
-
-DB_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "tracker.db")
-
-SCHEMA_SQL = """
-CREATE TABLE IF NOT EXISTS daily_entries (
-    id              INTEGER PRIMARY KEY AUTOINCREMENT,
-    date            TEXT NOT NULL UNIQUE,
-    prayer_minutes  INTEGER NOT NULL DEFAULT 60,
-    bible_book      TEXT,
-    chapters_read   TEXT,
-    chapters_display TEXT,
-    sermon_title    TEXT,
-    sermon_speaker  TEXT,
-    youtube_link    TEXT,
-    report_copied   INTEGER NOT NULL DEFAULT 0,
-    created_at      TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at      TEXT NOT NULL DEFAULT (datetime('now'))
-);
-
-CREATE INDEX IF NOT EXISTS idx_daily_entries_date ON daily_entries(date);
-
-CREATE TABLE IF NOT EXISTS weekly_assignments (
-    id              INTEGER PRIMARY KEY AUTOINCREMENT,
-    book            TEXT NOT NULL,
-    start_chapter   INTEGER NOT NULL,
-    end_chapter     INTEGER NOT NULL,
-    total_chapters  INTEGER NOT NULL,
-    week_start_date TEXT NOT NULL,
-    week_end_date   TEXT NOT NULL,
-    daily_breakdown TEXT NOT NULL,
-    status          TEXT NOT NULL DEFAULT 'ACTIVE',
-    created_at      TEXT NOT NULL DEFAULT (datetime('now'))
-);
-
-CREATE INDEX IF NOT EXISTS idx_weekly_assignments_dates
-    ON weekly_assignments(week_start_date, week_end_date);
-CREATE INDEX IF NOT EXISTS idx_weekly_assignments_status
-    ON weekly_assignments(status);
-
-CREATE TABLE IF NOT EXISTS app_settings (
-    key             TEXT PRIMARY KEY,
-    value           TEXT NOT NULL
-);
-
-INSERT OR IGNORE INTO app_settings (key, value) VALUES ('greeting_name', 'Anna');
-INSERT OR IGNORE INTO app_settings (key, value) VALUES ('pastor_name', 'Ps. Deepak');
-INSERT OR IGNORE INTO app_settings (key, value) VALUES ('default_prayer_minutes', '60');
-INSERT OR IGNORE INTO app_settings (key, value) VALUES ('omit_empty_sermon', 'false');
-
--- Sermon Notes
-CREATE TABLE IF NOT EXISTS sermon_notes (
-    id                  INTEGER PRIMARY KEY AUTOINCREMENT,
-    title               TEXT NOT NULL,
-    speaker             TEXT NOT NULL,
-    sermon_date         TEXT NOT NULL,
-    notes_text          TEXT,
-    bible_references    TEXT,
-    learnings           TEXT,
-    key_takeaways       TEXT,
-    additional_thoughts TEXT,
-    created_at          TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at          TEXT NOT NULL DEFAULT (datetime('now'))
-);
-
-CREATE INDEX IF NOT EXISTS idx_sermon_notes_date ON sermon_notes(sermon_date);
-
--- Prayer Journal Categories
-CREATE TABLE IF NOT EXISTS prayer_categories (
-    id          INTEGER PRIMARY KEY AUTOINCREMENT,
-    name        TEXT NOT NULL UNIQUE,
-    icon        TEXT DEFAULT '',
-    color       TEXT DEFAULT '#7B68EE',
-    created_at  TEXT NOT NULL DEFAULT (datetime('now'))
-);
-
-INSERT OR IGNORE INTO prayer_categories (name, icon, color) VALUES ('Personal', '\U0001f64f', '#7B68EE');
-INSERT OR IGNORE INTO prayer_categories (name, icon, color) VALUES ('Finance & Breakthroughs', '\U0001f4b0', '#4CAF50');
-INSERT OR IGNORE INTO prayer_categories (name, icon, color) VALUES ('Spouse', '\u2764\ufe0f', '#E91E63');
-INSERT OR IGNORE INTO prayer_categories (name, icon, color) VALUES ('Job & Career', '\U0001f4bc', '#FF9800');
-
--- Prayer Entries
-CREATE TABLE IF NOT EXISTS prayer_entries (
-    id              INTEGER PRIMARY KEY AUTOINCREMENT,
-    category_id     INTEGER NOT NULL,
-    title           TEXT NOT NULL,
-    prayer_text     TEXT,
-    scriptures      TEXT,
-    confessions     TEXT,
-    declarations    TEXT,
-    status          TEXT NOT NULL DEFAULT 'ongoing',
-    created_at      TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at      TEXT NOT NULL DEFAULT (datetime('now')),
-    FOREIGN KEY (category_id) REFERENCES prayer_categories(id)
-);
-
-CREATE INDEX IF NOT EXISTS idx_prayer_entries_category ON prayer_entries(category_id);
-CREATE INDEX IF NOT EXISTS idx_prayer_entries_status ON prayer_entries(status);
+"""
+Database module for Logos Pulse — Supabase edition.
+All functions use the authenticated user's session via RLS.
+Function signatures are preserved from the SQLite version for page compatibility.
 """
 
+import json
+import streamlit as st
+from typing import Optional
+from modules.supabase_client import get_supabase_client, get_admin_client
 
-@contextmanager
-def get_connection():
-    os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA journal_mode=WAL")
+
+def _uid() -> str:
+    """Get the current authenticated user's ID."""
+    return st.session_state.get("user_id", "")
+
+
+def _client():
+    """Get authenticated Supabase client with user's session.
+    Handles token refresh if the access token has expired.
+    """
+    client = get_supabase_client()
+    token = st.session_state.get("access_token")
+    refresh = st.session_state.get("refresh_token")
+    if token and refresh:
+        try:
+            client.auth.set_session(token, refresh)
+        except Exception:
+            # Token may have expired — try refreshing
+            try:
+                response = client.auth.refresh_session(refresh)
+                if response and response.session:
+                    st.session_state["access_token"] = response.session.access_token
+                    st.session_state["refresh_token"] = response.session.refresh_token
+                    client.auth.set_session(
+                        response.session.access_token,
+                        response.session.refresh_token,
+                    )
+                else:
+                    # Refresh failed — user needs to re-login
+                    st.session_state["authenticated"] = False
+            except Exception:
+                st.session_state["authenticated"] = False
+    return client
+
+
+def _safe_execute(operation, fallback=None):
+    """Wrap a Supabase operation with error handling."""
     try:
-        yield conn
-        conn.commit()
-    except Exception:
-        conn.rollback()
-        raise
-    finally:
-        conn.close()
+        return operation()
+    except Exception as e:
+        error_msg = str(e)
+        if "JWT" in error_msg or "token" in error_msg.lower() or "401" in error_msg:
+            st.session_state["authenticated"] = False
+            st.error("Your session has expired. Please log in again.")
+            st.stop()
+        elif "violates row-level security" in error_msg.lower():
+            st.error("You don't have permission to perform this action.")
+            return fallback
+        else:
+            st.error(f"Something went wrong. Please try again.")
+            return fallback
 
 
 def init_db():
-    with get_connection() as conn:
-        conn.executescript(SCHEMA_SQL)
+    """No-op for Supabase — schema is managed via migrations."""
+    pass
 
 
 # --- Daily Entries ---
@@ -131,65 +73,82 @@ def upsert_daily_entry(entry_date: str, prayer_minutes: int, bible_book: str,
                        chapters_read: list[int], chapters_display: str,
                        sermon_title: str, sermon_speaker: str,
                        youtube_link: str) -> dict:
-    now = datetime.now().isoformat()
-    chapters_json = json.dumps(chapters_read)
-    with get_connection() as conn:
-        existing = conn.execute(
-            "SELECT id FROM daily_entries WHERE date = ?", (entry_date,)
-        ).fetchone()
-        if existing:
-            conn.execute("""
-                UPDATE daily_entries SET
-                    prayer_minutes = ?, bible_book = ?, chapters_read = ?,
-                    chapters_display = ?, sermon_title = ?, sermon_speaker = ?,
-                    youtube_link = ?, updated_at = ?
-                WHERE date = ?
-            """, (prayer_minutes, bible_book, chapters_json, chapters_display,
-                  sermon_title, sermon_speaker, youtube_link, now, entry_date))
+    user_id = _uid()
+    client = _client()
+
+    row_data = {
+        "user_id": user_id,
+        "date": entry_date,
+        "prayer_minutes": prayer_minutes,
+        "bible_book": bible_book,
+        "chapters_read": chapters_read,
+        "chapters_display": chapters_display,
+        "sermon_title": sermon_title,
+        "sermon_speaker": sermon_speaker,
+        "youtube_link": youtube_link,
+    }
+
+    def _do():
+        existing = client.table("daily_entries") \
+            .select("id") \
+            .eq("user_id", user_id) \
+            .eq("date", entry_date) \
+            .execute()
+
+        if existing.data:
+            result = client.table("daily_entries") \
+                .update(row_data) \
+                .eq("user_id", user_id) \
+                .eq("date", entry_date) \
+                .execute()
         else:
-            conn.execute("""
-                INSERT INTO daily_entries
-                    (date, prayer_minutes, bible_book, chapters_read, chapters_display,
-                     sermon_title, sermon_speaker, youtube_link, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (entry_date, prayer_minutes, bible_book, chapters_json,
-                  chapters_display, sermon_title, sermon_speaker, youtube_link, now, now))
-        row = conn.execute(
-            "SELECT * FROM daily_entries WHERE date = ?", (entry_date,)
-        ).fetchone()
-        return dict(row)
+            result = client.table("daily_entries") \
+                .insert(row_data) \
+                .execute()
+        return result.data[0] if result.data else row_data
+
+    return _safe_execute(_do, fallback=row_data)
 
 
 def get_entry_by_date(entry_date: str) -> Optional[dict]:
-    with get_connection() as conn:
-        row = conn.execute(
-            "SELECT * FROM daily_entries WHERE date = ?", (entry_date,)
-        ).fetchone()
-        return dict(row) if row else None
+    client = _client()
+    result = client.table("daily_entries") \
+        .select("*") \
+        .eq("user_id", _uid()) \
+        .eq("date", entry_date) \
+        .execute()
+    return result.data[0] if result.data else None
 
 
 def get_entries_in_range(start_date: str, end_date: str) -> list[dict]:
-    with get_connection() as conn:
-        rows = conn.execute(
-            "SELECT * FROM daily_entries WHERE date BETWEEN ? AND ? ORDER BY date DESC",
-            (start_date, end_date)
-        ).fetchall()
-        return [dict(r) for r in rows]
+    client = _client()
+    result = client.table("daily_entries") \
+        .select("*") \
+        .eq("user_id", _uid()) \
+        .gte("date", start_date) \
+        .lte("date", end_date) \
+        .order("date", desc=True) \
+        .execute()
+    return result.data or []
 
 
 def get_all_entry_dates() -> list[str]:
-    with get_connection() as conn:
-        rows = conn.execute(
-            "SELECT date FROM daily_entries ORDER BY date"
-        ).fetchall()
-        return [r["date"] for r in rows]
+    client = _client()
+    result = client.table("daily_entries") \
+        .select("date") \
+        .eq("user_id", _uid()) \
+        .order("date") \
+        .execute()
+    return [r["date"] for r in (result.data or [])]
 
 
 def mark_report_copied(entry_date: str):
-    with get_connection() as conn:
-        conn.execute(
-            "UPDATE daily_entries SET report_copied = 1 WHERE date = ?", (entry_date,)
-        )
+    client = _client()
+    client.table("daily_entries") \
+        .update({"report_copied": True}) \
+        .eq("user_id", _uid()) \
+        .eq("date", entry_date) \
+        .execute()
 
 
 # --- Weekly Assignments ---
@@ -197,71 +156,104 @@ def mark_report_copied(entry_date: str):
 def create_assignment(book: str, start_chapter: int, end_chapter: int,
                       week_start: str, week_end: str,
                       daily_breakdown: dict) -> dict:
-    with get_connection() as conn:
-        conn.execute(
-            "UPDATE weekly_assignments SET status = 'COMPLETED' WHERE status = 'ACTIVE'"
-        )
-        conn.execute("""
-            INSERT INTO weekly_assignments
-                (book, start_chapter, end_chapter, total_chapters,
-                 week_start_date, week_end_date, daily_breakdown, status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, 'ACTIVE')
-        """, (book, start_chapter, end_chapter,
-              end_chapter - start_chapter + 1,
-              week_start, week_end, json.dumps(daily_breakdown)))
-        row = conn.execute(
-            "SELECT * FROM weekly_assignments WHERE status = 'ACTIVE' ORDER BY id DESC LIMIT 1"
-        ).fetchone()
-        return dict(row)
+    user_id = _uid()
+    client = _client()
+
+    # Mark existing active assignments as completed
+    client.table("weekly_assignments") \
+        .update({"status": "COMPLETED"}) \
+        .eq("user_id", user_id) \
+        .eq("status", "ACTIVE") \
+        .execute()
+
+    result = client.table("weekly_assignments").insert({
+        "user_id": user_id,
+        "book": book,
+        "start_chapter": start_chapter,
+        "end_chapter": end_chapter,
+        "total_chapters": end_chapter - start_chapter + 1,
+        "week_start_date": week_start,
+        "week_end_date": week_end,
+        "daily_breakdown": daily_breakdown,
+        "status": "ACTIVE",
+    }).execute()
+
+    return result.data[0] if result.data else {}
 
 
 def get_active_assignment() -> Optional[dict]:
-    with get_connection() as conn:
-        row = conn.execute(
-            "SELECT * FROM weekly_assignments WHERE status = 'ACTIVE' ORDER BY id DESC LIMIT 1"
-        ).fetchone()
-        return dict(row) if row else None
+    client = _client()
+    result = client.table("weekly_assignments") \
+        .select("*") \
+        .eq("user_id", _uid()) \
+        .eq("status", "ACTIVE") \
+        .order("id", desc=True) \
+        .limit(1) \
+        .execute()
+    return result.data[0] if result.data else None
 
 
 def get_assignment_history() -> list[dict]:
-    with get_connection() as conn:
-        rows = conn.execute(
-            "SELECT * FROM weekly_assignments ORDER BY id DESC"
-        ).fetchall()
-        return [dict(r) for r in rows]
+    client = _client()
+    result = client.table("weekly_assignments") \
+        .select("*") \
+        .eq("user_id", _uid()) \
+        .order("id", desc=True) \
+        .execute()
+    return result.data or []
 
 
 # --- Settings ---
 
 def get_setting(key: str) -> Optional[str]:
-    with get_connection() as conn:
-        row = conn.execute(
-            "SELECT value FROM app_settings WHERE key = ?", (key,)
-        ).fetchone()
-        return row["value"] if row else None
+    client = _client()
+    result = client.table("app_settings") \
+        .select("value") \
+        .eq("user_id", _uid()) \
+        .eq("key", key) \
+        .execute()
+    return result.data[0]["value"] if result.data else None
 
 
 def get_all_settings() -> dict:
-    with get_connection() as conn:
-        rows = conn.execute("SELECT key, value FROM app_settings").fetchall()
-        return {r["key"]: r["value"] for r in rows}
+    client = _client()
+    uid = _uid()
+    if not uid:
+        return {}
+    result = client.table("app_settings") \
+        .select("key, value") \
+        .eq("user_id", uid) \
+        .execute()
+    return {r["key"]: r["value"] for r in (result.data or [])}
 
 
 def save_setting(key: str, value: str):
-    with get_connection() as conn:
-        conn.execute(
-            "INSERT OR REPLACE INTO app_settings (key, value) VALUES (?, ?)",
-            (key, value)
-        )
+    user_id = _uid()
+    client = _client()
+    # Upsert
+    existing = client.table("app_settings") \
+        .select("id") \
+        .eq("user_id", user_id) \
+        .eq("key", key) \
+        .execute()
+
+    if existing.data:
+        client.table("app_settings") \
+            .update({"value": value}) \
+            .eq("user_id", user_id) \
+            .eq("key", key) \
+            .execute()
+    else:
+        client.table("app_settings").insert({
+            "user_id": user_id,
+            "key": key,
+            "value": value,
+        }).execute()
 
 
 def save_settings(settings: dict):
-    with get_connection() as conn:
-        for key, value in settings.items():
-            conn.execute(
-                "INSERT OR REPLACE INTO app_settings (key, value) VALUES (?, ?)",
-                (key, str(value))
-            )
+    for key, value in settings.items():
+        save_setting(key, str(value))
 
 
 # --- Sermon Notes ---
@@ -270,84 +262,94 @@ def create_sermon_note(title: str, speaker: str, sermon_date: str,
                        notes_text: str, bible_references: list,
                        learnings: str, key_takeaways: str,
                        additional_thoughts: str) -> dict:
-    now = datetime.now().isoformat()
-    with get_connection() as conn:
-        conn.execute("""
-            INSERT INTO sermon_notes
-                (title, speaker, sermon_date, notes_text, bible_references,
-                 learnings, key_takeaways, additional_thoughts, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (title, speaker, sermon_date, notes_text,
-              json.dumps(bible_references), learnings, key_takeaways,
-              additional_thoughts, now, now))
-        row = conn.execute(
-            "SELECT * FROM sermon_notes ORDER BY id DESC LIMIT 1"
-        ).fetchone()
-        return dict(row)
+    client = _client()
+    result = client.table("sermon_notes").insert({
+        "user_id": _uid(),
+        "title": title,
+        "speaker": speaker,
+        "sermon_date": sermon_date,
+        "notes_text": notes_text,
+        "bible_references": bible_references,
+        "learnings": learnings,
+        "key_takeaways": key_takeaways,
+        "additional_thoughts": additional_thoughts,
+    }).execute()
+    return result.data[0] if result.data else {}
 
 
 def update_sermon_note(note_id: int, title: str, speaker: str, sermon_date: str,
                        notes_text: str, bible_references: list,
                        learnings: str, key_takeaways: str,
                        additional_thoughts: str) -> dict:
-    now = datetime.now().isoformat()
-    with get_connection() as conn:
-        conn.execute("""
-            UPDATE sermon_notes SET
-                title = ?, speaker = ?, sermon_date = ?, notes_text = ?,
-                bible_references = ?, learnings = ?, key_takeaways = ?,
-                additional_thoughts = ?, updated_at = ?
-            WHERE id = ?
-        """, (title, speaker, sermon_date, notes_text,
-              json.dumps(bible_references), learnings, key_takeaways,
-              additional_thoughts, now, note_id))
-        row = conn.execute(
-            "SELECT * FROM sermon_notes WHERE id = ?", (note_id,)
-        ).fetchone()
-        return dict(row)
+    client = _client()
+    result = client.table("sermon_notes") \
+        .update({
+            "title": title,
+            "speaker": speaker,
+            "sermon_date": sermon_date,
+            "notes_text": notes_text,
+            "bible_references": bible_references,
+            "learnings": learnings,
+            "key_takeaways": key_takeaways,
+            "additional_thoughts": additional_thoughts,
+        }) \
+        .eq("id", note_id) \
+        .eq("user_id", _uid()) \
+        .execute()
+    return result.data[0] if result.data else {}
 
 
 def get_sermon_note(note_id: int) -> Optional[dict]:
-    with get_connection() as conn:
-        row = conn.execute(
-            "SELECT * FROM sermon_notes WHERE id = ?", (note_id,)
-        ).fetchone()
-        return dict(row) if row else None
+    client = _client()
+    result = client.table("sermon_notes") \
+        .select("*") \
+        .eq("id", note_id) \
+        .eq("user_id", _uid()) \
+        .execute()
+    return result.data[0] if result.data else None
 
 
 def get_all_sermon_notes() -> list[dict]:
-    with get_connection() as conn:
-        rows = conn.execute(
-            "SELECT * FROM sermon_notes ORDER BY sermon_date DESC, id DESC"
-        ).fetchall()
-        return [dict(r) for r in rows]
+    client = _client()
+    result = client.table("sermon_notes") \
+        .select("*") \
+        .eq("user_id", _uid()) \
+        .order("sermon_date", desc=True) \
+        .order("id", desc=True) \
+        .execute()
+    return result.data or []
 
 
 def delete_sermon_note(note_id: int):
-    with get_connection() as conn:
-        conn.execute("DELETE FROM sermon_notes WHERE id = ?", (note_id,))
+    client = _client()
+    client.table("sermon_notes") \
+        .delete() \
+        .eq("id", note_id) \
+        .eq("user_id", _uid()) \
+        .execute()
 
 
 # --- Prayer Categories ---
 
 def get_prayer_categories() -> list[dict]:
-    with get_connection() as conn:
-        rows = conn.execute(
-            "SELECT * FROM prayer_categories ORDER BY id"
-        ).fetchall()
-        return [dict(r) for r in rows]
+    client = _client()
+    result = client.table("prayer_categories") \
+        .select("*") \
+        .eq("user_id", _uid()) \
+        .order("id") \
+        .execute()
+    return result.data or []
 
 
-def create_prayer_category(name: str, icon: str = "", color: str = "#7B68EE") -> dict:
-    with get_connection() as conn:
-        conn.execute(
-            "INSERT INTO prayer_categories (name, icon, color) VALUES (?, ?, ?)",
-            (name, icon, color)
-        )
-        row = conn.execute(
-            "SELECT * FROM prayer_categories ORDER BY id DESC LIMIT 1"
-        ).fetchone()
-        return dict(row)
+def create_prayer_category(name: str, icon: str = "", color: str = "#5B4FC4") -> dict:
+    client = _client()
+    result = client.table("prayer_categories").insert({
+        "user_id": _uid(),
+        "name": name,
+        "icon": icon,
+        "color": color,
+    }).execute()
+    return result.data[0] if result.data else {}
 
 
 # --- Prayer Entries ---
@@ -355,93 +357,114 @@ def create_prayer_category(name: str, icon: str = "", color: str = "#7B68EE") ->
 def create_prayer_entry(category_id: int, title: str, prayer_text: str,
                         scriptures: list, confessions: str,
                         declarations: str) -> dict:
-    now = datetime.now().isoformat()
-    with get_connection() as conn:
-        conn.execute("""
-            INSERT INTO prayer_entries
-                (category_id, title, prayer_text, scriptures,
-                 confessions, declarations, status, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, 'ongoing', ?, ?)
-        """, (category_id, title, prayer_text, json.dumps(scriptures),
-              confessions, declarations, now, now))
-        row = conn.execute(
-            "SELECT * FROM prayer_entries ORDER BY id DESC LIMIT 1"
-        ).fetchone()
-        return dict(row)
+    client = _client()
+    result = client.table("prayer_entries").insert({
+        "user_id": _uid(),
+        "category_id": category_id,
+        "title": title,
+        "prayer_text": prayer_text,
+        "scriptures": scriptures,
+        "confessions": confessions,
+        "declarations": declarations,
+        "status": "ongoing",
+    }).execute()
+    return result.data[0] if result.data else {}
 
 
 def update_prayer_entry(entry_id: int, title: str, prayer_text: str,
                         scriptures: list, confessions: str,
                         declarations: str, status: str) -> dict:
-    now = datetime.now().isoformat()
-    with get_connection() as conn:
-        conn.execute("""
-            UPDATE prayer_entries SET
-                title = ?, prayer_text = ?, scriptures = ?,
-                confessions = ?, declarations = ?, status = ?, updated_at = ?
-            WHERE id = ?
-        """, (title, prayer_text, json.dumps(scriptures),
-              confessions, declarations, status, now, entry_id))
-        row = conn.execute(
-            "SELECT * FROM prayer_entries WHERE id = ?", (entry_id,)
-        ).fetchone()
-        return dict(row)
+    client = _client()
+    result = client.table("prayer_entries") \
+        .update({
+            "title": title,
+            "prayer_text": prayer_text,
+            "scriptures": scriptures,
+            "confessions": confessions,
+            "declarations": declarations,
+            "status": status,
+        }) \
+        .eq("id", entry_id) \
+        .eq("user_id", _uid()) \
+        .execute()
+    return result.data[0] if result.data else {}
 
 
 def get_prayers_by_category(category_id: int) -> list[dict]:
-    with get_connection() as conn:
-        rows = conn.execute(
-            "SELECT * FROM prayer_entries WHERE category_id = ? ORDER BY created_at DESC",
-            (category_id,)
-        ).fetchall()
-        return [dict(r) for r in rows]
+    client = _client()
+    result = client.table("prayer_entries") \
+        .select("*") \
+        .eq("user_id", _uid()) \
+        .eq("category_id", category_id) \
+        .order("created_at", desc=True) \
+        .execute()
+    return result.data or []
 
 
 def get_prayer_entry(entry_id: int) -> Optional[dict]:
-    with get_connection() as conn:
-        row = conn.execute(
-            "SELECT * FROM prayer_entries WHERE id = ?", (entry_id,)
-        ).fetchone()
-        return dict(row) if row else None
+    client = _client()
+    result = client.table("prayer_entries") \
+        .select("*") \
+        .eq("id", entry_id) \
+        .eq("user_id", _uid()) \
+        .execute()
+    return result.data[0] if result.data else None
 
 
 def delete_prayer_entry(entry_id: int):
-    with get_connection() as conn:
-        conn.execute("DELETE FROM prayer_entries WHERE id = ?", (entry_id,))
+    client = _client()
+    client.table("prayer_entries") \
+        .delete() \
+        .eq("id", entry_id) \
+        .eq("user_id", _uid()) \
+        .execute()
 
 
 # --- Export/Import ---
 
 def export_all_data() -> dict:
-    with get_connection() as conn:
-        entries = conn.execute("SELECT * FROM daily_entries ORDER BY date").fetchall()
-        assignments = conn.execute("SELECT * FROM weekly_assignments ORDER BY id").fetchall()
-        settings = conn.execute("SELECT * FROM app_settings").fetchall()
-        return {
-            "daily_entries": [dict(r) for r in entries],
-            "weekly_assignments": [dict(r) for r in assignments],
-            "app_settings": {r["key"]: r["value"] for r in settings},
-        }
+    client = _client()
+    uid = _uid()
+
+    entries = client.table("daily_entries").select("*").eq("user_id", uid).order("date").execute()
+    assignments = client.table("weekly_assignments").select("*").eq("user_id", uid).order("id").execute()
+    settings = client.table("app_settings").select("key, value").eq("user_id", uid).execute()
+    sermons = client.table("sermon_notes").select("*").eq("user_id", uid).order("id").execute()
+    categories = client.table("prayer_categories").select("*").eq("user_id", uid).order("id").execute()
+    prayers = client.table("prayer_entries").select("*").eq("user_id", uid).order("id").execute()
+
+    return {
+        "daily_entries": entries.data or [],
+        "weekly_assignments": assignments.data or [],
+        "app_settings": {r["key"]: r["value"] for r in (settings.data or [])},
+        "sermon_notes": sermons.data or [],
+        "prayer_categories": categories.data or [],
+        "prayer_entries": prayers.data or [],
+    }
 
 
 def import_all_data(data: dict):
-    with get_connection() as conn:
-        if "daily_entries" in data:
-            for entry in data["daily_entries"]:
-                conn.execute("""
-                    INSERT OR REPLACE INTO daily_entries
-                        (date, prayer_minutes, bible_book, chapters_read, chapters_display,
-                         sermon_title, sermon_speaker, youtube_link, report_copied,
-                         created_at, updated_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (entry["date"], entry["prayer_minutes"], entry.get("bible_book"),
-                      entry.get("chapters_read"), entry.get("chapters_display"),
-                      entry.get("sermon_title"), entry.get("sermon_speaker"),
-                      entry.get("youtube_link"), entry.get("report_copied", 0),
-                      entry.get("created_at", ""), entry.get("updated_at", "")))
-        if "app_settings" in data:
-            for key, value in data["app_settings"].items():
-                conn.execute(
-                    "INSERT OR REPLACE INTO app_settings (key, value) VALUES (?, ?)",
-                    (key, value)
-                )
+    """Import data from a JSON backup. Merges with existing data."""
+    client = _client()
+    uid = _uid()
+
+    if "daily_entries" in data:
+        for entry in data["daily_entries"]:
+            entry.pop("id", None)
+            entry["user_id"] = uid
+            # Convert SQLite boolean
+            if "report_copied" in entry:
+                entry["report_copied"] = bool(entry["report_copied"])
+            # Convert chapters_read from string to list if needed
+            if isinstance(entry.get("chapters_read"), str):
+                entry["chapters_read"] = json.loads(entry["chapters_read"])
+            try:
+                client.table("daily_entries").upsert(
+                    entry, on_conflict="user_id,date"
+                ).execute()
+            except Exception:
+                pass
+
+    if "app_settings" in data:
+        for key, value in data["app_settings"].items():
+            save_setting(key, value)
