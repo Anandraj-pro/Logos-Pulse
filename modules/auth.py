@@ -205,7 +205,7 @@ def require_role(allowed_roles: list):
     require_login()
     if st.session_state.get("must_change_password"):
         st.warning("You must change your password before using the app.")
-        st.switch_page("views/Change_Password.py")
+        st.stop()
     role = get_current_role()
     if role not in allowed_roles:
         st.error("You don't have permission to access this page.")
@@ -216,4 +216,5 @@ def require_password_changed():
     """Guard — redirects to password change if still using default."""
     require_login()
     if st.session_state.get("must_change_password"):
-        st.switch_page("views/Change_Password.py")
+        st.warning("Please change your password first.")
+        st.stop()

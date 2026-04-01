@@ -35,6 +35,6 @@ if submitted:
             result = change_password(new_password)
         if result["success"]:
             st.success("Password updated! Redirecting...")
-            st.switch_page("views/0_Dashboard.py")
+            st.rerun()
         else:
             st.error(f"Failed to update password: {result['error']}")

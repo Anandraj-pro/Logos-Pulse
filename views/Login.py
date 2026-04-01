@@ -6,12 +6,9 @@ from modules.seed import seed_user_data
 
 inject_styles()
 
-# If already logged in, redirect to dashboard
+# If already logged in, let app.py handle routing
 if is_authenticated():
-    if st.session_state.get("must_change_password"):
-        st.switch_page("views/Change_Password.py")
-    else:
-        st.switch_page("views/0_Dashboard.py")
+    st.rerun()
 
 # ==================== HEADER ====================
 st.markdown("""
@@ -46,9 +43,7 @@ with tab_login:
                 st.success(f"Welcome, {st.session_state.get('preferred_name', 'User')}!")
                 if st.session_state.get("must_change_password"):
                     st.info("You must change your default password before continuing.")
-                    st.switch_page("views/Change_Password.py")
-                else:
-                    st.rerun()
+                st.rerun()
             else:
                 st.error(result["error"])
 
