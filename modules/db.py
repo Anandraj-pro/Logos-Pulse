@@ -68,6 +68,35 @@ def init_db():
     pass
 
 
+# --- Session-scoped cache ---
+# Caches read results per Streamlit rerun to avoid duplicate API calls
+# within the same page render. Cleared automatically on each rerun
+# and explicitly on write operations.
+
+def _cache_key(name: str, *args) -> str:
+    return f"_db_cache_{_uid()}_{name}_{'_'.join(str(a) for a in args)}"
+
+
+def _get_cached(key: str):
+    return st.session_state.get(key)
+
+
+def _set_cached(key: str, value):
+    st.session_state[key] = value
+    return value
+
+
+def _clear_cache(prefix: str = ""):
+    """Clear cached queries. If prefix given, only clear matching keys."""
+    uid = _uid()
+    keys_to_clear = [
+        k for k in st.session_state
+        if k.startswith(f"_db_cache_{uid}_{prefix}")
+    ]
+    for k in keys_to_clear:
+        del st.session_state[k]
+
+
 # --- Daily Entries ---
 
 def upsert_daily_entry(entry_date: str, prayer_minutes: int, bible_book: str,
@@ -108,17 +137,24 @@ def upsert_daily_entry(entry_date: str, prayer_minutes: int, bible_book: str,
                 .execute()
         return result.data[0] if result.data else row_data
 
+    _clear_cache("daily_entries")
+    _clear_cache("entry_dates")
     return _safe_execute(_do, fallback=row_data)
 
 
 def get_entry_by_date(entry_date: str) -> Optional[dict]:
+    key = _cache_key("daily_entries", entry_date)
+    cached = _get_cached(key)
+    if cached is not None:
+        return cached
     client = _client()
     result = client.table("daily_entries") \
         .select("*") \
         .eq("user_id", _uid()) \
         .eq("date", entry_date) \
         .execute()
-    return result.data[0] if result.data else None
+    value = result.data[0] if result.data else None
+    return _set_cached(key, value)
 
 
 def get_entries_in_range(start_date: str, end_date: str) -> list[dict]:
@@ -134,13 +170,17 @@ def get_entries_in_range(start_date: str, end_date: str) -> list[dict]:
 
 
 def get_all_entry_dates() -> list[str]:
+    key = _cache_key("entry_dates")
+    cached = _get_cached(key)
+    if cached is not None:
+        return cached
     client = _client()
     result = client.table("daily_entries") \
         .select("date") \
         .eq("user_id", _uid()) \
         .order("date") \
         .execute()
-    return [r["date"] for r in (result.data or [])]
+    return _set_cached(key, [r["date"] for r in (result.data or [])])
 
 
 def mark_report_copied(entry_date: str):
@@ -157,6 +197,7 @@ def mark_report_copied(entry_date: str):
 def create_assignment(book: str, start_chapter: int, end_chapter: int,
                       week_start: str, week_end: str,
                       daily_breakdown: dict) -> dict:
+    _clear_cache("active_assignment")
     user_id = _uid()
     client = _client()
 
@@ -183,6 +224,10 @@ def create_assignment(book: str, start_chapter: int, end_chapter: int,
 
 
 def get_active_assignment() -> Optional[dict]:
+    key = _cache_key("active_assignment")
+    cached = _get_cached(key)
+    if cached is not None:
+        return cached if cached != "__none__" else None
     client = _client()
     result = client.table("weekly_assignments") \
         .select("*") \
@@ -191,7 +236,9 @@ def get_active_assignment() -> Optional[dict]:
         .order("id", desc=True) \
         .limit(1) \
         .execute()
-    return result.data[0] if result.data else None
+    value = result.data[0] if result.data else None
+    _set_cached(key, value if value else "__none__")
+    return value
 
 
 def get_assignment_history() -> list[dict]:
@@ -264,6 +311,10 @@ def get_setting(key: str) -> Optional[str]:
 
 
 def get_all_settings() -> dict:
+    cache_k = _cache_key("all_settings")
+    cached = _get_cached(cache_k)
+    if cached is not None:
+        return cached
     client = _client()
     uid = _uid()
     if not uid:
@@ -272,10 +323,11 @@ def get_all_settings() -> dict:
         .select("key, value") \
         .eq("user_id", uid) \
         .execute()
-    return {r["key"]: r["value"] for r in (result.data or [])}
+    return _set_cached(cache_k, {r["key"]: r["value"] for r in (result.data or [])})
 
 
 def save_setting(key: str, value: str):
+    _clear_cache("all_settings")
     user_id = _uid()
     client = _client()
     # Upsert
@@ -310,6 +362,7 @@ def create_sermon_note(title: str, speaker: str, sermon_date: str,
                        notes_text: str, bible_references: list,
                        learnings: str, key_takeaways: str,
                        additional_thoughts: str) -> dict:
+    _clear_cache("all_sermon_notes")
     client = _client()
     result = client.table("sermon_notes").insert({
         "user_id": _uid(),
@@ -329,6 +382,7 @@ def update_sermon_note(note_id: int, title: str, speaker: str, sermon_date: str,
                        notes_text: str, bible_references: list,
                        learnings: str, key_takeaways: str,
                        additional_thoughts: str) -> dict:
+    _clear_cache("all_sermon_notes")
     client = _client()
     result = client.table("sermon_notes") \
         .update({
@@ -358,6 +412,10 @@ def get_sermon_note(note_id: int) -> Optional[dict]:
 
 
 def get_all_sermon_notes() -> list[dict]:
+    key = _cache_key("all_sermon_notes")
+    cached = _get_cached(key)
+    if cached is not None:
+        return cached
     client = _client()
     result = client.table("sermon_notes") \
         .select("*") \
@@ -365,10 +423,11 @@ def get_all_sermon_notes() -> list[dict]:
         .order("sermon_date", desc=True) \
         .order("id", desc=True) \
         .execute()
-    return result.data or []
+    return _set_cached(key, result.data or [])
 
 
 def delete_sermon_note(note_id: int):
+    _clear_cache("all_sermon_notes")
     client = _client()
     client.table("sermon_notes") \
         .delete() \
@@ -380,16 +439,21 @@ def delete_sermon_note(note_id: int):
 # --- Prayer Categories ---
 
 def get_prayer_categories() -> list[dict]:
+    key = _cache_key("prayer_categories")
+    cached = _get_cached(key)
+    if cached is not None:
+        return cached
     client = _client()
     result = client.table("prayer_categories") \
         .select("*") \
         .eq("user_id", _uid()) \
         .order("id") \
         .execute()
-    return result.data or []
+    return _set_cached(key, result.data or [])
 
 
 def create_prayer_category(name: str, icon: str = "", color: str = "#5B4FC4") -> dict:
+    _clear_cache("prayer_categories")
     client = _client()
     result = client.table("prayer_categories").insert({
         "user_id": _uid(),
