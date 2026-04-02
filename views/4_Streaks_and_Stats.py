@@ -2,6 +2,7 @@ import streamlit as st
 from datetime import date, timedelta
 import calendar
 import json
+import plotly.graph_objects as go
 from modules import db
 from modules.utils import calculate_streaks, format_prayer_duration
 from modules.styles import inject_styles, section_label, spacer
@@ -154,5 +155,165 @@ with col4:
     <div class="stat-card">
         <div class="stat-value" style="color:#D4853A;">{sermons_count}</div>
         <div class="stat-label">Sermons</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+# ==================== CHARTS ====================
+spacer()
+
+# Fetch last 30 days of data for charts
+chart_start = (date.today() - timedelta(days=29)).isoformat()
+chart_end = date.today().isoformat()
+chart_entries = db.get_entries_in_range(chart_start, chart_end)
+
+if chart_entries:
+    # Build daily data map
+    entry_by_date = {e["date"]: e for e in chart_entries}
+
+    # --- Prayer Time Trend (30 days) ---
+    section_label("Prayer Time \u2014 Last 30 Days")
+
+    dates_30 = []
+    prayer_mins = []
+    for i in range(30):
+        d = date.today() - timedelta(days=29 - i)
+        d_str = d.isoformat()
+        dates_30.append(d.strftime("%b %d"))
+        e = entry_by_date.get(d_str)
+        prayer_mins.append(e["prayer_minutes"] if e else 0)
+
+    fig_prayer = go.Figure()
+    fig_prayer.add_trace(go.Bar(
+        x=dates_30,
+        y=prayer_mins,
+        marker_color=["#5B4FC4" if m > 0 else "#EDE8F5" for m in prayer_mins],
+        marker_line_width=0,
+        hovertemplate="%{x}<br>%{y} min<extra></extra>",
+    ))
+    # Add goal line
+    prayer_goal = int(db.get_all_settings().get("default_prayer_minutes", "60"))
+    fig_prayer.add_hline(
+        y=prayer_goal, line_dash="dot", line_color="#D4853A",
+        annotation_text=f"Goal: {prayer_goal} min",
+        annotation_position="top right",
+        annotation_font_color="#D4853A",
+    )
+    fig_prayer.update_layout(
+        height=250,
+        margin=dict(l=0, r=0, t=10, b=0),
+        plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="rgba(0,0,0,0)",
+        xaxis=dict(showgrid=False, tickfont=dict(size=9, color="#9E96AB"), dtick=5),
+        yaxis=dict(showgrid=True, gridcolor="#EDE8F5", tickfont=dict(size=10, color="#9E96AB"), title="Minutes"),
+        bargap=0.3,
+    )
+    st.plotly_chart(fig_prayer, use_container_width=True)
+
+    # --- Chapters Read Per Week (4 weeks) ---
+    section_label("Chapters Read \u2014 Weekly")
+
+    week_labels = []
+    week_chapters = []
+    for w in range(4):
+        w_end = date.today() - timedelta(days=w * 7)
+        w_start = w_end - timedelta(days=6)
+        label = f"{w_start.strftime('%b %d')}"
+        week_labels.append(label)
+
+        ch_count = 0
+        for i in range(7):
+            d = w_start + timedelta(days=i)
+            e = entry_by_date.get(d.isoformat())
+            if e and e.get("chapters_read"):
+                chs = json.loads(e["chapters_read"]) if isinstance(e["chapters_read"], str) else e["chapters_read"]
+                ch_count += len(chs)
+        week_chapters.append(ch_count)
+
+    week_labels.reverse()
+    week_chapters.reverse()
+
+    fig_chapters = go.Figure()
+    fig_chapters.add_trace(go.Bar(
+        x=week_labels,
+        y=week_chapters,
+        marker_color="#9B5FA8",
+        marker_line_width=0,
+        text=week_chapters,
+        textposition="outside",
+        textfont=dict(size=12, color="#9B5FA8", family="DM Sans"),
+        hovertemplate="%{x}<br>%{y} chapters<extra></extra>",
+    ))
+    fig_chapters.update_layout(
+        height=220,
+        margin=dict(l=0, r=0, t=10, b=0),
+        plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="rgba(0,0,0,0)",
+        xaxis=dict(showgrid=False, tickfont=dict(size=10, color="#9E96AB")),
+        yaxis=dict(showgrid=True, gridcolor="#EDE8F5", tickfont=dict(size=10, color="#9E96AB"), title="Chapters"),
+        bargap=0.4,
+    )
+    st.plotly_chart(fig_chapters, use_container_width=True)
+
+    # --- Weekly Consistency (donut) ---
+    section_label("This Week's Consistency")
+
+    today = date.today()
+    week_start = today - timedelta(days=today.weekday())
+    days_so_far = min(today.weekday() + 1, 6)  # Mon-Sat
+    days_logged_week = sum(
+        1 for i in range(days_so_far)
+        if (week_start + timedelta(days=i)).isoformat() in entry_by_date
+    )
+    days_missed = days_so_far - days_logged_week
+
+    fig_donut = go.Figure()
+    fig_donut.add_trace(go.Pie(
+        values=[days_logged_week, days_missed],
+        labels=["Logged", "Missed"],
+        hole=0.65,
+        marker=dict(colors=["#5B4FC4", "#EDE8F5"]),
+        textinfo="none",
+        hovertemplate="%{label}: %{value} day(s)<extra></extra>",
+    ))
+    fig_donut.update_layout(
+        height=200,
+        margin=dict(l=0, r=0, t=0, b=0),
+        plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="rgba(0,0,0,0)",
+        showlegend=False,
+        annotations=[dict(
+            text=f"<b>{days_logged_week}/{days_so_far}</b>",
+            x=0.5, y=0.5, font_size=22, font_color="#5B4FC4",
+            font_family="DM Serif Display, Georgia, serif",
+            showarrow=False,
+        )],
+    )
+
+    col_donut, col_legend = st.columns([1, 2])
+    with col_donut:
+        st.plotly_chart(fig_donut, use_container_width=True)
+    with col_legend:
+        pct_week = int(days_logged_week / days_so_far * 100) if days_so_far > 0 else 0
+        pct_color = "#3A8F5C" if pct_week >= 80 else "#D4853A" if pct_week >= 50 else "#C44B5B"
+        st.markdown(f"""
+        <div style="padding-top:24px;">
+            <div style="font-family:'DM Serif Display',Georgia,serif; font-size:32px; color:{pct_color};">
+                {pct_week}%
+            </div>
+            <div style="font-size:13px; color:#9E96AB; margin-top:4px;">
+                {days_logged_week} of {days_so_far} days logged this week
+            </div>
+            <div style="font-size:12px; color:#C0B8CC; margin-top:8px;">
+                {"Keep it up!" if pct_week >= 80 else "You can do it \u2014 stay consistent!" if pct_week >= 50 else "Don't give up \u2014 every day counts!"}
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+else:
+    spacer()
+    st.markdown("""
+    <div class="empty-state">
+        <div class="empty-state-icon">\U0001f4ca</div>
+        <div class="empty-state-title">No data yet for charts</div>
+        <div class="empty-state-sub">Start logging daily entries to see your trends</div>
     </div>
     """, unsafe_allow_html=True)
