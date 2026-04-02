@@ -20,8 +20,21 @@ inject_styles()
 
 settings = db.get_all_settings()
 default_prayer = int(settings.get("default_prayer_minutes", "60"))
-greeting_name = settings.get("greeting_name", "Anna")
 omit_sermon = settings.get("omit_empty_sermon", "false") == "true"
+
+# Get pastor name dynamically from profile hierarchy
+greeting_name = settings.get("greeting_name", "Pastor")
+try:
+    from modules.supabase_client import get_admin_client
+    from modules.auth import get_current_user_id
+    _admin = get_admin_client()
+    _profile = _admin.table("user_profiles").select("pastor_id").eq("user_id", get_current_user_id()).execute()
+    if _profile.data and _profile.data[0].get("pastor_id"):
+        _pastor_user = _admin.auth.admin.get_user_by_id(_profile.data[0]["pastor_id"]).user
+        _pastor_meta = _pastor_user.user_metadata or {}
+        greeting_name = _pastor_meta.get("preferred_name") or _pastor_meta.get("first_name") or greeting_name
+except Exception:
+    pass
 
 formatted_date = date.today().strftime("%A, %B %d")
 
