@@ -12,7 +12,7 @@ require_password_changed()
 
 # --- Load Data ---
 settings = db.get_all_settings()
-greeting_name = settings.get("greeting_name", "Anna")
+greeting_name = st.session_state.get("preferred_name") or settings.get("greeting_name", "User")
 today_str = date.today().isoformat()
 today_entry = db.get_entry_by_date(today_str)
 
