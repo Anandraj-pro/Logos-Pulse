@@ -204,6 +204,53 @@ def get_assignment_history() -> list[dict]:
     return result.data or []
 
 
+def create_group_assignment(pastor_id: str, member_ids: list[str],
+                            book: str, start_chapter: int, end_chapter: int,
+                            week_start: str, week_end: str,
+                            daily_breakdown: dict) -> dict:
+    """Create a weekly assignment for all members in a pastor's group.
+    Uses admin client to bypass RLS (pastor inserts rows for other users).
+    """
+    admin = get_admin_client()
+    total = end_chapter - start_chapter + 1
+    created = 0
+
+    for member_id in member_ids:
+        # Mark existing active assignments as completed for this member
+        admin.table("weekly_assignments") \
+            .update({"status": "COMPLETED"}) \
+            .eq("user_id", member_id) \
+            .eq("status", "ACTIVE") \
+            .execute()
+
+        admin.table("weekly_assignments").insert({
+            "user_id": member_id,
+            "assigned_by": pastor_id,
+            "book": sanitize_html(book),
+            "start_chapter": start_chapter,
+            "end_chapter": end_chapter,
+            "total_chapters": total,
+            "week_start_date": week_start,
+            "week_end_date": week_end,
+            "daily_breakdown": daily_breakdown,
+            "status": "ACTIVE",
+        }).execute()
+        created += 1
+
+    return {"success": True, "count": created}
+
+
+def get_group_assignments(pastor_id: str) -> list[dict]:
+    """Get all assignments created by a pastor for their group."""
+    admin = get_admin_client()
+    result = admin.table("weekly_assignments") \
+        .select("*") \
+        .eq("assigned_by", pastor_id) \
+        .order("id", desc=True) \
+        .execute()
+    return result.data or []
+
+
 # --- Settings ---
 
 def get_setting(key: str) -> Optional[str]:
