@@ -136,7 +136,9 @@ else:
         <div class="today-title" style="color:#E65100;">
             \u23f0 Today\u2019s Entry Pending
         </div>
-        <div class="today-detail">You haven\u2019t logged today\u2019s spiritual activities yet.</div>
+        <div class="today-detail">
+            {"You have a <b>" + str(current_streak) + "-day streak</b> going \u2014 don\u2019t break it! Log today\u2019s entry now." if current_streak > 0 else "You haven\u2019t logged today\u2019s spiritual activities yet."}
+        </div>
     </div>
     """, unsafe_allow_html=True)
 

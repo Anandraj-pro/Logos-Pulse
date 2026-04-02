@@ -47,8 +47,8 @@ if not members:
     st.stop()
 
 # ==================== TABS ====================
-tab_members, tab_assign, tab_history = st.tabs([
-    "\U0001f465 Members", "\U0001f4d6 Create Assignment", "\U0001f4c1 Assignment History"
+tab_members, tab_leaderboard, tab_assign, tab_history = st.tabs([
+    "\U0001f465 Members", "\U0001f3c6 Leaderboard", "\U0001f4d6 Create Assignment", "\U0001f4c1 Assignment History"
 ])
 
 # ==================== MEMBERS TAB ====================
@@ -139,6 +139,65 @@ with tab_members:
                 </span>
             </div>
             {"<div style='font-size:13px; color:#6B6580; margin-top:6px;'>" + details + "</div>" if details else ""}
+        </div>
+        """, unsafe_allow_html=True)
+
+# ==================== LEADERBOARD TAB ====================
+with tab_leaderboard:
+    from modules.utils import calculate_streaks
+
+    admin = get_admin_client()
+    member_streaks = []
+
+    for member in members:
+        # Get all entry dates for this member
+        member_entries = admin.table("daily_entries") \
+            .select("date") \
+            .eq("user_id", member["user_id"]) \
+            .order("date") \
+            .execute()
+        member_dates = [e["date"] for e in (member_entries.data or [])]
+        streak, best = calculate_streaks(member_dates)
+        member_streaks.append({
+            **member,
+            "current_streak": streak,
+            "best_streak": best,
+            "total_entries": len(member_dates),
+        })
+
+    # Sort by current streak descending
+    member_streaks.sort(key=lambda x: x["current_streak"], reverse=True)
+
+    section_label("Streak Leaderboard")
+
+    for rank, ms in enumerate(member_streaks, 1):
+        medal = "\U0001f947" if rank == 1 else "\U0001f948" if rank == 2 else "\U0001f949" if rank == 3 else f"#{rank}"
+        streak = ms["current_streak"]
+        streak_color = "#3A8F5C" if streak >= 7 else "#D4853A" if streak >= 3 else "#C44B5B" if streak == 0 else "#5B4FC4"
+        streak_emoji = "\U0001f525" if streak >= 7 else "\u2b50" if streak >= 3 else ""
+
+        st.markdown(f"""
+        <div class="entry-card">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <span style="font-size:20px; min-width:32px; text-align:center;">{medal}</span>
+                    <div>
+                        <span style="font-family:'DM Serif Display',Georgia,serif; font-size:15px; color:#2A2438;">
+                            {ms['display_name']}
+                        </span>
+                        <div style="font-size:12px; color:#9E96AB;">
+                            Best: {ms['best_streak']} days | Total: {ms['total_entries']} entries
+                        </div>
+                    </div>
+                </div>
+                <div style="text-align:right;">
+                    <span style="font-family:'DM Serif Display',Georgia,serif; font-size:24px; color:{streak_color};">
+                        {streak}
+                    </span>
+                    <span style="font-size:14px;"> {streak_emoji}</span>
+                    <div style="font-size:10px; color:#9E96AB; text-transform:uppercase; letter-spacing:1px;">day streak</div>
+                </div>
+            </div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -270,6 +329,8 @@ with tab_history:
                 ("#888", "#F5F5F5", "\u26aa")
             )
 
+            assign_key = f"{a['book']}_{a['start_chapter']}_{a['week_start_date']}"
+
             st.markdown(f"""
             <div class="entry-card">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -291,3 +352,29 @@ with tab_history:
                 </div>
             </div>
             """, unsafe_allow_html=True)
+
+            # Cancel button for active assignments
+            if active_count > 0:
+                if st.button("Cancel Assignment", key=f"cancel_{assign_key}", use_container_width=True):
+                    st.session_state[f"confirm_cancel_{assign_key}"] = True
+
+                if st.session_state.get(f"confirm_cancel_{assign_key}"):
+                    st.warning(f"Cancel **{a['book']} {a['start_chapter']}-{a['end_chapter']}** for all members?")
+                    c1, c2 = st.columns(2)
+                    with c1:
+                        if st.button("Yes, Cancel", key=f"yes_cancel_{assign_key}", type="primary"):
+                            admin.table("weekly_assignments") \
+                                .update({"status": "COMPLETED"}) \
+                                .eq("assigned_by", viewing_pastor_id) \
+                                .eq("book", a["book"]) \
+                                .eq("start_chapter", a["start_chapter"]) \
+                                .eq("week_start_date", a["week_start_date"]) \
+                                .eq("status", "ACTIVE") \
+                                .execute()
+                            st.session_state.pop(f"confirm_cancel_{assign_key}", None)
+                            st.success("Assignment cancelled for all members.")
+                            st.rerun()
+                    with c2:
+                        if st.button("No", key=f"no_cancel_{assign_key}"):
+                            st.session_state.pop(f"confirm_cancel_{assign_key}", None)
+                            st.rerun()

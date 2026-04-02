@@ -46,20 +46,39 @@ def _client():
 
 
 def _safe_execute(operation, fallback=None):
-    """Wrap a Supabase operation with error handling."""
+    """Wrap a Supabase operation with error handling and retry on token expiry."""
     try:
         return operation()
     except Exception as e:
         error_msg = str(e)
+
+        # Token expired — try refreshing and retrying once
         if "JWT" in error_msg or "token" in error_msg.lower() or "401" in error_msg:
+            refresh = st.session_state.get("refresh_token")
+            if refresh:
+                try:
+                    client = get_supabase_client()
+                    response = client.auth.refresh_session(refresh)
+                    if response and response.session:
+                        st.session_state["access_token"] = response.session.access_token
+                        st.session_state["refresh_token"] = response.session.refresh_token
+                        return operation()  # Retry
+                except Exception:
+                    pass
             st.session_state["authenticated"] = False
             st.error("Your session has expired. Please log in again.")
             st.stop()
+
         elif "violates row-level security" in error_msg.lower():
             st.error("You don't have permission to perform this action.")
             return fallback
+
+        elif "connection" in error_msg.lower() or "timeout" in error_msg.lower():
+            st.error("Could not reach the server. Please check your connection and try again.")
+            return fallback
+
         else:
-            st.error(f"Something went wrong. Please try again.")
+            st.error("Something went wrong. Please try again.")
             return fallback
 
 
