@@ -212,7 +212,13 @@ with tab_assign:
     </div>
     """, unsafe_allow_html=True)
 
-    with st.form("group_assignment_form"):
+    # REQ-2: Multi-book assignment support
+    st.caption("You can add multiple book ranges (e.g., Hebrews 7-13 + 1 Corinthians 7-11)")
+
+    if "grp_books" not in st.session_state:
+        st.session_state["grp_books"] = []
+
+    with st.form("add_book_form"):
         book_names = get_book_names()
         book = st.selectbox("Bible Book", options=book_names,
                             index=book_names.index("Luke") if "Luke" in book_names else 0)
@@ -224,22 +230,43 @@ with tab_assign:
         with col2:
             end_ch = st.number_input("To Chapter", min_value=1, max_value=max_ch, value=min(max_ch, 10))
 
+        add_book = st.form_submit_button("Add Book Range", use_container_width=True)
+
+    if add_book:
+        if start_ch > end_ch:
+            st.error("'From Chapter' must be less than or equal to 'To Chapter'.")
+        else:
+            st.session_state["grp_books"].append({"book": book, "start": start_ch, "end": end_ch})
+            st.rerun()
+
+    # Show added books
+    if st.session_state["grp_books"]:
+        section_label("Reading Plan")
+        for i, b in enumerate(st.session_state["grp_books"]):
+            col_book, col_del = st.columns([5, 1])
+            with col_book:
+                st.markdown(f"\U0001f4d6 **{b['book']}** {b['start']}\u2013{b['end']} ({b['end'] - b['start'] + 1} chapters)")
+            with col_del:
+                if st.button("\u274c", key=f"del_book_{i}"):
+                    st.session_state["grp_books"].pop(i)
+                    st.rerun()
+
         today = date.today()
         default_monday = today if today.weekday() == 0 else get_next_monday(today)
         week_start = st.date_input("Week starting (Monday)", value=default_monday)
 
-        generate = st.form_submit_button("Preview Breakdown", use_container_width=True)
-
-    if generate:
-        if start_ch > end_ch:
-            st.error("'From Chapter' must be less than or equal to 'To Chapter'.")
-        else:
-            breakdown = split_chapters(start_ch, end_ch, num_days=6)
+        if st.button("Preview Breakdown", use_container_width=True):
+            # Calculate total chapters across all books
+            total_chapters = sum(b["end"] - b["start"] + 1 for b in st.session_state["grp_books"])
+            breakdown = split_chapters(1, total_chapters, num_days=6)
             st.session_state["grp_preview"] = breakdown
-            st.session_state["grp_book"] = book
-            st.session_state["grp_start"] = start_ch
-            st.session_state["grp_end"] = end_ch
+            st.session_state["grp_book"] = " + ".join(f"{b['book']} {b['start']}-{b['end']}" for b in st.session_state["grp_books"])
+            st.session_state["grp_start"] = st.session_state["grp_books"][0]["start"]
+            st.session_state["grp_end"] = st.session_state["grp_books"][-1]["end"]
             st.session_state["grp_week_start"] = week_start
+            st.session_state["grp_reading_plan"] = st.session_state["grp_books"]
+    else:
+        st.info("Add at least one book range to create an assignment.")
 
     if "grp_preview" in st.session_state:
         section_label("Daily Breakdown Preview")

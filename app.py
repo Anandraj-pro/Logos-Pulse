@@ -96,8 +96,70 @@ else:
         </div>
         """, unsafe_allow_html=True)
 
+        # REQ-1: Admin Impersonation
+        if role == "admin":
+            st.markdown("<div style='border-top:1px solid #EDE8F5; margin:12px 0; padding-top:12px;'></div>", unsafe_allow_html=True)
+            st.markdown("<span style='font-size:10px; color:#9E96AB; text-transform:uppercase; letter-spacing:1.5px;'>Impersonate</span>", unsafe_allow_html=True)
+
+            if st.session_state.get("impersonating"):
+                imp = st.session_state["impersonating"]
+                st.markdown(f"""
+                <div style="background:#FFF3E0; border-radius:8px; padding:8px 12px; margin:4px 0; font-size:12px;">
+                    Viewing as <b>{imp['name']}</b> ({imp['role'].replace('_',' ').title()})
+                </div>
+                """, unsafe_allow_html=True)
+                if st.button("Stop Impersonating", use_container_width=True):
+                    st.session_state.pop("impersonating", None)
+                    st.rerun()
+            else:
+                from modules.supabase_client import get_admin_client
+                _adm = get_admin_client()
+                _test_profiles = _adm.table("user_profiles") \
+                    .select("user_id, role") \
+                    .neq("role", "admin") \
+                    .limit(6) \
+                    .execute()
+                if _test_profiles.data:
+                    _options = {"-- Select --": None}
+                    for _p in _test_profiles.data:
+                        try:
+                            _u = _adm.auth.admin.get_user_by_id(_p["user_id"]).user
+                            _meta = _u.user_metadata or {}
+                            _label = f"{_meta.get('preferred_name', _u.email)} ({_p['role'].replace('_',' ').title()})"
+                            _options[_label] = {"user_id": _p["user_id"], "role": _p["role"],
+                                                "name": _meta.get("preferred_name", _u.email)}
+                        except Exception:
+                            pass
+                    _selected = st.selectbox("View as", options=list(_options.keys()), label_visibility="collapsed")
+                    if _selected != "-- Select --" and _options[_selected]:
+                        if st.button("Impersonate", type="primary", use_container_width=True):
+                            imp_data = _options[_selected]
+                            st.session_state["impersonating"] = imp_data
+                            # Override session state for impersonated user
+                            st.session_state["_real_user_id"] = st.session_state["user_id"]
+                            st.session_state["_real_role"] = st.session_state["role"]
+                            st.session_state["_real_preferred_name"] = st.session_state["preferred_name"]
+                            st.session_state["user_id"] = imp_data["user_id"]
+                            st.session_state["role"] = imp_data["role"]
+                            st.session_state["preferred_name"] = imp_data["name"]
+                            st.rerun()
+
+        st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
         if st.button("\U0001f6aa Logout", use_container_width=True):
+            # Restore real user if impersonating
+            if st.session_state.get("impersonating"):
+                st.session_state.pop("impersonating", None)
             sign_out()
             st.rerun()
+
+    # Impersonation banner
+    if st.session_state.get("impersonating"):
+        imp = st.session_state["impersonating"]
+        st.markdown(f"""
+        <div style="background:#FFF3E0; border:1px solid #FFE0B2; border-radius:8px;
+                    padding:8px 16px; margin-bottom:16px; font-size:13px; color:#E65100;">
+            \U0001f50d <b>Admin Impersonation Active</b> — Viewing as {imp['name']} ({imp['role'].replace('_',' ').title()})
+        </div>
+        """, unsafe_allow_html=True)
 
     pg.run()

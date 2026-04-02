@@ -266,16 +266,35 @@ else:
                         for r in refs_data
                     )
 
+            st.caption("Tip: Use abbreviations \u2014 Heb, Mk, Ps, 1Cor, Rom, Jn, Rev...")
+
             bible_refs_text = st.text_area(
                 "References",
                 value=existing_refs,
                 height=120,
-                placeholder="Mark 1:1\nLuke 4:18-19\nJohn 3:16",
+                placeholder="Heb 7:1\nMk 1:1\n1Cor 13:4-7\nPs 23:1",
                 label_visibility="collapsed",
             )
 
             if bible_refs_text.strip():
-                parsed_refs = parse_references(bible_refs_text)
+                # REQ-3: Resolve abbreviations before parsing
+                from modules.bible_autocomplete import resolve_book_name
+                import re
+                resolved_lines = []
+                for line in bible_refs_text.strip().split("\n"):
+                    line = line.strip()
+                    if line:
+                        # Extract book name (everything before first digit)
+                        match = re.match(r'^(\d?\s?[A-Za-z]+)\s*(.*)', line)
+                        if match:
+                            book_part = match.group(1).strip()
+                            rest = match.group(2).strip()
+                            resolved = resolve_book_name(book_part)
+                            resolved_lines.append(f"{resolved} {rest}" if rest else resolved)
+                        else:
+                            resolved_lines.append(line)
+                resolved_text = "\n".join(resolved_lines)
+                parsed_refs = parse_references(resolved_text)
                 if parsed_refs:
                     for ref in parsed_refs:
                         _render_scripture_card(ref)

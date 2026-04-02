@@ -553,6 +553,53 @@ def delete_prayer_entry(entry_id: int):
 
 # --- Export/Import ---
 
+# --- Prayer Templates (REQ-4) ---
+
+def get_prayer_templates() -> list[dict]:
+    """Get all standard + user's custom prayer templates."""
+    key = _cache_key("prayer_templates")
+    cached = _get_cached(key)
+    if cached is not None:
+        return cached
+    client = _client()
+    result = client.table("prayer_templates") \
+        .select("*") \
+        .eq("is_archived", False) \
+        .order("sort_order") \
+        .order("name") \
+        .execute()
+    return _set_cached(key, result.data or [])
+
+
+def get_prayer_template(template_id: int) -> Optional[dict]:
+    client = _client()
+    result = client.table("prayer_templates") \
+        .select("*") \
+        .eq("id", template_id) \
+        .execute()
+    return result.data[0] if result.data else None
+
+
+def create_prayer_template(name: str, description: str, confessions: str,
+                           prayers: str, declarations: str,
+                           scriptures: list = None, template_type: str = "custom") -> dict:
+    _clear_cache("prayer_templates")
+    client = _client()
+    result = client.table("prayer_templates").insert({
+        "name": sanitize_html(name),
+        "description": sanitize_html(description),
+        "template_type": template_type,
+        "created_by": _uid(),
+        "confessions": sanitize_html(confessions),
+        "prayers": sanitize_html(prayers),
+        "declarations": sanitize_html(declarations),
+        "scriptures": scriptures,
+    }).execute()
+    return result.data[0] if result.data else {}
+
+
+# --- Export/Import ---
+
 def export_all_data() -> dict:
     client = _client()
     uid = _uid()

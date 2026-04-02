@@ -307,6 +307,29 @@ elif st.session_state.get("pj_category"):
                     label_visibility="collapsed",
                 )
 
+                # REQ-4: Template selector
+                templates = db.get_prayer_templates()
+                if templates:
+                    template_options = {"-- No template (start blank) --": None}
+                    for t in templates:
+                        badge = "\U0001f4cb" if t["template_type"] == "standard" else "\u270f\ufe0f"
+                        template_options[f"{badge} {t['name']}"] = t
+                    selected_tpl = st.selectbox(
+                        "Use a template (optional)",
+                        options=list(template_options.keys()),
+                        label_visibility="collapsed",
+                    )
+                    tpl = template_options[selected_tpl]
+                    if tpl:
+                        st.caption(f"{tpl.get('description', '')}")
+                        if st.button("Apply Template", use_container_width=True):
+                            data["prayer_text"] = tpl.get("prayers", "")
+                            data["confessions"] = tpl.get("confessions", "")
+                            data["declarations"] = tpl.get("declarations", "")
+                            if not prayer_title.strip():
+                                data["title"] = tpl["name"]
+                            st.rerun()
+
                 col1, col2 = st.columns([3, 1])
                 with col2:
                     if st.button("Next \u2192", type="primary", use_container_width=True):
