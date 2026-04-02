@@ -1,5 +1,5 @@
 """
-Shared styles and UI components for Logos Pulse.
+Shared styles and UI menu_style for Logos Pulse.
 Provides a cohesive design system across all pages.
 """
 
@@ -40,6 +40,28 @@ SHARED_CSS = """
     h1, h2, h3 {
         font-family: 'DM Serif Display', Georgia, serif !important;
         color: #2A2438 !important;
+    }
+
+    /* ---- Streamlit Mobile Overrides ---- */
+    @media (max-width: 768px) {
+        /* Tighter column gaps on mobile */
+        [data-testid="column"] {
+            padding: 0 4px !important;
+        }
+        /* Smaller tab font */
+        .stTabs [data-baseweb="tab-list"] button {
+            font-size: 13px !important;
+            padding: 8px 12px !important;
+        }
+        /* Compact form elements */
+        .stTextInput > div, .stSelectbox > div, .stMultiSelect > div {
+            font-size: 14px !important;
+        }
+        /* Segmented control */
+        [data-testid="stSegmentedControl"] button {
+            font-size: 12px !important;
+            padding: 6px 10px !important;
+        }
     }
 
     /* ---- Page Header ---- */
@@ -549,6 +571,205 @@ SHARED_CSS = """
     .empty-state-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.6; }
     .empty-state-title { font-size: 16px; color: #9E96AB; font-weight: 500; }
     .empty-state-sub { font-size: 13px; color: #C0B8CC; margin-top: 4px; }
+
+    /* ============================================================
+       MOBILE RESPONSIVE (max-width: 768px)
+       ============================================================ */
+    @media (max-width: 768px) {
+        /* Reduce main padding */
+        .stApp > header + div > div > div > div {
+            padding-left: 0.5rem !important;
+            padding-right: 0.5rem !important;
+        }
+
+        /* Hero section */
+        .hero-section {
+            padding: 24px 18px;
+            border-radius: 14px;
+            margin-bottom: 16px;
+        }
+        .hero-name {
+            font-size: 26px;
+        }
+        .hero-greeting {
+            font-size: 11px;
+            letter-spacing: 1.5px;
+        }
+        .hero-date {
+            font-size: 12px;
+        }
+        .hero-verse {
+            font-size: 13px;
+            padding: 12px 14px;
+            margin-top: 14px;
+        }
+
+        /* Page header */
+        .page-header {
+            padding: 20px 18px 16px 18px;
+            border-radius: 14px;
+            margin-bottom: 16px;
+        }
+        .page-header-title {
+            font-size: 20px;
+        }
+        .page-header-sub {
+            font-size: 12px;
+        }
+
+        /* Metric & stat cards */
+        .metric-card, .stat-card {
+            padding: 14px 10px;
+            border-radius: 12px;
+        }
+        .metric-value {
+            font-size: 24px;
+        }
+        .stat-value {
+            font-size: 22px;
+        }
+        .metric-label, .stat-label {
+            font-size: 9px;
+            letter-spacing: 0.8px;
+        }
+
+        /* Section cards */
+        .section-card {
+            padding: 16px;
+            border-radius: 12px;
+        }
+        .section-icon { font-size: 24px; }
+        .section-title { font-size: 15px; }
+        .section-desc { font-size: 12px; }
+
+        /* Entry cards */
+        .entry-card {
+            padding: 12px 14px;
+            border-radius: 12px;
+        }
+
+        /* Today cards */
+        .today-card {
+            padding: 14px 16px;
+            border-radius: 12px;
+        }
+        .today-title { font-size: 14px; }
+        .today-detail { font-size: 13px; }
+
+        /* Progress sections */
+        .progress-section {
+            padding: 14px 16px;
+            border-radius: 12px;
+        }
+
+        /* Day rows */
+        .day-row {
+            padding: 10px 12px;
+            font-size: 13px;
+        }
+        .day-name {
+            width: 70px;
+            font-size: 13px;
+        }
+
+        /* Streak hero */
+        .streak-hero {
+            padding: 20px 16px;
+            border-radius: 12px;
+        }
+        .streak-num {
+            font-size: 48px;
+        }
+
+        /* Report card */
+        .report-card {
+            padding: 16px;
+            font-size: 14px;
+        }
+
+        /* Prayer cards */
+        .prayer-card {
+            padding: 14px 16px;
+        }
+        .prayer-name {
+            font-size: 14px;
+        }
+        .prayer-title-row {
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        /* Category cards */
+        .cat-card {
+            padding: 12px 8px;
+            border-radius: 10px;
+        }
+        .cat-icon { font-size: 22px; }
+        .cat-name { font-size: 11px; }
+        .cat-count { font-size: 10px; }
+
+        /* Wizard */
+        .wizard-step {
+            padding: 14px 16px;
+        }
+        .wizard-step-title { font-size: 14px; }
+        .wizard-step-desc {
+            margin-left: 0;
+            margin-top: 8px;
+        }
+
+        /* Sermon cards */
+        .sermon-card {
+            padding: 14px 16px;
+        }
+
+        /* Scripture blocks */
+        .scripture-block {
+            font-size: 13px;
+            padding: 8px 12px;
+        }
+
+        /* Section label */
+        .section-label {
+            font-size: 10px;
+            letter-spacing: 1.5px;
+        }
+
+        /* Prayer pills */
+        .prayer-pill {
+            padding: 4px 10px;
+            font-size: 11px;
+            margin: 2px 3px;
+        }
+
+        /* Goal banner */
+        .goal-banner {
+            font-size: 13px;
+            padding: 10px 14px;
+        }
+
+        /* Empty state */
+        .empty-state {
+            padding: 32px 16px;
+        }
+        .empty-state-icon { font-size: 36px; }
+        .empty-state-title { font-size: 14px; }
+    }
+
+    /* ============================================================
+       SMALL MOBILE (max-width: 480px)
+       ============================================================ */
+    @media (max-width: 480px) {
+        .hero-name { font-size: 22px; }
+        .hero-section { padding: 20px 14px; }
+        .page-header { padding: 16px 14px 14px 14px; }
+        .page-header-title { font-size: 18px; }
+        .metric-value { font-size: 20px; }
+        .stat-value { font-size: 18px; }
+        .streak-num { font-size: 40px; }
+        .day-name { width: 60px; font-size: 12px; }
+        .day-row { padding: 8px 10px; font-size: 12px; }
+    }
 </style>
 """
 
