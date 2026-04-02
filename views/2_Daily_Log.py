@@ -9,9 +9,6 @@ from modules.auth import require_login, require_password_changed
 
 require_login()
 require_password_changed()
-
-db.init_db()
-
 inject_styles()
 
 all_dates = db.get_all_entry_dates()

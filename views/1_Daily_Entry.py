@@ -13,9 +13,6 @@ from modules.auth import require_login, require_password_changed
 
 require_login()
 require_password_changed()
-
-db.init_db()
-
 inject_styles()
 
 settings = db.get_all_settings()

@@ -10,9 +10,6 @@ from modules.auth import require_login, require_password_changed
 
 require_login()
 require_password_changed()
-
-db.init_db()
-
 inject_styles()
 
 page_header("\U0001f4d6", "Weekly Assignment", "Bible reading goals from your pastor")

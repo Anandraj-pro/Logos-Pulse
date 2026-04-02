@@ -8,9 +8,6 @@ from modules.auth import require_login, require_password_changed
 
 require_login()
 require_password_changed()
-
-db.init_db()
-
 inject_styles()
 
 DEFAULT_SPEAKERS = [
@@ -25,21 +22,15 @@ all_speakers = sorted(set(n.get("speaker", "") for n in all_notes if n.get("spea
 for s in DEFAULT_SPEAKERS:
     if s not in all_speakers:
         all_speakers.insert(0, s)
-
-
 def _count_refs(note):
     if not note.get("bible_references"):
         return 0
     refs = json.loads(note["bible_references"]) if isinstance(note["bible_references"], str) else note["bible_references"]
     return len(refs) if isinstance(refs, list) else 0
-
-
 def _count_takeaways(note):
     text = note.get("key_takeaways", "") or ""
     lines = [l.strip() for l in text.strip().split("\n") if l.strip() and l.strip() != "-"]
     return len(lines)
-
-
 def _render_scripture_card(ref, color="#5B4FC4"):
     enriched = render_reference_with_text(ref)
     if enriched.get("scripture_text"):
@@ -51,8 +42,6 @@ def _render_scripture_card(ref, color="#5B4FC4"):
         """, unsafe_allow_html=True)
     else:
         st.caption(f"{ref.get('reference', '')} — could not load")
-
-
 # --- View mode: if a note is selected for full view ---
 if "view_sermon_id" in st.session_state:
     note = db.get_sermon_note(st.session_state["view_sermon_id"])

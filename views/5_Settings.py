@@ -6,9 +6,6 @@ from modules.auth import require_login, require_password_changed
 
 require_login()
 require_password_changed()
-
-db.init_db()
-
 inject_styles()
 
 page_header("\u2699\ufe0f", "Settings", "Configure your app preferences")

@@ -8,9 +8,6 @@ import json
 
 require_login()
 require_password_changed()
-
-db.init_db()
-
 # --- Load Data ---
 settings = db.get_all_settings()
 greeting_name = settings.get("greeting_name", "Anna")
