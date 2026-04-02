@@ -1209,7 +1209,7 @@ def copy_button(text: str, button_label: str = "Copy to Clipboard"):
     """
     Render a copy-to-clipboard button using injected JavaScript.
 
-    This uses st.components.v1.html() to inject a small HTML/JS snippet
+    This uses st.menu_style.v1.html() to inject a small HTML/JS snippet
     that copies text to the clipboard when clicked.
 
     Args:
