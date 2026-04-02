@@ -38,6 +38,7 @@ else:
             st.Page("views/6_Sermon_Notes.py", title="Sermon Notes", icon="\U0001f4dd"),
             st.Page("views/7_Prayer_Journal.py", title="Prayer Journal", icon="\U0001f64f"),
             st.Page("views/5_Settings.py", title="Settings", icon="\u2699\ufe0f"),
+            st.Page("views/Profile.py", title="My Profile", icon="\U0001f464"),
         ]
 
         # Role-specific pages
