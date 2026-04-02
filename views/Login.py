@@ -40,9 +40,6 @@ with tab_login:
             with st.spinner("Signing in..."):
                 result = sign_in(email.strip().lower(), password)
             if result["success"]:
-                st.success(f"Welcome, {st.session_state.get('preferred_name', 'User')}!")
-                if st.session_state.get("must_change_password"):
-                    st.info("You must change your default password before continuing.")
                 st.rerun()
             else:
                 st.error(result["error"])
