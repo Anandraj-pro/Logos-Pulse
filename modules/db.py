@@ -8,6 +8,7 @@ import json
 import streamlit as st
 from typing import Optional
 from modules.supabase_client import get_supabase_client, get_admin_client
+from modules.sanitize import sanitize_html
 
 
 def _uid() -> str:
@@ -80,12 +81,12 @@ def upsert_daily_entry(entry_date: str, prayer_minutes: int, bible_book: str,
         "user_id": user_id,
         "date": entry_date,
         "prayer_minutes": prayer_minutes,
-        "bible_book": bible_book,
+        "bible_book": sanitize_html(bible_book),
         "chapters_read": chapters_read,
-        "chapters_display": chapters_display,
-        "sermon_title": sermon_title,
-        "sermon_speaker": sermon_speaker,
-        "youtube_link": youtube_link,
+        "chapters_display": sanitize_html(chapters_display),
+        "sermon_title": sanitize_html(sermon_title),
+        "sermon_speaker": sanitize_html(sermon_speaker),
+        "youtube_link": sanitize_html(youtube_link),
     }
 
     def _do():
@@ -265,14 +266,14 @@ def create_sermon_note(title: str, speaker: str, sermon_date: str,
     client = _client()
     result = client.table("sermon_notes").insert({
         "user_id": _uid(),
-        "title": title,
-        "speaker": speaker,
+        "title": sanitize_html(title),
+        "speaker": sanitize_html(speaker),
         "sermon_date": sermon_date,
-        "notes_text": notes_text,
+        "notes_text": sanitize_html(notes_text),
         "bible_references": bible_references,
-        "learnings": learnings,
-        "key_takeaways": key_takeaways,
-        "additional_thoughts": additional_thoughts,
+        "learnings": sanitize_html(learnings),
+        "key_takeaways": sanitize_html(key_takeaways),
+        "additional_thoughts": sanitize_html(additional_thoughts),
     }).execute()
     return result.data[0] if result.data else {}
 
@@ -284,14 +285,14 @@ def update_sermon_note(note_id: int, title: str, speaker: str, sermon_date: str,
     client = _client()
     result = client.table("sermon_notes") \
         .update({
-            "title": title,
-            "speaker": speaker,
+            "title": sanitize_html(title),
+            "speaker": sanitize_html(speaker),
             "sermon_date": sermon_date,
-            "notes_text": notes_text,
+            "notes_text": sanitize_html(notes_text),
             "bible_references": bible_references,
-            "learnings": learnings,
-            "key_takeaways": key_takeaways,
-            "additional_thoughts": additional_thoughts,
+            "learnings": sanitize_html(learnings),
+            "key_takeaways": sanitize_html(key_takeaways),
+            "additional_thoughts": sanitize_html(additional_thoughts),
         }) \
         .eq("id", note_id) \
         .eq("user_id", _uid()) \
@@ -345,7 +346,7 @@ def create_prayer_category(name: str, icon: str = "", color: str = "#5B4FC4") ->
     client = _client()
     result = client.table("prayer_categories").insert({
         "user_id": _uid(),
-        "name": name,
+        "name": sanitize_html(name),
         "icon": icon,
         "color": color,
     }).execute()
@@ -361,11 +362,11 @@ def create_prayer_entry(category_id: int, title: str, prayer_text: str,
     result = client.table("prayer_entries").insert({
         "user_id": _uid(),
         "category_id": category_id,
-        "title": title,
-        "prayer_text": prayer_text,
+        "title": sanitize_html(title),
+        "prayer_text": sanitize_html(prayer_text),
         "scriptures": scriptures,
-        "confessions": confessions,
-        "declarations": declarations,
+        "confessions": sanitize_html(confessions),
+        "declarations": sanitize_html(declarations),
         "status": "ongoing",
     }).execute()
     return result.data[0] if result.data else {}
@@ -377,11 +378,11 @@ def update_prayer_entry(entry_id: int, title: str, prayer_text: str,
     client = _client()
     result = client.table("prayer_entries") \
         .update({
-            "title": title,
-            "prayer_text": prayer_text,
+            "title": sanitize_html(title),
+            "prayer_text": sanitize_html(prayer_text),
             "scriptures": scriptures,
-            "confessions": confessions,
-            "declarations": declarations,
+            "confessions": sanitize_html(confessions),
+            "declarations": sanitize_html(declarations),
             "status": status,
         }) \
         .eq("id", entry_id) \
