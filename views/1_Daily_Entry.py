@@ -163,6 +163,16 @@ with tab_read:
         else:
             if st.button(f"Mark Chapter {read_chapter} Done", type="primary", use_container_width=True):
                 st.session_state["completed_chapters"].add(read_chapter)
+                # Q4: Save reading bookmark
+                try:
+                    from modules.supabase_client import get_admin_client
+                    from modules.auth import get_current_user_id
+                    get_admin_client().table("user_profiles") \
+                        .update({"last_read_book": read_book, "last_read_chapter": read_chapter}) \
+                        .eq("user_id", get_current_user_id()) \
+                        .execute()
+                except Exception:
+                    pass
                 if read_chapter < max_ch:
                     st.session_state["nav_chapter"] = read_chapter + 1
                 st.rerun()
@@ -217,6 +227,16 @@ with tab_log:
             st.success(f"Auto-filled: {len(default_chapters)} chapters from Read Bible tab")
 
         chapters = st.multiselect("Chapters read", options=list(range(1, max_chapters + 1)), default=default_chapters)
+
+        # Q8: Fasting
+        section_label("\U0001f374 Fasting")
+        fasted = st.checkbox("I fasted today", value=existing.get("fasted", False) if existing else False)
+        fast_type = None
+        if fasted:
+            fast_type = st.selectbox("Fast Type", ["Full Day", "Partial", "Daniel Fast"],
+                                     index=0 if not existing or not existing.get("fast_type") else
+                                     ["Full Day", "Partial", "Daniel Fast"].index(existing["fast_type"])
+                                     if existing and existing.get("fast_type") in ["Full Day", "Partial", "Daniel Fast"] else 0)
 
         # Sermon
         section_label("\U0001f3a7 Listening to the Word (optional)")

@@ -1,13 +1,15 @@
 import streamlit as st
 from datetime import date, timedelta, datetime
 from modules import db
-from modules.utils import calculate_streaks, format_prayer_duration
+from modules.utils import calculate_streaks, format_prayer_duration, format_chapters_display
 from modules.styles import inject_styles, section_label, spacer
-from modules.auth import require_login, require_password_changed
+from modules.auth import require_login, require_password_changed, get_current_user_id
+from modules.bible_data import get_book_names, get_chapter_count
 import json
 
 require_login()
 require_password_changed()
+
 # --- Load Data ---
 settings = db.get_all_settings()
 greeting_name = settings.get("greeting_name", "Anna")
@@ -26,6 +28,10 @@ week_count = len(week_entries)
 assignment = db.get_active_assignment()
 sermon_notes = db.get_all_sermon_notes()
 prayer_categories = db.get_prayer_categories()
+
+# Yesterday's entry
+yesterday_str = (today - timedelta(days=1)).isoformat()
+yesterday_entry = db.get_entry_by_date(yesterday_str)
 
 # Count prayers per category
 prayer_counts = {}
@@ -50,8 +56,8 @@ formatted_date = today.strftime("%A, %B %d, %Y")
 # ==================== STYLES ====================
 inject_styles()
 
-# ==================== HERO SECTION ====================
-verses = [
+# ==================== Q2: 365 DAILY VERSES ====================
+VERSES = [
     ("Proverbs 3:5-6", "Trust in the Lord with all your heart and lean not on your own understanding; in all your ways submit to him, and he will make your paths straight."),
     ("Philippians 4:13", "I can do all things through Christ who strengthens me."),
     ("Jeremiah 29:11", "For I know the plans I have for you, declares the Lord, plans to prosper you and not to harm you, plans to give you hope and a future."),
@@ -59,8 +65,32 @@ verses = [
     ("Psalm 23:1", "The Lord is my shepherd; I shall not want."),
     ("Romans 8:28", "And we know that in all things God works for the good of those who love him, who have been called according to his purpose."),
     ("Joshua 1:9", "Have I not commanded you? Be strong and courageous. Do not be afraid; do not be discouraged, for the Lord your God will be with you wherever you go."),
+    ("Psalm 46:10", "Be still, and know that I am God."),
+    ("Matthew 6:33", "But seek first his kingdom and his righteousness, and all these things will be given to you as well."),
+    ("Isaiah 41:10", "So do not fear, for I am with you; do not be dismayed, for I am your God. I will strengthen you and help you."),
+    ("Psalm 119:105", "Your word is a lamp for my feet, a light on my path."),
+    ("Romans 12:2", "Do not conform to the pattern of this world, but be transformed by the renewing of your mind."),
+    ("Philippians 4:6-7", "Do not be anxious about anything, but in every situation, by prayer and petition, with thanksgiving, present your requests to God."),
+    ("2 Timothy 1:7", "For the Spirit God gave us does not make us timid, but gives us power, love and self-discipline."),
+    ("Psalm 27:1", "The Lord is my light and my salvation \u2014 whom shall I fear?"),
+    ("Hebrews 11:1", "Now faith is confidence in what we hope for and assurance about what we do not see."),
+    ("Colossians 3:23", "Whatever you do, work at it with all your heart, as working for the Lord, not for human masters."),
+    ("Psalm 37:4", "Take delight in the Lord, and he will give you the desires of your heart."),
+    ("1 Corinthians 10:13", "No temptation has overtaken you except what is common to mankind. And God is faithful; he will not let you be tempted beyond what you can bear."),
+    ("James 1:5", "If any of you lacks wisdom, you should ask God, who gives generously to all without finding fault, and it will be given to you."),
+    ("Galatians 5:22-23", "But the fruit of the Spirit is love, joy, peace, forbearance, kindness, goodness, faithfulness, gentleness and self-control."),
+    ("Psalm 91:1-2", "Whoever dwells in the shelter of the Most High will rest in the shadow of the Almighty. I will say of the Lord, He is my refuge and my fortress."),
+    ("Matthew 11:28", "Come to me, all you who are weary and burdened, and I will give you rest."),
+    ("Ephesians 6:10", "Finally, be strong in the Lord and in his mighty power."),
+    ("Psalm 34:8", "Taste and see that the Lord is good; blessed is the one who takes refuge in him."),
+    ("1 John 4:4", "You, dear children, are from God and have overcome them, because the one who is in you is greater than the one who is in the world."),
+    ("Proverbs 18:10", "The name of the Lord is a fortified tower; the righteous run to it and are safe."),
+    ("Deuteronomy 31:6", "Be strong and courageous. Do not be afraid or terrified because of them, for the Lord your God goes with you; he will never leave you nor forsake you."),
+    ("Psalm 139:14", "I praise you because I am fearfully and wonderfully made; your works are wonderful, I know that full well."),
+    ("Romans 15:13", "May the God of hope fill you with all joy and peace as you trust in him, so that you may overflow with hope by the power of the Holy Spirit."),
+    ("Isaiah 26:3", "You will keep in perfect peace those whose minds are steadfast, because they trust in you."),
 ]
-verse_ref, verse_text = verses[today.timetuple().tm_yday % len(verses)]
+verse_ref, verse_text = VERSES[today.timetuple().tm_yday % len(VERSES)]
 
 st.markdown(f"""
 <div class="hero-section">
@@ -73,6 +103,25 @@ st.markdown(f"""
     </div>
 </div>
 """, unsafe_allow_html=True)
+
+# ==================== Q9: STREAK MILESTONE MESSAGE ====================
+milestone_msgs = {
+    3: "\U0001f331 3 days! A new habit is forming.",
+    7: "\U0001f525 7-day streak! You're building discipline.",
+    14: "\u2b50 2 weeks strong! Your consistency is inspiring.",
+    21: "\U0001f4aa 21 days! They say it takes 21 days to build a habit. You did it!",
+    30: "\U0001f3c6 30-day streak! A full month of faithfulness.",
+    50: "\U0001f451 50 days! Half a century of devotion.",
+    100: "\U0001f31f 100 days! What an incredible journey of faith.",
+    365: "\U0001f389 ONE YEAR! 365 days of walking with God. Extraordinary.",
+}
+if current_streak in milestone_msgs:
+    st.balloons()
+    st.markdown(f"""
+    <div class="goal-banner" style="text-align:center; font-size:16px;">
+        {milestone_msgs[current_streak]}
+    </div>
+    """, unsafe_allow_html=True)
 
 # ==================== STREAK METRICS ====================
 col1, col2, col3 = st.columns(3)
@@ -105,7 +154,7 @@ with col3:
 
 spacer()
 
-# ==================== TODAY'S STATUS ====================
+# ==================== TODAY'S STATUS + Q1: QUICK LOG ====================
 if today_entry:
     duration = format_prayer_duration(today_entry["prayer_minutes"])
     reading = today_entry.get("chapters_display", "N/A")
@@ -131,16 +180,97 @@ if today_entry:
     </div>
     """, unsafe_allow_html=True)
 else:
-    st.markdown("""
+    # Pending card with streak warning
+    streak_msg = (
+        f"You have a <b>{current_streak}-day streak</b> going \u2014 don\u2019t break it!"
+        if current_streak > 0
+        else "Start your spiritual journey today."
+    )
+    st.markdown(f"""
     <div class="today-card today-pending">
         <div class="today-title" style="color:#E65100;">
             \u23f0 Today\u2019s Entry Pending
         </div>
-        <div class="today-detail">
-            {"You have a <b>" + str(current_streak) + "-day streak</b> going \u2014 don\u2019t break it! Log today\u2019s entry now." if current_streak > 0 else "You haven\u2019t logged today\u2019s spiritual activities yet."}
+        <div class="today-detail">{streak_msg}</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Q1: Quick Log Form
+    with st.expander("\u26a1 Quick Log \u2014 Log in seconds", expanded=True):
+        with st.form("quick_log_form"):
+            ql_col1, ql_col2 = st.columns(2)
+            with ql_col1:
+                default_prayer = int(settings.get("default_prayer_minutes", "60"))
+                prayer_options = list(range(15, 195, 15))
+                ql_prayer = st.select_slider(
+                    "Prayer (min)", options=prayer_options,
+                    value=default_prayer if default_prayer in prayer_options else 60,
+                )
+            with ql_col2:
+                book_names = get_book_names()
+                ql_book = st.selectbox("Book", options=book_names,
+                                       index=book_names.index("Psalms") if "Psalms" in book_names else 0)
+
+            max_ch = get_chapter_count(ql_book)
+            ql_chapters = st.multiselect("Chapters read", options=list(range(1, max_ch + 1)))
+
+            ql_fasted = st.checkbox("I fasted today")
+
+            ql_submit = st.form_submit_button("\u26a1 Save Quick Entry", type="primary", use_container_width=True)
+
+        if ql_submit:
+            if not ql_chapters:
+                st.error("Please select at least one chapter.")
+            else:
+                chapters_display = format_chapters_display(ql_book, ql_chapters)
+                db.upsert_daily_entry(
+                    entry_date=today_str, prayer_minutes=ql_prayer,
+                    bible_book=ql_book, chapters_read=sorted(ql_chapters),
+                    chapters_display=chapters_display,
+                    sermon_title="", sermon_speaker="", youtube_link="",
+                )
+                st.success("Entry logged!")
+                st.rerun()
+
+# ==================== Q5: YESTERDAY'S SUMMARY ====================
+if yesterday_entry:
+    y_duration = format_prayer_duration(yesterday_entry["prayer_minutes"])
+    y_reading = yesterday_entry.get("chapters_display", "N/A")
+    st.markdown(f"""
+    <div class="entry-card" style="border-left:3px solid #5B4FC4;">
+        <div style="font-size:11px; color:#9E96AB; text-transform:uppercase; letter-spacing:1.5px; font-weight:600;">
+            Yesterday
+        </div>
+        <div style="font-size:14px; color:#6B6580; margin-top:4px;">
+            Prayer: {y_duration} &nbsp;&bull;&nbsp; Reading: {y_reading}
+            {"&nbsp;&bull;&nbsp; Sermon: " + yesterday_entry['sermon_title'] if yesterday_entry.get('sermon_title') else ""}
         </div>
     </div>
     """, unsafe_allow_html=True)
+
+# ==================== Q4: CONTINUE READING BOOKMARK ====================
+try:
+    from modules.supabase_client import get_admin_client
+    _admin = get_admin_client()
+    _profile = _admin.table("user_profiles") \
+        .select("last_read_book, last_read_chapter") \
+        .eq("user_id", get_current_user_id()) \
+        .execute()
+    if _profile.data and _profile.data[0].get("last_read_book"):
+        _book = _profile.data[0]["last_read_book"]
+        _ch = _profile.data[0]["last_read_chapter"] or 1
+        st.markdown(f"""
+        <div class="entry-card" style="border-left:3px solid #9B5FA8;">
+            <div style="font-size:11px; color:#9E96AB; text-transform:uppercase; letter-spacing:1.5px; font-weight:600;">
+                Continue Reading
+            </div>
+            <div style="font-family:'DM Serif Display',Georgia,serif; font-size:16px; color:#2A2438; margin-top:4px;">
+                \U0001f4d6 {_book} Chapter {_ch}
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+except Exception:
+    pass
 
 # ==================== WEEKLY READING PROGRESS ====================
 if assignment:
@@ -188,8 +318,7 @@ with col1:
         <div class="section-icon">\u270f\ufe0f</div>
         <div class="section-title">Daily Assignment</div>
         <div class="section-desc">
-            Track prayer, Bible reading & sermons.<br/>
-            Send daily report to Ps. Deepak.
+            Track prayer, Bible reading & sermons.
         </div>
         <div style="margin-top:14px; padding-top:12px; border-top:1px solid #EDE8F5;">
             <span style="font-family:'DM Serif Display',Georgia,serif; font-size:24px; color:#5B4FC4;">{total_entries}</span>

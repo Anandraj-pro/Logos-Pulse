@@ -129,3 +129,23 @@ for ps in pastor_stats:
         </div>
     </div>
     """, unsafe_allow_html=True)
+
+    # Q7: Inline drill-down
+    with st.expander(f"View {ps['display_name']}'s members"):
+        p_members = get_members_for_pastor(ps["user_id"])
+        if not p_members:
+            st.caption("No members assigned")
+        else:
+            for m in p_members:
+                m_entry = admin.table("daily_entries") \
+                    .select("prayer_minutes, chapters_display") \
+                    .eq("user_id", m["user_id"]) \
+                    .eq("date", today_str) \
+                    .execute()
+                m_logged = bool(m_entry.data)
+                m_icon = "\u2705" if m_logged else "\u274c"
+                m_detail = ""
+                if m_entry.data:
+                    me = m_entry.data[0]
+                    m_detail = f" \u2014 {me.get('prayer_minutes', 0)} min, {me.get('chapters_display', '')}"
+                st.markdown(f"{m_icon} **{m['display_name']}**{m_detail}")
