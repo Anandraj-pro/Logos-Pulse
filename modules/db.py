@@ -598,6 +598,137 @@ def create_prayer_template(name: str, description: str, confessions: str,
     return result.data[0] if result.data else {}
 
 
+# --- Wizard Assignments (REQ-5) ---
+
+def create_wizard_assignment(title: str, description: str, created_by: str,
+                             target_user_ids: list[str], start_date: str,
+                             end_date: str, components: list[dict]) -> dict:
+    """Create a composite wizard assignment with components and targets."""
+    admin = get_admin_client()
+
+    # Create the assignment
+    result = admin.table("wizard_assignments").insert({
+        "title": sanitize_html(title),
+        "description": sanitize_html(description),
+        "created_by": created_by,
+        "target_type": "specific",
+        "start_date": start_date,
+        "end_date": end_date,
+        "is_published": True,
+    }).execute()
+
+    if not result.data:
+        return {"success": False, "error": "Failed to create assignment"}
+
+    assignment_id = result.data[0]["id"]
+
+    # Add targets
+    targets = [{"wizard_assignment_id": assignment_id, "user_id": uid} for uid in target_user_ids]
+    if targets:
+        admin.table("wizard_assignment_targets").insert(targets).execute()
+
+    # Add components
+    for i, comp in enumerate(components):
+        admin.table("wizard_components").insert({
+            "wizard_assignment_id": assignment_id,
+            "component_type": comp["type"],
+            "config": comp["config"],
+            "sort_order": i,
+        }).execute()
+
+    return {"success": True, "id": assignment_id}
+
+
+def get_my_wizard_assignments() -> list[dict]:
+    """Get wizard assignments assigned to the current user."""
+    client = _client()
+    uid = _uid()
+    # Get assignment IDs for this user
+    targets = client.table("wizard_assignment_targets") \
+        .select("wizard_assignment_id") \
+        .eq("user_id", uid) \
+        .execute()
+    if not targets.data:
+        return []
+
+    assignment_ids = [t["wizard_assignment_id"] for t in targets.data]
+    result = client.table("wizard_assignments") \
+        .select("*") \
+        .in_("id", assignment_ids) \
+        .eq("is_published", True) \
+        .order("created_at", desc=True) \
+        .execute()
+    return result.data or []
+
+
+def get_wizard_components(assignment_id: int) -> list[dict]:
+    """Get components for a wizard assignment."""
+    client = _client()
+    result = client.table("wizard_components") \
+        .select("*") \
+        .eq("wizard_assignment_id", assignment_id) \
+        .order("sort_order") \
+        .execute()
+    return result.data or []
+
+
+def get_wizard_progress(component_id: int, user_id: str = None) -> Optional[dict]:
+    """Get progress for a specific component."""
+    admin = get_admin_client()
+    uid = user_id or _uid()
+    result = admin.table("wizard_component_progress") \
+        .select("*") \
+        .eq("wizard_component_id", component_id) \
+        .eq("user_id", uid) \
+        .execute()
+    return result.data[0] if result.data else None
+
+
+def update_wizard_progress(component_id: int, status: str, progress_data: dict = None):
+    """Update progress on a wizard component."""
+    admin = get_admin_client()
+    uid = _uid()
+    existing = admin.table("wizard_component_progress") \
+        .select("id") \
+        .eq("wizard_component_id", component_id) \
+        .eq("user_id", uid) \
+        .execute()
+
+    data = {"wizard_component_id": component_id, "user_id": uid, "status": status}
+    if progress_data:
+        data["progress_data"] = progress_data
+
+    if existing.data:
+        admin.table("wizard_component_progress") \
+            .update({"status": status, "progress_data": progress_data}) \
+            .eq("wizard_component_id", component_id) \
+            .eq("user_id", uid) \
+            .execute()
+    else:
+        admin.table("wizard_component_progress").insert(data).execute()
+
+
+def get_sermon_series_list() -> list[dict]:
+    """Get all sermon series."""
+    client = _client()
+    result = client.table("sermon_series") \
+        .select("*") \
+        .order("title") \
+        .execute()
+    return result.data or []
+
+
+def get_wizard_assignments_by_creator(creator_id: str) -> list[dict]:
+    """Get all wizard assignments created by a specific user."""
+    admin = get_admin_client()
+    result = admin.table("wizard_assignments") \
+        .select("*") \
+        .eq("created_by", creator_id) \
+        .order("created_at", desc=True) \
+        .execute()
+    return result.data or []
+
+
 # --- Export/Import ---
 
 def export_all_data() -> dict:
