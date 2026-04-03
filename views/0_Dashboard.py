@@ -56,6 +56,24 @@ formatted_date = today.strftime("%A, %B %d, %Y")
 # ==================== STYLES ====================
 inject_styles()
 
+# ==================== ANNOUNCEMENTS BANNER ====================
+from modules.auth import get_current_role
+_announcements = db.get_active_announcements(role=get_current_role())
+for _ann in _announcements[:3]:
+    col_ann, col_dismiss = st.columns([10, 1])
+    with col_ann:
+        st.markdown(f"""
+        <div style="background:linear-gradient(135deg, #EDEBFA, #F5EEFA); border:1px solid #D1C4E9;
+                    border-radius:10px; padding:10px 16px; margin-bottom:8px;">
+            <div style="font-size:14px; font-weight:600; color:#3D35A0;">\U0001f4e2 {_ann['title']}</div>
+            <div style="font-size:13px; color:#5B4FC4; margin-top:2px;">{_ann['message']}</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with col_dismiss:
+        if st.button("\u2716", key=f"dismiss_{_ann['id']}"):
+            db.dismiss_announcement(_ann["id"])
+            st.rerun()
+
 # ==================== Q2: 365 DAILY VERSES ====================
 VERSES = [
     ("Proverbs 3:5-6", "Trust in the Lord with all your heart and lean not on your own understanding; in all your ways submit to him, and he will make your paths straight."),

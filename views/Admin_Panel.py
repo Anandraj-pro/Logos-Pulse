@@ -13,8 +13,9 @@ inject_styles()
 
 page_header("\U0001f6e1\ufe0f", "Admin Panel", "Manage users, roles, and platform settings")
 
-tab_users, tab_create, tab_bulk, tab_analytics = st.tabs([
-    "\U0001f465 All Users", "\u2795 Create Account", "\U0001f4e4 Bulk Import", "\U0001f4ca Analytics"
+tab_users, tab_create, tab_bulk, tab_announce, tab_audit, tab_analytics = st.tabs([
+    "\U0001f465 All Users", "\u2795 Create Account", "\U0001f4e4 Bulk Import",
+    "\U0001f4e2 Announcements", "\U0001f4dc Audit Log", "\U0001f4ca Analytics"
 ])
 
 # ==================== ALL USERS ====================
@@ -355,6 +356,62 @@ with tab_bulk:
                     st.success(f"Done! Created: {created}, Failed: {failed}")
                     if created > 0:
                         st.rerun()
+
+# ==================== ANNOUNCEMENTS ====================
+with tab_announce:
+    from modules import db as _db
+
+    section_label("Create Announcement")
+
+    with st.form("announcement_form"):
+        ann_title = st.text_input("Title", placeholder="e.g., App Maintenance Tonight")
+        ann_msg = st.text_area("Message", height=100, placeholder="Details about the announcement...")
+        ann_role = st.selectbox("Target Audience", ["all", "prayer_warrior", "pastor", "bishop"],
+                                format_func=lambda x: x.replace("_", " ").title())
+        ann_submit = st.form_submit_button("Publish Announcement", type="primary", use_container_width=True)
+
+    if ann_submit:
+        if ann_title.strip() and ann_msg.strip():
+            _db.create_announcement(ann_title.strip(), ann_msg.strip(), ann_role)
+            st.success("Announcement published!")
+            st.rerun()
+        else:
+            st.error("Please fill in title and message.")
+
+    spacer()
+    section_label("Active Announcements")
+    _all_ann = admin.table("announcements").select("*").eq("is_active", True).order("created_at", desc=True).execute()
+    for a in (_all_ann.data or []):
+        st.markdown(f"""
+        <div class="entry-card">
+            <div style="font-weight:600; color:#2A2438;">\U0001f4e2 {a['title']}</div>
+            <div style="font-size:13px; color:#6B6580; margin-top:4px;">{a['message']}</div>
+            <div style="font-size:11px; color:#9E96AB; margin-top:4px;">
+                Target: {a.get('target_role', 'all').replace('_',' ').title()} | {(a.get('created_at') or '')[:10]}
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("Deactivate", key=f"deact_{a['id']}", use_container_width=True):
+            admin.table("announcements").update({"is_active": False}).eq("id", a["id"]).execute()
+            st.rerun()
+
+# ==================== AUDIT LOG ====================
+with tab_audit:
+    section_label("Recent Activity")
+    audit_entries = _db.get_audit_log(limit=50)
+
+    if not audit_entries:
+        empty_state("\U0001f4dc", "No audit entries yet", "Actions will be logged as users interact with the system")
+    else:
+        for entry in audit_entries:
+            log_date = (entry.get("created_at") or "")[:19].replace("T", " ")
+            st.markdown(f"""
+            <div style="font-size:13px; color:#6B6580; padding:8px 0; border-bottom:1px solid #EDE8F5;">
+                <b>{entry.get('actor_name', 'System')}</b> \u2014 {entry['action']}
+                {"<span style='color:#9E96AB;'> | " + entry.get('target_type', '') + " " + (entry.get('target_id') or '') + "</span>" if entry.get('target_type') else ""}
+                <span style="float:right; font-size:11px; color:#C0B8CC;">{log_date}</span>
+            </div>
+            """, unsafe_allow_html=True)
 
 # ==================== ANALYTICS ====================
 with tab_analytics:

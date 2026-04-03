@@ -835,6 +835,203 @@ def get_wizard_assignments_by_creator(creator_id: str) -> list[dict]:
     return result.data or []
 
 
+# --- Testimonies ---
+
+def create_testimony(title: str, testimony: str, is_anonymous: bool = False) -> dict:
+    client = _client()
+    result = client.table("testimonies").insert({
+        "user_id": _uid(),
+        "title": sanitize_html(title),
+        "testimony": sanitize_html(testimony),
+        "is_anonymous": is_anonymous,
+    }).execute()
+    return result.data[0] if result.data else {}
+
+
+def get_testimonies(approved_only: bool = True) -> list[dict]:
+    admin = get_admin_client()
+    query = admin.table("testimonies").select("*").order("created_at", desc=True)
+    if approved_only:
+        query = query.eq("is_approved", True)
+    result = query.execute()
+    # Enrich with names
+    for t in (result.data or []):
+        if t.get("is_anonymous"):
+            t["author_name"] = "Anonymous"
+        else:
+            try:
+                u = admin.auth.admin.get_user_by_id(t["user_id"]).user
+                t["author_name"] = (u.user_metadata or {}).get("preferred_name", "Member")
+            except Exception:
+                t["author_name"] = "Member"
+    return result.data or []
+
+
+def approve_testimony(testimony_id: int):
+    admin = get_admin_client()
+    admin.table("testimonies") \
+        .update({"is_approved": True, "approved_by": _uid()}) \
+        .eq("id", testimony_id) \
+        .execute()
+
+
+def react_to_testimony(testimony_id: int, reaction: str):
+    admin = get_admin_client()
+    t = admin.table("testimonies").select("reactions").eq("id", testimony_id).execute()
+    if t.data:
+        reactions = t.data[0].get("reactions") or {"pray": 0, "amen": 0, "hallelujah": 0}
+        reactions[reaction] = reactions.get(reaction, 0) + 1
+        admin.table("testimonies").update({"reactions": reactions}).eq("id", testimony_id).execute()
+
+
+# --- Personal Goals ---
+
+def create_personal_goal(title: str, description: str, goal_type: str,
+                         target_value: int = None, target_date: str = None) -> dict:
+    client = _client()
+    result = client.table("personal_goals").insert({
+        "user_id": _uid(),
+        "title": sanitize_html(title),
+        "description": sanitize_html(description),
+        "goal_type": goal_type,
+        "target_value": target_value,
+        "target_date": target_date,
+    }).execute()
+    return result.data[0] if result.data else {}
+
+
+def get_personal_goals(status: str = "active") -> list[dict]:
+    client = _client()
+    result = client.table("personal_goals") \
+        .select("*") \
+        .eq("user_id", _uid()) \
+        .eq("status", status) \
+        .order("created_at", desc=True) \
+        .execute()
+    return result.data or []
+
+
+def update_goal_progress(goal_id: int, current_value: int, status: str = None):
+    client = _client()
+    data = {"current_value": current_value}
+    if status:
+        data["status"] = status
+    client.table("personal_goals").update(data).eq("id", goal_id).eq("user_id", _uid()).execute()
+
+
+# --- Fasting Log ---
+
+def log_fast(fast_date: str, fast_type: str, notes: str = "") -> dict:
+    client = _client()
+    result = client.table("fasting_log").upsert({
+        "user_id": _uid(),
+        "date": fast_date,
+        "fast_type": fast_type,
+        "notes": sanitize_html(notes),
+    }, on_conflict="user_id,date").execute()
+    return result.data[0] if result.data else {}
+
+
+def get_fasting_log(limit: int = 30) -> list[dict]:
+    client = _client()
+    result = client.table("fasting_log") \
+        .select("*") \
+        .eq("user_id", _uid()) \
+        .order("date", desc=True) \
+        .limit(limit) \
+        .execute()
+    return result.data or []
+
+
+def get_fasting_dates() -> list[str]:
+    client = _client()
+    result = client.table("fasting_log") \
+        .select("date") \
+        .eq("user_id", _uid()) \
+        .order("date") \
+        .execute()
+    return [r["date"] for r in (result.data or [])]
+
+
+# --- Audit Log ---
+
+def log_audit(action: str, target_type: str = None, target_id: str = None, details: dict = None):
+    admin = get_admin_client()
+    admin.table("audit_log").insert({
+        "actor_id": _uid(),
+        "action": action,
+        "target_type": target_type,
+        "target_id": target_id,
+        "details": details,
+    }).execute()
+
+
+def get_audit_log(limit: int = 50) -> list[dict]:
+    admin = get_admin_client()
+    result = admin.table("audit_log") \
+        .select("*") \
+        .order("created_at", desc=True) \
+        .limit(limit) \
+        .execute()
+    # Enrich with actor names
+    for entry in (result.data or []):
+        try:
+            u = admin.auth.admin.get_user_by_id(entry["actor_id"]).user
+            entry["actor_name"] = (u.user_metadata or {}).get("preferred_name", u.email)
+        except Exception:
+            entry["actor_name"] = "System"
+    return result.data or []
+
+
+# --- Announcements ---
+
+def create_announcement(title: str, message: str, target_role: str = "all",
+                        expires_at: str = None) -> dict:
+    client = _client()
+    result = client.table("announcements").insert({
+        "created_by": _uid(),
+        "title": sanitize_html(title),
+        "message": sanitize_html(message),
+        "target_role": target_role,
+        "expires_at": expires_at,
+    }).execute()
+    return result.data[0] if result.data else {}
+
+
+def get_active_announcements(role: str = None) -> list[dict]:
+    admin = get_admin_client()
+    uid = _uid()
+    result = admin.table("announcements") \
+        .select("*") \
+        .eq("is_active", True) \
+        .order("created_at", desc=True) \
+        .execute()
+
+    # Filter by role and remove dismissed
+    dismissed = admin.table("announcement_dismissals") \
+        .select("announcement_id") \
+        .eq("user_id", uid) \
+        .execute()
+    dismissed_ids = {d["announcement_id"] for d in (dismissed.data or [])}
+
+    announcements = []
+    for a in (result.data or []):
+        if a["id"] in dismissed_ids:
+            continue
+        if a.get("target_role") and a["target_role"] != "all" and a["target_role"] != role:
+            continue
+        announcements.append(a)
+    return announcements
+
+
+def dismiss_announcement(announcement_id: int):
+    client = _client()
+    client.table("announcement_dismissals").insert({
+        "announcement_id": announcement_id,
+        "user_id": _uid(),
+    }).execute()
+
+
 # --- Export/Import ---
 
 def export_all_data() -> dict:
