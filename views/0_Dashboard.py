@@ -141,7 +141,27 @@ if current_streak in milestone_msgs:
     </div>
     """, unsafe_allow_html=True)
 
-# ==================== STREAK METRICS ====================
+# ==================== GROWTH SCORE + STREAK METRICS ====================
+try:
+    from modules.growth_score import calculate_growth_score
+    _score = calculate_growth_score(get_current_user_id())
+    st.markdown(f"""
+    <div class="entry-card" style="text-align:center; padding:16px; border-left:4px solid #D4A843; margin-bottom:16px;">
+        <div style="display:flex; justify-content:center; align-items:center; gap:12px;">
+            <span style="font-size:36px;">{_score['level_emoji']}</span>
+            <div style="text-align:left;">
+                <div style="font-family:'DM Serif Display',Georgia,serif; font-size:28px; color:#2A2438;">
+                    {_score['total']}<span style="font-size:14px; color:#9E96AB;">/100</span>
+                </div>
+                <div style="font-size:13px; color:#D4A843; font-weight:600;">{_score['level_name']}</div>
+                <div style="font-size:11px; color:#9E96AB;">{_score['level_desc']}</div>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+except Exception:
+    pass
+
 col1, col2, col3 = st.columns(3)
 
 with col1:

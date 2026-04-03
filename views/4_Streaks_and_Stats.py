@@ -8,9 +8,55 @@ from modules.utils import calculate_streaks, format_prayer_duration
 from modules.styles import inject_styles, section_label, spacer
 from modules.auth import require_login, require_password_changed
 
+from modules.auth import get_current_user_id
+
 require_login()
 require_password_changed()
 inject_styles()
+
+# ==================== GROWTH SCORE ====================
+try:
+    from modules.growth_score import calculate_growth_score
+    score = calculate_growth_score(get_current_user_id())
+
+    st.markdown(f"""
+    <div class="entry-card" style="text-align:center; padding:24px; border:2px solid #D4A843;">
+        <span style="font-size:48px;">{score['level_emoji']}</span>
+        <div style="font-family:'DM Serif Display',Georgia,serif; font-size:36px; color:#2A2438; margin:8px 0;">
+            {score['total']}<span style="font-size:16px; color:#9E96AB;">/100</span>
+        </div>
+        <div style="font-size:16px; color:#D4A843; font-weight:600;">{score['level_name']}</div>
+        <div style="font-size:13px; color:#9E96AB; margin-top:4px;">{score['level_desc']}</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    spacer()
+
+    # Component breakdown
+    section_label("Score Breakdown")
+    components = [
+        ("Consistency", score["consistency"], "#5B4FC4", "40%"),
+        ("Quantity", score["quantity"], "#3A8F5C", "30%"),
+        ("Diversity", score["diversity"], "#9B5FA8", "20%"),
+        ("Engagement", score["engagement"], "#D4853A", "10%"),
+    ]
+
+    for name, value, color, weight in components:
+        st.markdown(f"""
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">
+            <div style="width:100px; font-size:13px; color:#6B6580; font-weight:500;">{name} <span style="color:#C0B8CC;">({weight})</span></div>
+            <div style="flex:1;">
+                <div class="progress-bar-bg" style="height:8px;">
+                    <div style="height:100%; width:{value}%; background:{color}; border-radius:8px;"></div>
+                </div>
+            </div>
+            <div style="width:40px; text-align:right; font-family:'DM Serif Display',Georgia,serif; font-size:16px; color:{color};">{value}</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    spacer()
+except Exception:
+    pass
 
 # --- Data ---
 all_dates = db.get_all_entry_dates()

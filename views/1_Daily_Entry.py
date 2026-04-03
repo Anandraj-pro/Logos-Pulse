@@ -110,6 +110,12 @@ with tab_read:
         pills = " ".join(f'<span style="display:inline-block; background:#E8F5E9; color:#2E7D32; border-radius:12px; padding:3px 10px; margin:2px; font-size:12px; font-weight:600;">Ch {c}</span>' for c in sorted_done)
         st.markdown(f"<div style='text-align:center; padding:4px 0 8px 0;'>{pills}</div>", unsafe_allow_html=True)
 
+    # Font size control
+    font_sizes = {"Small": 14, "Medium": 17, "Large": 20, "Extra Large": 24}
+    font_choice = st.segmented_control("Font", list(font_sizes.keys()), default="Medium",
+                                       label_visibility="collapsed")
+    font_size = font_sizes.get(font_choice, 17)
+
     # Fetch chapter
     with st.spinner(""):
         chapter_data = fetch_chapter(read_book, read_chapter)
@@ -121,7 +127,7 @@ with tab_read:
                 v_num = verse.get("verse", "")
                 v_text = verse.get("text", "").strip()
                 verses_html += (
-                    f'<span style="color:#5B4FC4; font-weight:700; font-size:11px; '
+                    f'<span style="color:#5B4FC4; font-weight:700; font-size:{max(font_size - 6, 10)}px; '
                     f'vertical-align:super; margin-right:2px;">{v_num}</span>'
                     f'<span>{v_text} </span>'
                 )
@@ -133,7 +139,7 @@ with tab_read:
                     border:1px solid #E8DCC8; border-radius:14px;
                     padding:24px 22px; margin:8px 0;
                     font-family:'DM Serif Display',Georgia,'Times New Roman',serif;
-                    font-size:17px; line-height:1.9; color:#3C2F1E;
+                    font-size:{font_size}px; line-height:1.9; color:#3C2F1E;
                     max-height:480px; overflow-y:auto;
                     box-shadow:0 2px 8px rgba(0,0,0,0.03);">
             {verses_html}
