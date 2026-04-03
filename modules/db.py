@@ -551,7 +551,59 @@ def delete_prayer_entry(entry_id: int):
         .execute()
 
 
-# --- Export/Import ---
+# --- Prayer Sharing ---
+
+def share_prayer_with_pastor(prayer_id: int):
+    """Mark a prayer as shared with the user's pastor."""
+    client = _client()
+    from datetime import datetime
+    client.table("prayer_entries") \
+        .update({"shared_with_pastor": True, "shared_at": datetime.now().isoformat()}) \
+        .eq("id", prayer_id) \
+        .eq("user_id", _uid()) \
+        .execute()
+
+
+def unshare_prayer(prayer_id: int):
+    """Remove sharing from a prayer."""
+    client = _client()
+    client.table("prayer_entries") \
+        .update({"shared_with_pastor": False, "shared_at": None}) \
+        .eq("id", prayer_id) \
+        .eq("user_id", _uid()) \
+        .execute()
+
+
+def get_shared_prayers_for_pastor(pastor_id: str) -> list[dict]:
+    """Get all prayers shared by members of a specific pastor."""
+    admin = get_admin_client()
+    # Get member IDs for this pastor
+    members = admin.table("user_profiles") \
+        .select("user_id") \
+        .eq("pastor_id", pastor_id) \
+        .execute()
+    member_ids = [m["user_id"] for m in (members.data or [])]
+    if not member_ids:
+        return []
+
+    result = admin.table("prayer_entries") \
+        .select("*") \
+        .in_("user_id", member_ids) \
+        .eq("shared_with_pastor", True) \
+        .order("shared_at", desc=True) \
+        .execute()
+
+    # Enrich with member names
+    prayers = result.data or []
+    for p in prayers:
+        try:
+            u = admin.auth.admin.get_user_by_id(p["user_id"]).user
+            meta = u.user_metadata or {}
+            p["member_name"] = meta.get("preferred_name") or meta.get("first_name", "Member")
+        except Exception:
+            p["member_name"] = "Member"
+    return prayers
+
 
 # --- Prayer Templates (REQ-4) ---
 

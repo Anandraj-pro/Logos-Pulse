@@ -47,8 +47,8 @@ if not members:
     st.stop()
 
 # ==================== TABS ====================
-tab_members, tab_leaderboard, tab_assign, tab_history = st.tabs([
-    "\U0001f465 Members", "\U0001f3c6 Leaderboard", "\U0001f4d6 Create Assignment", "\U0001f4c1 Assignment History"
+tab_members, tab_leaderboard, tab_prayers, tab_assign, tab_history = st.tabs([
+    "\U0001f465 Members", "\U0001f3c6 Leaderboard", "\U0001f64f Shared Prayers", "\U0001f4d6 Create Assignment", "\U0001f4c1 Assignment History"
 ])
 
 # ==================== MEMBERS TAB ====================
@@ -204,6 +204,49 @@ with tab_leaderboard:
             </div>
         </div>
         """, unsafe_allow_html=True)
+
+# ==================== SHARED PRAYERS TAB ====================
+with tab_prayers:
+    shared_prayers = db.get_shared_prayers_for_pastor(viewing_pastor_id)
+
+    if not shared_prayers:
+        empty_state("\U0001f64f", "No shared prayer requests yet",
+                    "Members can share prayers from their Prayer Journal")
+    else:
+        section_label(f"{len(shared_prayers)} Shared Prayer Request(s)")
+
+        for prayer in shared_prayers:
+            status_config = {
+                "ongoing": ("#D4853A", "#FFF3E0", "Ongoing"),
+                "answered": ("#3A8F5C", "#E8F5E9", "Answered"),
+                "standing_in_faith": ("#5B4FC4", "#EDEBFA", "Standing in Faith"),
+            }
+            p_status = prayer.get("status", "ongoing")
+            s_color, s_bg, s_label = status_config.get(p_status, ("#888", "#F5F5F5", p_status))
+            shared_date = (prayer.get("shared_at") or "")[:10]
+
+            st.markdown(f"""
+            <div class="entry-card" style="border-left:3px solid {s_color};">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <span style="font-family:'DM Serif Display',Georgia,serif; font-size:15px; color:#2A2438;">
+                            {prayer['title']}
+                        </span>
+                        <span style="font-size:12px; color:#9E96AB; margin-left:8px;">
+                            from {prayer.get('member_name', 'Member')}
+                        </span>
+                    </div>
+                    <span style="background:{s_bg}; color:{s_color}; padding:2px 10px;
+                                 border-radius:10px; font-size:11px; font-weight:600;">
+                        {s_label}
+                    </span>
+                </div>
+                {"<div style='font-size:14px; color:#6B6580; margin-top:8px; line-height:1.6; font-style:italic;'>" + prayer['prayer_text'][:200].replace(chr(10), '<br/>') + ('...' if len(prayer.get('prayer_text','')) > 200 else '') + "</div>" if prayer.get('prayer_text') else ""}
+                <div style="font-size:11px; color:#C0B8CC; margin-top:6px;">
+                    Shared on {shared_date}
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
 
 # ==================== CREATE ASSIGNMENT TAB ====================
 with tab_assign:

@@ -209,6 +209,24 @@ elif st.session_state.get("pj_category"):
                             </div>
                             """, unsafe_allow_html=True)
 
+                        # M4: Share with Pastor toggle
+                        spacer(8)
+                        is_shared = prayer.get("shared_with_pastor", False)
+                        if is_shared:
+                            st.markdown("""
+                            <div style="background:#EDEBFA; border-radius:8px; padding:6px 12px; font-size:12px; color:#5B4FC4;">
+                                \U0001f91d Shared with your pastor
+                            </div>
+                            """, unsafe_allow_html=True)
+                            if st.button("Stop Sharing", key=f"unshare_{prayer['id']}"):
+                                db.unshare_prayer(prayer["id"])
+                                st.rerun()
+                        else:
+                            if st.button("\U0001f91d Share with Pastor", key=f"share_{prayer['id']}", use_container_width=True):
+                                db.share_prayer_with_pastor(prayer["id"])
+                                st.success("Shared! Your pastor can now see this prayer request.")
+                                st.rerun()
+
                         # Actions row
                         spacer(12)
                         col_s, col_d = st.columns([3, 1])

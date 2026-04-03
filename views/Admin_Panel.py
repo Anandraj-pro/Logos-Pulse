@@ -13,8 +13,8 @@ inject_styles()
 
 page_header("\U0001f6e1\ufe0f", "Admin Panel", "Manage users, roles, and platform settings")
 
-tab_users, tab_create, tab_analytics = st.tabs([
-    "\U0001f465 All Users", "\u2795 Create Account", "\U0001f4ca Analytics"
+tab_users, tab_create, tab_bulk, tab_analytics = st.tabs([
+    "\U0001f465 All Users", "\u2795 Create Account", "\U0001f4e4 Bulk Import", "\U0001f4ca Analytics"
 ])
 
 # ==================== ALL USERS ====================
@@ -238,6 +238,123 @@ with tab_create:
                     st.success("Default prayer categories and prayers seeded.")
             else:
                 st.error(result["error"])
+
+# ==================== BULK IMPORT ====================
+with tab_bulk:
+    section_label("Bulk Account Creation via CSV")
+
+    st.markdown("""
+    <div style="font-size:13px; color:#9E96AB; margin-bottom:16px;">
+        Upload a CSV file to create multiple accounts at once.
+        Each row creates one account with the role-specific default password.
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("""
+    **CSV Format** (columns):
+    | email | first_name | last_name | role | pastor_email | membership_card_id |
+    |-------|-----------|-----------|------|-------------|-------------------|
+    | john@example.com | John | Doe | prayer_warrior | pastor@example.com | TKT001 |
+    """)
+
+    st.caption("Roles: `bishop`, `pastor`, `prayer_warrior`. The `pastor_email` column is required for prayer_warrior accounts. `membership_card_id` is optional.")
+
+    # Download template
+    csv_template = "email,first_name,last_name,role,pastor_email,membership_card_id\njohn@example.com,John,Doe,prayer_warrior,pastor@example.com,TKT001\njane@example.com,Jane,Smith,prayer_warrior,pastor@example.com,TKT002\n"
+    st.download_button("Download CSV Template", data=csv_template, file_name="logos_pulse_accounts_template.csv",
+                       mime="text/csv", use_container_width=True)
+
+    spacer()
+
+    uploaded_csv = st.file_uploader("Upload CSV", type=["csv"], label_visibility="collapsed")
+
+    if uploaded_csv:
+        import csv
+        import io
+
+        content = uploaded_csv.read().decode("utf-8")
+        reader = csv.DictReader(io.StringIO(content))
+        rows = list(reader)
+
+        if not rows:
+            st.error("CSV is empty.")
+        else:
+            st.success(f"Found **{len(rows)}** account(s) to create.")
+
+            # Validate
+            errors = []
+            # Build pastor email -> ID lookup
+            pastors = get_pastors_list()
+            pastor_lookup = {p["email"].lower(): p["user_id"] for p in pastors}
+
+            bishops = get_bishops_list()
+            bishop_lookup = {b["email"].lower(): b["user_id"] for b in bishops}
+
+            valid_rows = []
+            for i, row in enumerate(rows, 1):
+                email = (row.get("email") or "").strip().lower()
+                first = (row.get("first_name") or "").strip()
+                last = (row.get("last_name") or "").strip()
+                role = (row.get("role") or "").strip().lower()
+                pastor_email = (row.get("pastor_email") or "").strip().lower()
+                card = (row.get("membership_card_id") or "").strip()
+
+                if not email or not first or not last:
+                    errors.append(f"Row {i}: Missing email, first_name, or last_name")
+                    continue
+                if role not in ("bishop", "pastor", "prayer_warrior"):
+                    errors.append(f"Row {i}: Invalid role '{role}'")
+                    continue
+                if role == "prayer_warrior" and pastor_email not in pastor_lookup:
+                    errors.append(f"Row {i}: Pastor '{pastor_email}' not found")
+                    continue
+
+                valid_rows.append({
+                    "email": email, "first_name": first, "last_name": last,
+                    "role": role, "pastor_id": pastor_lookup.get(pastor_email),
+                    "bishop_id": bishop_lookup.get(pastor_email),
+                    "membership_card_id": card or None,
+                })
+
+            if errors:
+                for e in errors:
+                    st.warning(e)
+
+            if valid_rows:
+                st.info(f"**{len(valid_rows)}** valid account(s) ready to create. {len(errors)} error(s).")
+
+                if st.button(f"Create {len(valid_rows)} Accounts", type="primary", use_container_width=True):
+                    admin_id = get_current_user_id()
+                    created = 0
+                    failed = 0
+
+                    progress_bar = st.progress(0)
+                    status_text = st.empty()
+
+                    for i, row in enumerate(valid_rows):
+                        status_text.text(f"Creating {row['email']}... ({i+1}/{len(valid_rows)})")
+                        result = create_account(
+                            email=row["email"],
+                            first_name=row["first_name"],
+                            last_name=row["last_name"],
+                            role=row["role"],
+                            created_by=admin_id,
+                            pastor_id=row.get("pastor_id"),
+                            bishop_id=row.get("bishop_id"),
+                            membership_card_id=row.get("membership_card_id"),
+                        )
+                        if result.get("success"):
+                            created += 1
+                        else:
+                            failed += 1
+                            st.warning(f"{row['email']}: {result.get('error', 'Failed')}")
+                        progress_bar.progress((i + 1) / len(valid_rows))
+
+                    status_text.empty()
+                    progress_bar.empty()
+                    st.success(f"Done! Created: {created}, Failed: {failed}")
+                    if created > 0:
+                        st.rerun()
 
 # ==================== ANALYTICS ====================
 with tab_analytics:
