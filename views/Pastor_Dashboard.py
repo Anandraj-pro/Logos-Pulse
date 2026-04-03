@@ -142,6 +142,10 @@ with tab_members:
         </div>
         """, unsafe_allow_html=True)
 
+        if st.button(f"View {member['display_name']}", key=f"view_{uid}", use_container_width=True):
+            st.session_state["viewing_member_id"] = uid
+            st.rerun()
+
 # ==================== LEADERBOARD TAB ====================
 with tab_leaderboard:
     from modules.utils import calculate_streaks

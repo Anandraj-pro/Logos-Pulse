@@ -70,6 +70,7 @@ else:
     if role in ("admin", "bishop", "pastor"):
         all_pages.append(st.Page("views/Pastor_Dashboard.py", title="Pastor Dashboard", icon="\U0001f465"))
         all_pages.append(st.Page("views/Wizard_Assignment.py", title="Custom Assignments", icon="\U0001f9d9"))
+        all_pages.append(st.Page("views/Member_Detail.py", title="Member Detail", icon="\U0001f464"))
 
     pg = st.navigation(all_pages)
 

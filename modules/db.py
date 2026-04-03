@@ -598,6 +598,60 @@ def create_prayer_template(name: str, description: str, confessions: str,
     return result.data[0] if result.data else {}
 
 
+# --- Pastor Notes ---
+
+def get_pastor_notes(pastor_id: str, member_id: str) -> list[dict]:
+    """Get all notes a pastor has written about a member."""
+    admin = get_admin_client()
+    result = admin.table("pastor_notes") \
+        .select("*") \
+        .eq("pastor_id", pastor_id) \
+        .eq("member_id", member_id) \
+        .order("created_at", desc=True) \
+        .execute()
+    return result.data or []
+
+
+def add_pastor_note(pastor_id: str, member_id: str, note_text: str) -> dict:
+    admin = get_admin_client()
+    result = admin.table("pastor_notes").insert({
+        "pastor_id": pastor_id,
+        "member_id": member_id,
+        "note_text": sanitize_html(note_text),
+    }).execute()
+    return result.data[0] if result.data else {}
+
+
+def delete_pastor_note(note_id: int):
+    admin = get_admin_client()
+    admin.table("pastor_notes").delete().eq("id", note_id).execute()
+
+
+# --- Member History (for Pastor/Bishop view) ---
+
+def get_member_entries(member_id: str, limit: int = 30) -> list[dict]:
+    """Get recent daily entries for a specific member (admin client bypasses RLS)."""
+    admin = get_admin_client()
+    result = admin.table("daily_entries") \
+        .select("*") \
+        .eq("user_id", member_id) \
+        .order("date", desc=True) \
+        .limit(limit) \
+        .execute()
+    return result.data or []
+
+
+def get_member_entry_dates(member_id: str) -> list[str]:
+    """Get all entry dates for a member."""
+    admin = get_admin_client()
+    result = admin.table("daily_entries") \
+        .select("date") \
+        .eq("user_id", member_id) \
+        .order("date") \
+        .execute()
+    return [r["date"] for r in (result.data or [])]
+
+
 # --- Wizard Assignments (REQ-5) ---
 
 def create_wizard_assignment(title: str, description: str, created_by: str,
