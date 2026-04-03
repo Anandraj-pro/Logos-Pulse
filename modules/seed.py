@@ -66,3 +66,10 @@ def seed_user_data(user_id: str, preferred_name: str, prayer_benchmark: int = 60
                 "declarations": prayer_data["declarations"],
                 "status": "ongoing",
             }).execute()
+
+    # 4. Seed New Believer confession track (7-day auto-plan)
+    try:
+        from modules.db import seed_new_believer_plan
+        seed_new_believer_plan(user_id)
+    except Exception:
+        pass  # Graceful fallback if prayer engine tables not yet created

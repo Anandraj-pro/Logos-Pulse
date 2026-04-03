@@ -21,6 +21,7 @@ def format_whatsapp_message(
     youtube_link: str | None,
     greeting_name: str,
     omit_empty_sermon: bool,
+    confession_line: str | None = None,
 ) -> str:
     date_str = format_ordinal_date(entry_date)
     duration_str = format_prayer_duration(prayer_minutes)
@@ -43,5 +44,8 @@ def format_whatsapp_message(
             lines.append(youtube_link.strip())
     elif not omit_empty_sermon:
         lines.append("Listening to the Word: None")
+
+    if confession_line:
+        lines.append(f"\u2720\ufe0f Confession: {confession_line}")
 
     return "\n".join(lines)

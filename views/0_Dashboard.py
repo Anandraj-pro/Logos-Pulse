@@ -344,6 +344,40 @@ if assignment:
 
 spacer(8)
 
+# ==================== TODAY'S CONFESSIONS CARD ====================
+try:
+    confession_plans = db.get_my_confession_plans(status="active")
+    if confession_plans:
+        confession_count_today = db.get_confession_count_today()
+        total_active = len(confession_plans)
+        pending = total_active - confession_count_today
+
+        if pending > 0:
+            st.markdown(f"""
+            <div class="today-card today-pending" style="cursor:pointer;">
+                <div class="today-header">
+                    <span class="today-icon">\u2720\ufe0f</span>
+                    <span class="today-title">Today's Confessions</span>
+                </div>
+                <div class="today-detail">{pending} confession{"s" if pending != 1 else ""} waiting &middot; {confession_count_today} completed today</div>
+            </div>
+            """, unsafe_allow_html=True)
+            if st.button("Start Confessing", key="dash_confess", type="primary"):
+                st.switch_page("views/8_Prayer_Engine.py")
+        else:
+            st.markdown(f"""
+            <div class="today-card today-done">
+                <div class="today-header">
+                    <span class="today-icon">\u2720\ufe0f</span>
+                    <span class="today-title">Confessions Complete</span>
+                </div>
+                <div class="today-detail">All {total_active} confession{"s" if total_active != 1 else ""} done for today!</div>
+            </div>
+            """, unsafe_allow_html=True)
+        spacer(8)
+except Exception:
+    pass  # Graceful fallback if prayer engine tables not yet created
+
 # ==================== 3 SECTION CARDS ====================
 section_label("Your Spiritual Toolkit")
 

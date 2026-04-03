@@ -47,8 +47,8 @@ if not members:
     st.stop()
 
 # ==================== TABS ====================
-tab_members, tab_followup, tab_leaderboard, tab_prayers, tab_assign, tab_history = st.tabs([
-    "\U0001f465 Members", "\U0001f514 Follow-Up", "\U0001f3c6 Leaderboard", "\U0001f64f Shared Prayers", "\U0001f4d6 Create Assignment", "\U0001f4c1 Assignment History"
+tab_members, tab_followup, tab_leaderboard, tab_prayers, tab_assign, tab_history, tab_confessions = st.tabs([
+    "\U0001f465 Members", "\U0001f514 Follow-Up", "\U0001f3c6 Leaderboard", "\U0001f64f Shared Prayers", "\U0001f4d6 Create Assignment", "\U0001f4c1 Assignment History", "\u2720\ufe0f Confessions"
 ])
 
 # ==================== MEMBERS TAB ====================
@@ -551,3 +551,135 @@ with tab_history:
                         if st.button("No", key=f"no_cancel_{assign_key}"):
                             st.session_state.pop(f"confirm_cancel_{assign_key}", None)
                             st.rerun()
+
+# ==================== CONFESSIONS TAB ====================
+with tab_confessions:
+    section_label("Confession Assignments")
+
+    try:
+        # Show active assignments
+        assigned_plans = db.get_pastor_assigned_plans(viewing_pastor_id)
+
+        if assigned_plans:
+            st.markdown(f"""
+            <div class="stat-card" style="text-align:center;">
+                <div class="stat-value">{len(assigned_plans)}</div>
+                <div class="stat-label">Active Confession Assignments</div>
+            </div>
+            """, unsafe_allow_html=True)
+            spacer()
+
+            for plan in assigned_plans:
+                tpl = plan.get("confession_templates", {})
+                member_name = plan.get("member_name", "Member")
+                stats = db.get_member_completion_stats(plan["user_id"], plan["id"])
+
+                # Calculate progress
+                progress_text = ""
+                if plan.get("start_date") and plan.get("end_date"):
+                    start_d = date.fromisoformat(plan["start_date"])
+                    end_d = date.fromisoformat(plan["end_date"])
+                    total_days = (end_d - start_d).days + 1
+                    days_done = stats["total_days_completed"]
+                    progress_text = f"Day {days_done}/{total_days}"
+                    pct = min(days_done / total_days * 100, 100) if total_days > 0 else 0
+                else:
+                    days_done = stats["total_days_completed"]
+                    progress_text = f"{days_done} days"
+                    pct = 0
+
+                last_active = stats.get("last_completed") or "Never"
+                days_since = ""
+                if stats.get("last_completed"):
+                    delta = (date.today() - date.fromisoformat(stats["last_completed"])).days
+                    if delta == 0:
+                        days_since = "Today"
+                    elif delta == 1:
+                        days_since = "Yesterday"
+                    else:
+                        days_since = f"{delta} days ago"
+                        if delta >= 3:
+                            days_since = f"&#9888;&#65039; {days_since}"
+                else:
+                    days_since = "Not started"
+
+                st.markdown(f"""
+                <div class="entry-card" style="padding:16px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <strong>{member_name}</strong>
+                            <span style="color:#6B6580; font-size:13px;"> &mdash; {tpl.get('name', 'Confession')}</span>
+                        </div>
+                        <span style="font-size:12px; color:#6B6580;">{progress_text}</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; margin-top:8px;">
+                        <span style="font-size:12px; color:#9E96AB;">Last active: {days_since}</span>
+                        <span style="font-size:12px; color:#9E96AB;">{plan.get('plan_type', '').replace('_', ' ').title()}</span>
+                    </div>
+                    <div style="height:4px; background:#EDE8F5; border-radius:2px; margin-top:8px; overflow:hidden;">
+                        <div style="height:100%; width:{pct:.0f}%; background:#5B4FC4; border-radius:2px;"></div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+        else:
+            empty_state("✝️", "No Confession Assignments", "Assign confessions to members below.")
+
+        # --- Assign New Confession ---
+        spacer()
+        section_label("Assign Confession to Member")
+
+        if members:
+            member_options = {m["user_id"]: m.get("preferred_name") or m.get("full_name", "Member") for m in members}
+            selected_member = st.selectbox(
+                "Select Member",
+                options=list(member_options.keys()),
+                format_func=lambda uid: member_options[uid],
+                key="conf_assign_member"
+            )
+
+            # Load available templates
+            all_templates = db.get_confession_templates(published_only=True)
+            # Filter out new believer track
+            available_templates = [t for t in all_templates if t.get("sort_order", 0) < 100]
+
+            if available_templates:
+                template_options = {t["id"]: t["name"] for t in available_templates}
+                selected_template = st.selectbox(
+                    "Select Confession",
+                    options=list(template_options.keys()),
+                    format_func=lambda tid: template_options[tid],
+                    key="conf_assign_template"
+                )
+
+                col_dur, col_note = st.columns(2)
+                with col_dur:
+                    duration = st.selectbox(
+                        "Duration",
+                        ["21_days", "7_days", "ongoing"],
+                        format_func=lambda x: {"21_days": "21 Days", "7_days": "7 Days", "ongoing": "Ongoing"}[x],
+                        key="conf_assign_duration"
+                    )
+                with col_note:
+                    note = st.text_input("Note for member (optional)", key="conf_assign_note")
+
+                if st.button("Assign Confession", type="primary", key="conf_assign_btn"):
+                    result = db.assign_confession_to_member(
+                        member_id=selected_member,
+                        template_id=selected_template,
+                        plan_type=duration,
+                        note=note if note else None
+                    )
+                    if result:
+                        st.success(f"Confession assigned to {member_options[selected_member]}!")
+                        st.rerun()
+                    else:
+                        st.error("Failed to assign confession. Please try again.")
+            else:
+                st.info("No confession templates available yet. Ask your admin to add templates.")
+        else:
+            st.info("No members found in your group.")
+
+    except Exception as e:
+        st.info("Confession assignments will be available once the Prayer Engine is set up.")
+        if st.session_state.get("debug_mode"):
+            st.exception(e)

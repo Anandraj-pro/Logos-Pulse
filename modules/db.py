@@ -1080,3 +1080,353 @@ def import_all_data(data: dict):
     if "app_settings" in data:
         for key, value in data["app_settings"].items():
             save_setting(key, value)
+
+
+# ─── Prayer Engine ───────────────────────────────────────────────────
+
+def get_confession_categories(tier: int = None) -> list[dict]:
+    key = _cache_key("confession_categories", tier or "all")
+    cached = _get_cached(key)
+    if cached is not None:
+        return cached
+
+    def op():
+        client = _client()
+        q = client.table("confession_categories").select("*").eq("is_active", True).order("sort_order")
+        if tier:
+            q = q.eq("tier", tier)
+        return q.execute()
+    result = _safe_execute(op, fallback=None)
+    return _set_cached(key, result.data if result and result.data else [])
+
+
+def get_confession_templates(category_id: int = None, published_only: bool = True) -> list[dict]:
+    key = _cache_key("confession_templates", category_id or "all", published_only)
+    cached = _get_cached(key)
+    if cached is not None:
+        return cached
+
+    def op():
+        client = _client()
+        q = client.table("confession_templates").select("*, confession_categories(name, icon, color)")
+        if published_only:
+            q = q.eq("is_published", True).eq("is_pastor_custom", False)
+        if category_id:
+            q = q.eq("category_id", category_id)
+        return q.order("sort_order").execute()
+    result = _safe_execute(op, fallback=None)
+    return _set_cached(key, result.data if result and result.data else [])
+
+
+def get_confession_template(template_id: int) -> dict | None:
+    def op():
+        client = _client()
+        return client.table("confession_templates").select(
+            "*, confession_categories(name, icon, color)"
+        ).eq("id", template_id).single().execute()
+    result = _safe_execute(op, fallback=None)
+    return result.data if result else None
+
+
+def create_confession_template(data: dict) -> dict | None:
+    for field in ("name", "description", "short_form_text"):
+        if field in data and data[field]:
+            data[field] = sanitize_html(data[field])
+    data["created_by"] = _uid()
+
+    def op():
+        client = _client()
+        return client.table("confession_templates").insert(data).execute()
+    result = _safe_execute(op, fallback=None)
+    _clear_cache("confession_templates")
+    return result.data[0] if result and result.data else None
+
+
+def update_confession_template(template_id: int, data: dict) -> dict | None:
+    for field in ("name", "description", "short_form_text"):
+        if field in data and data[field]:
+            data[field] = sanitize_html(data[field])
+
+    def op():
+        admin = get_admin_client()
+        return admin.table("confession_templates").update(data).eq("id", template_id).execute()
+    result = _safe_execute(op, fallback=None)
+    _clear_cache("confession_templates")
+    return result.data[0] if result and result.data else None
+
+
+# --- Confession of the Week ---
+
+def get_confession_of_the_week() -> dict | None:
+    key = _cache_key("cotw")
+    cached = _get_cached(key)
+    if cached is not None:
+        return cached
+
+    from datetime import date
+    today = date.today().isoformat()
+
+    def op():
+        client = _client()
+        return client.table("confession_of_the_week").select(
+            "*, confession_templates(*, confession_categories(name, icon, color))"
+        ).eq("is_active", True).lte("start_date", today).gte("end_date", today).order(
+            "created_at", desc=True
+        ).limit(1).execute()
+    result = _safe_execute(op, fallback=None)
+    data = result.data[0] if result and result.data else None
+    return _set_cached(key, data)
+
+
+def set_confession_of_the_week(template_id: int, start_date: str, end_date: str,
+                                sermon_theme: str = None, sermon_reference: str = None) -> dict | None:
+    admin = get_admin_client()
+    # Deactivate previous
+    try:
+        admin.table("confession_of_the_week").update({"is_active": False}).eq("is_active", True).execute()
+    except Exception:
+        pass
+
+    row = {
+        "template_id": template_id,
+        "start_date": start_date,
+        "end_date": end_date,
+        "sermon_theme": sanitize_html(sermon_theme) if sermon_theme else None,
+        "sermon_reference": sanitize_html(sermon_reference) if sermon_reference else None,
+        "set_by": _uid(),
+        "is_active": True,
+    }
+
+    def op():
+        return admin.table("confession_of_the_week").insert(row).execute()
+    result = _safe_execute(op, fallback=None)
+    _clear_cache("cotw")
+    return result.data[0] if result and result.data else None
+
+
+# --- Member Confession Plans ---
+
+def get_my_confession_plans(status: str = "active") -> list[dict]:
+    key = _cache_key("my_plans", status)
+    cached = _get_cached(key)
+    if cached is not None:
+        return cached
+
+    def op():
+        client = _client()
+        q = client.table("member_confession_plans").select(
+            "*, confession_templates(id, name, short_form_text, confessions, declarations, prayers, scriptures, "
+            "time_of_day, maturity_warning, confession_categories(name, icon, color))"
+        ).eq("user_id", _uid())
+        if status:
+            q = q.eq("status", status)
+        return q.order("created_at", desc=True).execute()
+    result = _safe_execute(op, fallback=None)
+    return _set_cached(key, result.data if result and result.data else [])
+
+
+def add_to_my_plan(template_id: int, plan_type: str = "ongoing", time_slot: str = "anytime",
+                   is_new_believer: bool = False) -> dict | None:
+    from datetime import date, timedelta
+    start = date.today()
+    end = None
+    if plan_type == "7_days":
+        end = (start + timedelta(days=6)).isoformat()
+    elif plan_type == "21_days":
+        end = (start + timedelta(days=20)).isoformat()
+
+    row = {
+        "user_id": _uid(),
+        "template_id": template_id,
+        "plan_type": plan_type,
+        "time_slot": time_slot,
+        "start_date": start.isoformat(),
+        "end_date": end,
+        "status": "active",
+        "is_new_believer_track": is_new_believer,
+    }
+
+    def op():
+        client = _client()
+        return client.table("member_confession_plans").insert(row).execute()
+    result = _safe_execute(op, fallback=None)
+    _clear_cache("my_plans")
+    return result.data[0] if result and result.data else None
+
+
+def update_plan_status(plan_id: int, status: str) -> None:
+    def op():
+        client = _client()
+        return client.table("member_confession_plans").update(
+            {"status": status, "updated_at": "now()"}
+        ).eq("id", plan_id).eq("user_id", _uid()).execute()
+    _safe_execute(op)
+    _clear_cache("my_plans")
+
+
+def assign_confession_to_member(member_id: str, template_id: int, plan_type: str = "21_days",
+                                 note: str = None) -> dict | None:
+    from datetime import date, timedelta
+    start = date.today()
+    end = None
+    if plan_type == "7_days":
+        end = (start + timedelta(days=6)).isoformat()
+    elif plan_type == "21_days":
+        end = (start + timedelta(days=20)).isoformat()
+
+    row = {
+        "user_id": member_id,
+        "template_id": template_id,
+        "assigned_by": _uid(),
+        "assignment_note": sanitize_html(note) if note else None,
+        "plan_type": plan_type,
+        "start_date": start.isoformat(),
+        "end_date": end,
+        "status": "active",
+    }
+
+    def op():
+        admin = get_admin_client()
+        return admin.table("member_confession_plans").insert(row).execute()
+    result = _safe_execute(op, fallback=None)
+    return result.data[0] if result and result.data else None
+
+
+def get_pastor_assigned_plans(pastor_id: str = None) -> list[dict]:
+    pid = pastor_id or _uid()
+
+    def op():
+        admin = get_admin_client()
+        return admin.table("member_confession_plans").select(
+            "*, confession_templates(name, recommended_duration), user:user_id(id)"
+        ).eq("assigned_by", pid).eq("status", "active").order("created_at", desc=True).execute()
+    result = _safe_execute(op, fallback=None)
+    plans = result.data if result and result.data else []
+
+    # Enrich with member names
+    if plans:
+        member_ids = list({p["user_id"] for p in plans})
+        admin = get_admin_client()
+        profiles = admin.table("user_profiles").select("user_id, preferred_name, full_name").in_(
+            "user_id", member_ids
+        ).execute()
+        name_map = {p["user_id"]: p.get("preferred_name") or p.get("full_name", "Member")
+                    for p in (profiles.data or [])}
+        for p in plans:
+            p["member_name"] = name_map.get(p["user_id"], "Member")
+    return plans
+
+
+# --- Confession Completions ---
+
+def mark_confession_complete(plan_id: int, time_slot: str = None,
+                              reflection_note: str = None) -> dict | None:
+    from datetime import date
+    row = {
+        "user_id": _uid(),
+        "plan_id": plan_id,
+        "completed_date": date.today().isoformat(),
+        "time_slot": time_slot,
+        "reflection_note": sanitize_html(reflection_note) if reflection_note else None,
+    }
+
+    def op():
+        client = _client()
+        return client.table("confession_completions").insert(row).execute()
+    result = _safe_execute(op, fallback=None)
+    _clear_cache("completions")
+    _clear_cache("my_plans")
+    return result.data[0] if result and result.data else None
+
+
+def get_today_completions() -> list[dict]:
+    from datetime import date
+    key = _cache_key("completions", date.today().isoformat())
+    cached = _get_cached(key)
+    if cached is not None:
+        return cached
+
+    def op():
+        client = _client()
+        return client.table("confession_completions").select("*").eq(
+            "user_id", _uid()
+        ).eq("completed_date", date.today().isoformat()).execute()
+    result = _safe_execute(op, fallback=None)
+    return _set_cached(key, result.data if result and result.data else [])
+
+
+def get_completions_for_plan(plan_id: int) -> list[dict]:
+    def op():
+        client = _client()
+        return client.table("confession_completions").select("completed_date, time_slot").eq(
+            "plan_id", plan_id
+        ).order("completed_date").execute()
+    result = _safe_execute(op, fallback=None)
+    return result.data if result and result.data else []
+
+
+def get_member_completion_stats(member_id: str, plan_id: int) -> dict:
+    """Get completion stats for a pastor-prescribed plan (pastor view)."""
+    def op():
+        admin = get_admin_client()
+        return admin.table("confession_completions").select(
+            "completed_date"
+        ).eq("user_id", member_id).eq("plan_id", plan_id).execute()
+    result = _safe_execute(op, fallback=None)
+    completions = result.data if result and result.data else []
+    dates = [c["completed_date"] for c in completions]
+    return {
+        "total_days_completed": len(set(dates)),
+        "last_completed": max(dates) if dates else None,
+    }
+
+
+# --- New Believer Track ---
+
+def get_new_believer_track() -> list[dict]:
+    key = _cache_key("nb_track")
+    cached = _get_cached(key)
+    if cached is not None:
+        return cached
+
+    def op():
+        client = _client()
+        return client.table("new_believer_track").select(
+            "*, confession_templates(id, name, description, short_form_text, confessions, declarations, "
+            "prayers, scriptures)"
+        ).eq("is_active", True).order("day_number").execute()
+    result = _safe_execute(op, fallback=None)
+    return _set_cached(key, result.data if result and result.data else [])
+
+
+def seed_new_believer_plan(user_id: str) -> None:
+    """Auto-assign 7-day New Believer Track to a new user. Uses admin client."""
+    from datetime import date, timedelta
+    track = get_new_believer_track()
+    if not track:
+        return
+
+    admin = get_admin_client()
+    start = date.today()
+    end = (start + timedelta(days=6)).isoformat()
+
+    for item in track:
+        try:
+            admin.table("member_confession_plans").insert({
+                "user_id": user_id,
+                "template_id": item["template_id"],
+                "plan_type": "7_days",
+                "time_slot": "morning",
+                "start_date": start.isoformat(),
+                "end_date": end,
+                "status": "active",
+                "is_new_believer_track": True,
+            }).execute()
+        except Exception:
+            pass
+
+
+def get_confession_count_today() -> int:
+    """Quick count of today's completions for dashboard card."""
+    completions = get_today_completions()
+    return len(completions)

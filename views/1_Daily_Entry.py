@@ -274,6 +274,23 @@ with tab_report:
     entry_for_report = db.get_entry_by_date(entry_date_str)
 
     if entry_for_report:
+        # Get today's confession line for the report
+        _confession_line = None
+        try:
+            _active_plans = db.get_my_confession_plans(status="active")
+            if _active_plans:
+                _tpl = _active_plans[0].get("confession_templates", {})
+                _confessions = _tpl.get("confessions", [])
+                if isinstance(_confessions, str):
+                    import json as _json
+                    _confessions = _json.loads(_confessions)
+                if _confessions:
+                    _c = _confessions[0]
+                    _ref = f' — {_c["scripture_ref"]}' if _c.get("scripture_ref") else ""
+                    _confession_line = f'"{_c["text"]}"{_ref}'
+        except Exception:
+            pass
+
         message = format_whatsapp_message(
             entry_date=entry_date,
             prayer_minutes=entry_for_report["prayer_minutes"],
@@ -283,6 +300,7 @@ with tab_report:
             youtube_link=entry_for_report.get("youtube_link") or None,
             greeting_name=greeting_name,
             omit_empty_sermon=omit_sermon,
+            confession_line=_confession_line,
         )
 
         section_label("WhatsApp Report Preview")
