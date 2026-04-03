@@ -41,15 +41,47 @@ elif st.session_state.get("must_change_password"):
     ])
     pg.run()
 else:
-    st.set_page_config(
-        page_title="Logos Pulse",
-        page_icon="\U0001f64f",
-        layout="wide",
-        initial_sidebar_state="expanded",
-    )
-    role = get_current_role()
+    # Check if onboarding needed
+    _needs_onboarding = False
+    try:
+        from modules.supabase_client import get_admin_client as _get_admin
+        from modules.auth import get_current_user_id as _get_uid
+        _prof = _get_admin().table("user_profiles") \
+            .select("onboarding_completed") \
+            .eq("user_id", _get_uid()) \
+            .execute()
+        if _prof.data and not _prof.data[0].get("onboarding_completed"):
+            _needs_onboarding = True
+    except Exception:
+        pass
 
-    # Build page list
+    if _needs_onboarding:
+        st.set_page_config(
+            page_title="Logos Pulse",
+            page_icon="\U0001f64f",
+            layout="centered",
+            initial_sidebar_state="collapsed",
+        )
+        st.markdown("""
+        <style>
+            [data-testid="stSidebar"] { display: none; }
+            [data-testid="stSidebarCollapsedControl"] { display: none; }
+        </style>
+        """, unsafe_allow_html=True)
+        pg = st.navigation([
+            st.Page("views/Onboarding.py", title="Welcome", icon="\U0001f31f", default=True),
+        ])
+        pg.run()
+    else:
+        st.set_page_config(
+            page_title="Logos Pulse",
+            page_icon="\U0001f64f",
+            layout="wide",
+            initial_sidebar_state="expanded",
+        )
+        role = get_current_role()
+
+        # Build page list
     all_pages = [
         st.Page("views/0_Dashboard.py", title="Dashboard", icon="\U0001f3e0", default=True),
         st.Page("views/1_Daily_Entry.py", title="Daily Entry", icon="\u270f\ufe0f"),

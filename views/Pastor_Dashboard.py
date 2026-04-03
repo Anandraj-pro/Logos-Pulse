@@ -47,8 +47,8 @@ if not members:
     st.stop()
 
 # ==================== TABS ====================
-tab_members, tab_leaderboard, tab_prayers, tab_assign, tab_history = st.tabs([
-    "\U0001f465 Members", "\U0001f3c6 Leaderboard", "\U0001f64f Shared Prayers", "\U0001f4d6 Create Assignment", "\U0001f4c1 Assignment History"
+tab_members, tab_followup, tab_leaderboard, tab_prayers, tab_assign, tab_history = st.tabs([
+    "\U0001f465 Members", "\U0001f514 Follow-Up", "\U0001f3c6 Leaderboard", "\U0001f64f Shared Prayers", "\U0001f4d6 Create Assignment", "\U0001f4c1 Assignment History"
 ])
 
 # ==================== MEMBERS TAB ====================
@@ -145,6 +145,105 @@ with tab_members:
         if st.button(f"View {member['display_name']}", key=f"view_{uid}", use_container_width=True):
             st.session_state["viewing_member_id"] = uid
             st.rerun()
+
+# ==================== FOLLOW-UP TAB ====================
+with tab_followup:
+    from modules.utils import calculate_streaks
+
+    section_label("Members Needing Follow-Up")
+    st.caption("Members who haven't logged in 3+ days")
+
+    admin_fu = get_admin_client()
+    needs_followup = []
+
+    for member in members:
+        m_entries = admin_fu.table("daily_entries") \
+            .select("date") \
+            .eq("user_id", member["user_id"]) \
+            .order("date", desc=True) \
+            .limit(1) \
+            .execute()
+
+        if m_entries.data:
+            last_date = m_entries.data[0]["date"]
+            days_since = (date.today() - date.fromisoformat(last_date)).days
+        else:
+            days_since = 999  # Never logged
+
+        if days_since >= 3:
+            needs_followup.append({**member, "days_since": days_since, "last_date": last_date if m_entries.data else "Never"})
+
+    needs_followup.sort(key=lambda x: x["days_since"], reverse=True)
+
+    if not needs_followup:
+        st.markdown("""
+        <div class="goal-banner" style="text-align:center;">
+            \u2705 All members are active! No follow-up needed.
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        st.warning(f"{len(needs_followup)} member(s) need follow-up")
+
+        for m in needs_followup:
+            urgency_color = "#C44B5B" if m["days_since"] >= 7 else "#D4853A"
+            st.markdown(f"""
+            <div class="entry-card" style="border-left:3px solid {urgency_color};">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-family:'DM Serif Display',Georgia,serif; font-size:15px; color:#2A2438;">
+                        {m['display_name']}
+                    </span>
+                    <span style="background:#FFEBEE; color:{urgency_color}; padding:2px 10px;
+                                 border-radius:10px; font-size:11px; font-weight:600;">
+                        {m['days_since']} days inactive
+                    </span>
+                </div>
+                <div style="font-size:12px; color:#9E96AB; margin-top:4px;">
+                    Last logged: {m['last_date']} | {m['email']}
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+            col_note, col_log = st.columns([3, 1])
+            with col_note:
+                fu_note = st.text_input("Follow-up note", placeholder="e.g., Called and encouraged",
+                                        key=f"fu_{m['user_id']}", label_visibility="collapsed")
+            with col_log:
+                if st.button("Log", key=f"fu_log_{m['user_id']}", use_container_width=True):
+                    if fu_note.strip():
+                        admin_fu.table("follow_up_log").insert({
+                            "pastor_id": viewing_pastor_id,
+                            "member_id": m["user_id"],
+                            "action": "follow_up",
+                            "notes": fu_note.strip(),
+                        }).execute()
+                        st.success(f"Follow-up logged for {m['display_name']}")
+                        st.rerun()
+
+    # Recent follow-up history
+    spacer()
+    section_label("Recent Follow-Up Log")
+    fu_log = admin_fu.table("follow_up_log") \
+        .select("*") \
+        .eq("pastor_id", viewing_pastor_id) \
+        .order("created_at", desc=True) \
+        .limit(10) \
+        .execute()
+
+    if fu_log.data:
+        for log in fu_log.data:
+            try:
+                fu_user = admin_fu.auth.admin.get_user_by_id(log["member_id"]).user
+                fu_name = (fu_user.user_metadata or {}).get("preferred_name", fu_user.email)
+            except Exception:
+                fu_name = "Member"
+            log_date = (log.get("created_at") or "")[:10]
+            st.markdown(f"""
+            <div style="font-size:13px; color:#6B6580; padding:6px 0; border-bottom:1px solid #EDE8F5;">
+                <b>{fu_name}</b> \u2014 {log.get('notes', '')} <span style="color:#9E96AB; font-size:11px;">({log_date})</span>
+            </div>
+            """, unsafe_allow_html=True)
+    else:
+        st.caption("No follow-up logs yet")
 
 # ==================== LEADERBOARD TAB ====================
 with tab_leaderboard:
