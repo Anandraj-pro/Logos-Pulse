@@ -770,6 +770,305 @@ SHARED_CSS = """
         .day-name { width: 60px; font-size: 12px; }
         .day-row { padding: 8px 10px; font-size: 12px; }
     }
+
+    /* ============================================================
+       V2 DESIGN SYSTEM — Glowing borders, background, animations
+       ============================================================ */
+
+    /* ---- Third font for scripture ---- */
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap');
+
+    /* ---- CSS Custom Properties ---- */
+    :root {
+        --lp-primary: #4A3FB0;
+        --lp-primary-light: #6B5FD4;
+        --lp-primary-dark: #362E8A;
+        --lp-gold: #C9982A;
+        --lp-gold-light: #E8C560;
+        --lp-gold-dark: #9B7420;
+        --lp-cream: #FFF9F0;
+        --lp-surface: #FAFAF8;
+        --lp-card-glow: rgba(74, 63, 176, 0.08);
+        --lp-gold-glow: rgba(201, 152, 42, 0.12);
+    }
+
+    /* ---- Subtle background texture ---- */
+    .stApp {
+        background:
+            radial-gradient(circle at 20% 20%, rgba(74, 63, 176, 0.03) 0%, transparent 50%),
+            radial-gradient(circle at 80% 80%, rgba(201, 152, 42, 0.03) 0%, transparent 50%),
+            radial-gradient(circle at 50% 50%, rgba(155, 95, 168, 0.02) 0%, transparent 70%),
+            #FAFAF8 !important;
+    }
+
+    /* ---- Keyframe animations ---- */
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(12px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes shimmer {
+        0% { background-position: -200% 0; }
+        100% { background-position: 200% 0; }
+    }
+    @keyframes pulseGlow {
+        0%, 100% { box-shadow: 0 0 8px rgba(74, 63, 176, 0.1); }
+        50% { box-shadow: 0 0 20px rgba(74, 63, 176, 0.2); }
+    }
+    @keyframes goldShimmer {
+        0% { background-position: -300% 50%; }
+        100% { background-position: 300% 50%; }
+    }
+
+    /* ---- Staggered page load ---- */
+    .page-header { animation: fadeInUp 0.4s ease both; }
+    .hero-section { animation: fadeInUp 0.5s ease both; }
+    .metric-card { animation: fadeInUp 0.4s ease both; }
+    .stat-card { animation: fadeInUp 0.4s ease both; }
+    .section-card { animation: fadeInUp 0.5s ease both; }
+    .entry-card { animation: fadeInUp 0.3s ease both; }
+    .today-card { animation: fadeInUp 0.4s ease both; }
+    .progress-section { animation: fadeInUp 0.5s ease both; }
+
+    /* ---- Glowing card borders ---- */
+    .entry-card {
+        border: 1px solid rgba(74, 63, 176, 0.08);
+        transition: all 0.25s ease;
+    }
+    .entry-card:hover {
+        border-color: rgba(74, 63, 176, 0.15);
+        box-shadow:
+            0 4px 16px rgba(74, 63, 176, 0.08),
+            0 0 0 1px rgba(74, 63, 176, 0.05);
+    }
+
+    .section-card {
+        border: 1px solid rgba(74, 63, 176, 0.06);
+        transition: all 0.3s ease;
+    }
+    .section-card:hover {
+        border-color: rgba(201, 152, 42, 0.2);
+        box-shadow:
+            0 8px 24px rgba(74, 63, 176, 0.06),
+            0 0 0 1px rgba(201, 152, 42, 0.1),
+            inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        transform: translateY(-3px);
+    }
+
+    .metric-card {
+        border: 1px solid rgba(74, 63, 176, 0.06);
+        transition: all 0.25s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    .metric-card::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--lp-primary), var(--lp-gold), var(--lp-primary));
+        background-size: 200% 100%;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+    .metric-card:hover::after {
+        opacity: 1;
+        animation: shimmer 2s linear infinite;
+    }
+    .metric-card:hover {
+        box-shadow: 0 6px 20px rgba(74, 63, 176, 0.1);
+        transform: translateY(-2px);
+    }
+
+    .stat-card {
+        transition: all 0.25s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    .stat-card::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--lp-primary), var(--lp-gold));
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+    .stat-card:hover::after { opacity: 1; }
+    .stat-card:hover {
+        box-shadow: 0 6px 18px rgba(74, 63, 176, 0.08);
+        transform: translateY(-2px);
+    }
+
+    /* ---- Enhanced hero ---- */
+    .hero-section {
+        background:
+            radial-gradient(ellipse at 30% 20%, rgba(201, 152, 42, 0.15) 0%, transparent 50%),
+            radial-gradient(ellipse at 70% 80%, rgba(155, 95, 168, 0.1) 0%, transparent 50%),
+            linear-gradient(135deg, #4A3FB0 0%, #6B4FA0 40%, #9B5FA8 70%, #4A3FB0 100%);
+        background-size: 100% 100%, 100% 100%, 200% 200%;
+        animation: fadeInUp 0.5s ease both;
+    }
+
+    .hero-verse {
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(201, 152, 42, 0.15);
+        position: relative;
+    }
+    .hero-verse::before {
+        content: '\201C';
+        position: absolute;
+        top: -8px;
+        left: 12px;
+        font-size: 40px;
+        color: rgba(201, 152, 42, 0.3);
+        font-family: 'Cormorant Garamond', Georgia, serif;
+        line-height: 1;
+    }
+
+    /* ---- Enhanced page header ---- */
+    .page-header {
+        background:
+            radial-gradient(ellipse at 80% 20%, rgba(201, 152, 42, 0.12) 0%, transparent 50%),
+            linear-gradient(135deg, #4A3FB0 0%, #6B4FA0 50%, #9B5FA8 100%);
+    }
+
+    /* ---- Gold accent progress bar ---- */
+    .progress-bar-fill {
+        background: linear-gradient(90deg, var(--lp-primary), var(--lp-gold), var(--lp-primary));
+        background-size: 200% 100%;
+        animation: shimmer 3s linear infinite;
+    }
+
+    /* ---- Scripture typography ---- */
+    .report-card,
+    .scripture-block {
+        font-family: 'Cormorant Garamond', 'DM Serif Display', Georgia, serif;
+    }
+
+    /* ---- Prayer card glow ---- */
+    .prayer-card {
+        transition: all 0.25s ease;
+    }
+    .prayer-card:hover {
+        border-color: rgba(74, 63, 176, 0.12);
+        box-shadow:
+            0 4px 16px rgba(74, 63, 176, 0.06),
+            inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    }
+
+    /* ---- Sermon card warmth ---- */
+    .sermon-card {
+        transition: all 0.25s ease;
+    }
+    .sermon-card:hover {
+        border-color: rgba(201, 152, 42, 0.2);
+        box-shadow: 0 6px 20px rgba(201, 152, 42, 0.08);
+    }
+
+    /* ---- Today card pulse ---- */
+    .today-pending {
+        animation: fadeInUp 0.4s ease both, pulseGlow 3s ease-in-out infinite;
+        border-color: rgba(212, 133, 58, 0.3);
+    }
+
+    /* ---- Sidebar branding ---- */
+    [data-testid="stSidebar"] > div:first-child {
+        background:
+            linear-gradient(180deg, rgba(74, 63, 176, 0.03) 0%, transparent 30%),
+            #FAFAF8;
+    }
+
+    /* ---- Streamlit tab pills ---- */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 4px;
+        background: rgba(74, 63, 176, 0.04);
+        border-radius: 12px;
+        padding: 4px;
+    }
+    .stTabs [data-baseweb="tab-list"] button {
+        border-radius: 8px !important;
+        font-weight: 500 !important;
+        transition: all 0.2s ease !important;
+    }
+    .stTabs [data-baseweb="tab-list"] button[aria-selected="true"] {
+        background: white !important;
+        box-shadow: 0 2px 8px rgba(74, 63, 176, 0.1) !important;
+    }
+
+    /* ---- Button improvements ---- */
+    .stButton > button[kind="primary"] {
+        background: linear-gradient(135deg, var(--lp-primary), var(--lp-primary-light)) !important;
+        border: none !important;
+        transition: all 0.2s ease !important;
+    }
+    .stButton > button[kind="primary"]:hover {
+        box-shadow: 0 4px 16px rgba(74, 63, 176, 0.3) !important;
+        transform: translateY(-1px) !important;
+    }
+
+    /* ---- Form input focus ---- */
+    .stTextInput > div > div > input:focus,
+    .stTextArea > div > div > textarea:focus {
+        border-color: var(--lp-primary) !important;
+        box-shadow: 0 0 0 2px rgba(74, 63, 176, 0.1) !important;
+    }
+
+    /* ---- Footer ---- */
+    .lp-footer {
+        text-align: center;
+        padding: 24px 16px;
+        margin-top: 40px;
+        border-top: 1px solid rgba(74, 63, 176, 0.08);
+        position: relative;
+    }
+    .lp-footer::before {
+        content: '';
+        position: absolute;
+        top: -1px;
+        left: 20%;
+        right: 20%;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, var(--lp-gold), transparent);
+    }
+    .lp-footer-brand {
+        font-family: 'DM Serif Display', Georgia, serif;
+        font-size: 14px;
+        background: linear-gradient(135deg, var(--lp-primary), var(--lp-gold));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    .lp-footer-sub {
+        font-size: 11px;
+        color: #C0B8CC;
+        margin-top: 4px;
+    }
+</style>
+"""
+
+# ==================== V2 ENHANCEMENT CSS ====================
+ENHANCEMENT_CSS = """
+<style>
+    /* Additional Streamlit-specific overrides that need separate injection */
+    [data-testid="stForm"] {
+        border: 1px solid rgba(74, 63, 176, 0.08) !important;
+        border-radius: 14px !important;
+        padding: 20px !important;
+        background: white !important;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.02) !important;
+    }
+    [data-testid="stExpander"] {
+        border: 1px solid rgba(74, 63, 176, 0.08) !important;
+        border-radius: 12px !important;
+        overflow: hidden;
+    }
+    [data-testid="stExpander"]:hover {
+        border-color: rgba(74, 63, 176, 0.15) !important;
+    }
 </style>
 """
 
@@ -777,6 +1076,7 @@ SHARED_CSS = """
 def inject_styles():
     """Inject the shared CSS into the current page."""
     st.markdown(SHARED_CSS, unsafe_allow_html=True)
+    st.markdown(ENHANCEMENT_CSS, unsafe_allow_html=True)
 
 
 def page_header(icon: str, title: str, subtitle: str = ""):
@@ -810,3 +1110,28 @@ def empty_state(icon: str, title: str, subtitle: str = ""):
 def spacer(height: int = 16):
     """Render a vertical spacer."""
     st.markdown(f"<div style='height:{height}px'></div>", unsafe_allow_html=True)
+
+
+def footer():
+    """Render the branded app footer."""
+    st.markdown("""
+    <div class="lp-footer">
+        <div class="lp-footer-brand">\U0001f64f Logos Pulse</div>
+        <div class="lp-footer-sub">Spiritual Growth Tracker &bull; Built with faith</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+
+def sidebar_logo():
+    """Render the logo in the sidebar."""
+    st.markdown("""
+    <div style="text-align:center; padding:8px 0 16px 0;">
+        <div style="font-size:32px; margin-bottom:4px;">\U0001f64f</div>
+        <div style="font-family:'DM Serif Display',Georgia,serif; font-size:18px;
+                    background:linear-gradient(135deg, #4A3FB0, #C9982A);
+                    -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+                    background-clip:text;">
+            Logos Pulse
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
