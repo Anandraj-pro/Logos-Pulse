@@ -578,6 +578,22 @@ with tab_analytics:
     else:
         st.caption("Send each Prayer Warrior their weekly summary (streak, chapters, confessions).")
 
+        # Test email
+        from modules.email_sender import send_email
+        _admin_email = st.secrets.get("email", {}).get("smtp_user", "")
+        if st.button(f"Send Test Email to {_admin_email}", use_container_width=True):
+            result = send_email(
+                _admin_email,
+                "Logos Pulse — Email Test",
+                "This is a test email from Logos Pulse.\n\nIf you received this, Gmail SMTP is working correctly."
+            )
+            if result["success"]:
+                st.success(f"Test email sent to {_admin_email}!")
+            else:
+                st.error(f"Failed: {result['error']}")
+
+        spacer(8)
+
         if "digest_preview" not in st.session_state:
             if st.button("Preview Digest", use_container_width=True):
                 with st.spinner("Building digest…"):
