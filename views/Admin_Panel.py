@@ -557,3 +557,69 @@ with tab_analytics:
         st.warning(f"{pending_count} user(s) still using default passwords.")
     else:
         st.success("All users have updated their passwords.")
+
+    # ==================== WEEKLY DIGEST ====================
+    spacer()
+    section_label("Weekly Digest Email")
+
+    from modules.email_sender import is_configured
+    from modules.digest import build_all_digests, format_digest_email
+
+    if not is_configured():
+        st.info(
+            "Email not configured. Add an **[email]** section to `.streamlit/secrets.toml`:\n\n"
+            "```toml\n[email]\n"
+            "smtp_host     = \"smtp.gmail.com\"\n"
+            "smtp_port     = 587\n"
+            "smtp_user     = \"your@gmail.com\"\n"
+            "smtp_password = \"your-app-password\"\n"
+            "from_name     = \"Logos Pulse\"\n```"
+        )
+    else:
+        st.caption("Send each Prayer Warrior their weekly summary (streak, chapters, confessions).")
+
+        if "digest_preview" not in st.session_state:
+            if st.button("Preview Digest", use_container_width=True):
+                with st.spinner("Building digest…"):
+                    st.session_state["digest_preview"] = build_all_digests()
+                st.rerun()
+
+        if "digest_preview" in st.session_state:
+            previews = st.session_state["digest_preview"]
+            st.markdown(f"**{len(previews)} recipient(s)** will receive this digest:")
+
+            for d in previews[:5]:
+                subject, body = format_digest_email(d)
+                with st.expander(f"{d['display_name']} — {d['email']}"):
+                    st.code(body, language=None)
+
+            if len(previews) > 5:
+                st.caption(f"… and {len(previews) - 5} more.")
+
+            col_send, col_cancel = st.columns(2)
+            with col_send:
+                if st.button("Send to All", type="primary", use_container_width=True):
+                    from modules.email_sender import send_bulk
+                    recipients = []
+                    for d in previews:
+                        subject, body = format_digest_email(d)
+                        recipients.append({"to": d["email"], "subject": subject, "body": body})
+
+                    with st.spinner(f"Sending to {len(recipients)} members…"):
+                        result = send_bulk(recipients)
+
+                    _db.log_audit("digest.sent", target_type="digest",
+                                  details={"sent": result["sent"], "failed": len(result["failed"])})
+                    st.session_state.pop("digest_preview", None)
+
+                    if result["failed"]:
+                        st.warning(f"Sent {result['sent']}, failed {len(result['failed'])}: "
+                                   + ", ".join(f["email"] for f in result["failed"]))
+                    else:
+                        st.success(f"Digest sent to {result['sent']} member(s)!")
+                    st.rerun()
+
+            with col_cancel:
+                if st.button("Cancel", use_container_width=True):
+                    st.session_state.pop("digest_preview", None)
+                    st.rerun()
