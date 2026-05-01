@@ -90,7 +90,7 @@ else:
             st.Page("views/4_Streaks_and_Stats.py", title="Streaks & Stats", icon="\U0001f525"),
             st.Page("views/6_Sermon_Notes.py", title="Sermon Notes", icon="\U0001f4dd"),
             st.Page("views/7_Prayer_Journal.py", title="Prayer Journal", icon="\U0001f64f"),
-            st.Page("views/8_Prayer_Engine.py", title="Prayer Engine", icon="\u2720\ufe0f"),
+            st.Page("views/8_Prayer_Engine.py", title="Prayer Engine", icon="\U0001f64f"),
             st.Page("views/Fasting_Tracker.py", title="Fasting Tracker", icon="\U0001f374"),
             st.Page("views/Personal_Goals.py", title="My Goals", icon="\U0001f3af"),
             st.Page("views/Testimonies.py", title="Testimonies", icon="\U0001f31f"),
