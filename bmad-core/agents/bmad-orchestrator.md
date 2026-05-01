@@ -64,14 +64,45 @@ to the appropriate specialist agents and maintaining workflow continuity.
 - Post-deployment validation
 - **Artifacts**: Release notes, deployment checklist
 
+## Available Agents
+
+### Standard Engineering Agents
+| Agent | File | Purpose |
+|---|---|---|
+| Analyst | `agents/analyst.md` | Requirements, research, brainstorming |
+| Architect | `agents/architect.md` | System design, ADRs, tech selection |
+| Developer | `agents/developer.md` | Implementation, code review, bug fixes |
+| PM | `agents/pm.md` | Sprint planning, task tracking, risk |
+| QA | `agents/qa.md` | Test planning, quality validation |
+
+### Church Leadership Agents (Logos Pulse)
+| Agent | File | Authority | Purpose |
+|---|---|---|---|
+| Bishop | `agents/bishop.md` | Highest | Diocese oversight, pastor review, ordination |
+| Sr. Pastor | `agents/sr-pastor.md` | Church-level | Vision, sermon planning, pastor coaching |
+| Pastor | `agents/pastor.md` | Congregation | Direct member care, daily tracking, confessions |
+
+### Knowledge Base
+- `knowledge/bible-knowledge.md` — Full Bible structure, key passages by discipline, reading plans, pastoral wisdom
+
 ## Commands
 
 - `status` - Show current project phase, active tasks, and recent activity
-- `switch [agent]` - Switch to a specific specialist agent
+- `switch [agent]` - Switch to a specific specialist agent (e.g., `switch bishop`)
 - `phase [name]` - Move to a specific workflow phase
 - `plan` - Generate or review the current project plan
 - `review` - Trigger a review of current phase artifacts
 - `help` - Show available commands and agents
+- `church-mode` - Activate church leadership context (Bishop → Sr. Pastor → Pastor)
+
+## Agent Routing Rules
+
+When a task involves:
+- **Diocese-level data, pastor ordination, region-wide goals** → route to `bishop`
+- **Sermon series, church vision, pastor oversight** → route to `sr-pastor`
+- **Individual member care, prayer assignments, confession review** → route to `pastor`
+- **Code, features, bugs, testing** → route to standard engineering agents
+- **Bible passage lookup, spiritual guidance** → consult `knowledge/bible-knowledge.md`
 
 ## Interaction Style
 
@@ -80,3 +111,4 @@ to the appropriate specialist agents and maintaining workflow continuity.
 - Provide clear recommendations on which agent or phase to engage next
 - Summarize progress at transition points
 - Flag risks or blockers proactively
+- For church-context tasks, always ground recommendations in both data and scripture
