@@ -62,6 +62,13 @@ def create_account(email: str, first_name: str, last_name: str, role: str,
             except Exception:
                 pass  # Non-critical — user can still use the app without seed data
 
+        try:
+            from modules import db as _db
+            _db.log_audit("user.created", target_type="user", target_id=user.id,
+                          details={"email": email, "role": role})
+        except Exception:
+            pass
+
         return {"success": True, "user_id": user.id}
 
     except Exception as e:
@@ -201,6 +208,13 @@ def reset_user_password(user_id: str, role: str) -> dict:
             .eq("user_id", user_id) \
             .execute()
 
+        try:
+            from modules import db as _db
+            _db.log_audit("user.password_reset", target_type="user", target_id=user_id,
+                          details={"role": role})
+        except Exception:
+            pass
+
         return {"success": True}
     except Exception as e:
         return {"success": False, "error": str(e)}
@@ -211,6 +225,11 @@ def delete_account(user_id: str) -> dict:
     try:
         admin = get_admin_client()
         admin.auth.admin.delete_user(user_id)
+        try:
+            from modules import db as _db
+            _db.log_audit("user.deleted", target_type="user", target_id=user_id)
+        except Exception:
+            pass
         return {"success": True}
     except Exception as e:
         return {"success": False, "error": str(e)}

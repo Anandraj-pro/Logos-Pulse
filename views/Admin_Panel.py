@@ -373,6 +373,8 @@ with tab_announce:
     if ann_submit:
         if ann_title.strip() and ann_msg.strip():
             _db.create_announcement(ann_title.strip(), ann_msg.strip(), ann_role)
+            _db.log_audit("announcement.created", target_type="announcement",
+                          details={"title": ann_title.strip(), "target_role": ann_role})
             st.success("Announcement published!")
             st.rerun()
         else:
@@ -393,23 +395,69 @@ with tab_announce:
         """, unsafe_allow_html=True)
         if st.button("Deactivate", key=f"deact_{a['id']}", use_container_width=True):
             admin.table("announcements").update({"is_active": False}).eq("id", a["id"]).execute()
+            _db.log_audit("announcement.removed", target_type="announcement",
+                          target_id=str(a["id"]), details={"title": a["title"]})
             st.rerun()
 
 # ==================== AUDIT LOG ====================
 with tab_audit:
-    section_label("Recent Activity")
-    audit_entries = _db.get_audit_log(limit=50)
+    _ACTION_META = {
+        "user.created":          ("#3A8F5C", "#E8F5E9",  "\ud83d\udc64 Created"),
+        "user.deleted":          ("#C44B5B", "#FFEBEE",  "\ud83d\uddd1\ufe0f Deleted"),
+        "user.password_reset":   ("#D4853A", "#FFF3E0",  "\ud83d\udd11 Pwd Reset"),
+        "announcement.created":  ("#5B4FC4", "#EDEBFA",  "\ud83d\udce2 Announced"),
+        "announcement.removed":  ("#9E96AB", "#F5F3FA",  "\ud83d\udced Ann. Removed"),
+    }
+
+    audit_all = _db.get_audit_log(limit=200)
+
+    col_af, col_sf = st.columns([2, 3])
+    with col_af:
+        action_options = ["All"] + sorted({e["action"] for e in audit_all})
+        action_filter = st.selectbox("Filter by action", action_options, label_visibility="collapsed")
+    with col_sf:
+        search_actor = st.text_input("Search by name", placeholder="Actor name\u2026", label_visibility="collapsed")
+
+    audit_entries = [
+        e for e in audit_all
+        if (action_filter == "All" or e["action"] == action_filter)
+        and (not search_actor or search_actor.lower() in e.get("actor_name", "").lower())
+    ]
+
+    st.markdown(f"""
+    <div style="font-size:12px; color:#9E96AB; margin-bottom:8px;">
+        Showing {len(audit_entries)} of {len(audit_all)} entries
+    </div>
+    """, unsafe_allow_html=True)
 
     if not audit_entries:
         empty_state("\U0001f4dc", "No audit entries yet", "Actions will be logged as users interact with the system")
     else:
         for entry in audit_entries:
+            action = entry.get("action", "")
+            color, bg, label = _ACTION_META.get(action, ("#9E96AB", "#F5F3FA", action))
             log_date = (entry.get("created_at") or "")[:19].replace("T", " ")
+            details = entry.get("details") or {}
+            detail_parts = [f"{k}: {v}" for k, v in details.items() if v is not None]
+            detail_str = " &nbsp;\u00b7&nbsp; ".join(detail_parts)
+
             st.markdown(f"""
-            <div style="font-size:13px; color:#6B6580; padding:8px 0; border-bottom:1px solid #EDE8F5;">
-                <b>{entry.get('actor_name', 'System')}</b> \u2014 {entry['action']}
-                {"<span style='color:#9E96AB;'> | " + entry.get('target_type', '') + " " + (entry.get('target_id') or '') + "</span>" if entry.get('target_type') else ""}
-                <span style="float:right; font-size:11px; color:#C0B8CC;">{log_date}</span>
+            <div class="entry-card" style="padding:10px 14px; margin-bottom:4px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span style="background:{bg}; color:{color}; font-size:11px; font-weight:600;
+                                     padding:2px 8px; border-radius:8px; white-space:nowrap;">
+                            {label}
+                        </span>
+                        <span style="font-size:13px; color:#2A2438; font-weight:500;">
+                            {entry.get('actor_name', 'System')}
+                        </span>
+                    </div>
+                    <span style="font-size:11px; color:#C0B8CC; white-space:nowrap; margin-left:12px;">
+                        {log_date}
+                    </span>
+                </div>
+                {f'<div style="font-size:12px; color:#9E96AB; margin-top:4px;">{detail_str}</div>' if detail_str else ""}
             </div>
             """, unsafe_allow_html=True)
 
