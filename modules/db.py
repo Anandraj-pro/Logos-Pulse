@@ -1430,3 +1430,22 @@ def get_confession_count_today() -> int:
     """Quick count of today's completions for dashboard card."""
     completions = get_today_completions()
     return len(completions)
+
+
+def get_confession_count_this_week() -> int:
+    """Count distinct confession days completed in the current Mon–Sat window."""
+    from datetime import date as _date
+    today = _date.today()
+    monday = (today - __import__("datetime").timedelta(days=today.weekday())).isoformat()
+    saturday = (__import__("datetime").date.fromisoformat(monday) + __import__("datetime").timedelta(days=5)).isoformat()
+
+    def op():
+        client = _client()
+        return client.table("confession_completions") \
+            .select("completed_date") \
+            .gte("completed_date", monday) \
+            .lte("completed_date", saturday) \
+            .execute()
+    result = _safe_execute(op, fallback=None)
+    rows = result.data if result else []
+    return len({r["completed_date"] for r in rows})

@@ -56,7 +56,9 @@ def create_account(email: str, first_name: str, last_name: str, role: str,
         if role == "prayer_warrior":
             try:
                 from modules.seed import seed_user_data
+                from modules import db as _db
                 seed_user_data(user.id, first_name, prayer_benchmark)
+                _db.seed_new_believer_plan(user.id)
             except Exception:
                 pass  # Non-critical — user can still use the app without seed data
 

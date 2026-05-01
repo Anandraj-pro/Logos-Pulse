@@ -378,6 +378,50 @@ try:
 except Exception:
     pass  # Graceful fallback if prayer engine tables not yet created
 
+# ==================== CONFESSION OF THE WEEK ====================
+try:
+    cotw = db.get_confession_of_the_week()
+    if cotw:
+        tpl = cotw.get("confession_templates") or {}
+        cat = tpl.get("confession_categories") or {}
+        cat_color = cat.get("color", "#5B4FC4")
+        cat_icon = cat.get("icon", "✝️")
+        cat_name = cat.get("name", "")
+        tpl_name = tpl.get("name", "Confession of the Week")
+        sermon_theme = cotw.get("sermon_theme", "")
+        sermon_ref = cotw.get("sermon_reference", "")
+        date_range = f"{cotw.get('start_date', '')} – {cotw.get('end_date', '')}"
+
+        theme_line = ""
+        if sermon_theme:
+            theme_line += f'<div style="font-size:13px; color:#6B6580; margin-top:6px;">Theme: <b>{sermon_theme}</b>'
+            if sermon_ref:
+                theme_line += f' &nbsp;&middot;&nbsp; <span style="color:{cat_color};">{sermon_ref}</span>'
+            theme_line += "</div>"
+
+        st.markdown(f"""
+        <div class="entry-card" style="border-left:4px solid {cat_color}; background:linear-gradient(135deg,rgba(255,255,255,0.9),rgba(237,235,250,0.4));">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                <div>
+                    <div style="font-size:11px; color:#9E96AB; text-transform:uppercase; letter-spacing:1.5px; font-weight:600; margin-bottom:4px;">
+                        Confession of the Week
+                    </div>
+                    <div style="font-family:'DM Serif Display',Georgia,serif; font-size:17px; color:#2A2438;">
+                        {cat_icon} {tpl_name}
+                    </div>
+                    <div style="font-size:12px; color:{cat_color}; margin-top:2px;">{cat_name}</div>
+                    {theme_line}
+                </div>
+                <div style="font-size:11px; color:#D0C8DB; white-space:nowrap; margin-left:16px; text-align:right;">
+                    {date_range}
+                </div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        spacer(4)
+except Exception:
+    pass
+
 # ==================== 3 SECTION CARDS ====================
 section_label("Your Spiritual Toolkit")
 

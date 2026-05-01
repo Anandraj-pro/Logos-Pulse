@@ -22,6 +22,7 @@ def format_whatsapp_message(
     greeting_name: str,
     omit_empty_sermon: bool,
     confession_line: str | None = None,
+    confession_week_count: int | None = None,
 ) -> str:
     date_str = format_ordinal_date(entry_date)
     duration_str = format_prayer_duration(prayer_minutes)
@@ -47,5 +48,8 @@ def format_whatsapp_message(
 
     if confession_line:
         lines.append(f"\u2720\ufe0f Confession: {confession_line}")
+
+    if confession_week_count is not None and confession_week_count > 0:
+        lines.append(f"\U0001f4d6 Confessions this week: {confession_week_count} day(s)")
 
     return "\n".join(lines)

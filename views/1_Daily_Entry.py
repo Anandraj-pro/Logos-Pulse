@@ -274,8 +274,9 @@ with tab_report:
     entry_for_report = db.get_entry_by_date(entry_date_str)
 
     if entry_for_report:
-        # Get today's confession line for the report
+        # Get today's confession line and weekly count for the report
         _confession_line = None
+        _confession_week_count = None
         try:
             _active_plans = db.get_my_confession_plans(status="active")
             if _active_plans:
@@ -288,6 +289,7 @@ with tab_report:
                     _c = _confessions[0]
                     _ref = f' — {_c["scripture_ref"]}' if _c.get("scripture_ref") else ""
                     _confession_line = f'"{_c["text"]}"{_ref}'
+                _confession_week_count = db.get_confession_count_this_week()
         except Exception:
             pass
 
@@ -301,6 +303,7 @@ with tab_report:
             greeting_name=greeting_name,
             omit_empty_sermon=omit_sermon,
             confession_line=_confession_line,
+            confession_week_count=_confession_week_count,
         )
 
         section_label("WhatsApp Report Preview")
