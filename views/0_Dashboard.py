@@ -67,10 +67,9 @@ for _ann in _announcements[:3]:
     col_ann, col_dismiss = st.columns([10, 1])
     with col_ann:
         st.markdown(f"""
-        <div style="background:linear-gradient(135deg, #EDEBFA, #F5EEFA); border:1px solid #D1C4E9;
-                    border-radius:10px; padding:10px 16px; margin-bottom:8px;">
-            <div style="font-size:14px; font-weight:600; color:#3D35A0;">\U0001f4e2 {_ann_title}</div>
-            <div style="font-size:13px; color:#5B4FC4; margin-top:2px;">{_ann_msg}</div>
+        <div class="announcement-card">
+            <div class="announcement-title">&#128226; {_ann_title}</div>
+            <div class="announcement-body">{_ann_msg}</div>
         </div>
         """, unsafe_allow_html=True)
     with col_dismiss:

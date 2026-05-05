@@ -179,7 +179,7 @@ function AuthField({ id, label, type, placeholder, icon, autoComplete, value, on
         htmlFor={id}
         className={cn(
           "block text-[10px] font-semibold uppercase tracking-[0.12em] mb-1.5 transition-colors duration-200",
-          focused ? "text-[#3B2F8E]" : "text-[#6B7280]"
+          focused ? "text-[#2A1D7E]" : "text-[#6B7280]"
         )}
       >
         {label}
@@ -188,7 +188,7 @@ function AuthField({ id, label, type, placeholder, icon, autoComplete, value, on
         <span
           className={cn(
             "absolute left-0 transition-colors duration-200",
-            focused ? "text-[#3B2F8E]" : "text-[#6B7280]"
+            focused ? "text-[#2A1D7E]" : "text-[#6B7280]"
           )}
         >
           {icon}
@@ -202,7 +202,7 @@ function AuthField({ id, label, type, placeholder, icon, autoComplete, value, on
             onBlur={() => setFocused(false)}
             className={cn(
               "w-full pl-6 pr-0 pb-2.5 pt-0.5 bg-transparent border-0 border-b text-sm text-[#1A1A2E] outline-none transition-all duration-200 appearance-none cursor-pointer",
-              focused ? "border-[#3B2F8E]" : "border-[#e5e7eb]"
+              focused ? "border-[#2A1D7E]" : "border-[#e5e7eb]"
             )}
           >
             <option value="">Select your pastor</option>
@@ -222,7 +222,7 @@ function AuthField({ id, label, type, placeholder, icon, autoComplete, value, on
             onBlur={() => setFocused(false)}
             className={cn(
               "w-full pl-6 pr-8 pb-2.5 pt-0.5 bg-transparent border-0 border-b text-sm text-[#1A1A2E] placeholder:text-[#9ca3af] outline-none transition-all duration-200",
-              focused ? "border-[#3B2F8E]" : "border-[#e5e7eb]"
+              focused ? "border-[#2A1D7E]" : "border-[#e5e7eb]"
             )}
           />
         )}
@@ -231,7 +231,7 @@ function AuthField({ id, label, type, placeholder, icon, autoComplete, value, on
             type="button"
             tabIndex={-1}
             onClick={() => setShow((s) => !s)}
-            className="absolute right-0 text-[#6B7280] hover:text-[#3B2F8E] transition-colors"
+            className="absolute right-0 text-[#6B7280] hover:text-[#2A1D7E] transition-colors"
           >
             {show ? <EyeOff size={15} /> : <Eye size={15} />}
           </button>
@@ -240,7 +240,7 @@ function AuthField({ id, label, type, placeholder, icon, autoComplete, value, on
       {/* animated underline focus indicator */}
       <div
         className={cn(
-          "absolute bottom-0 left-0 h-px bg-[#3B2F8E] transition-all duration-300 ease-out",
+          "absolute bottom-0 left-0 h-px bg-[#2A1D7E] transition-all duration-300 ease-out",
           focused ? "w-full opacity-100" : "w-0 opacity-0"
         )}
       />
@@ -291,7 +291,7 @@ export const Component = () => {
       <div
         className="hidden lg:flex flex-col justify-between w-[420px] xl:w-[480px] flex-shrink-0 relative overflow-hidden px-12 py-10"
         style={{
-          background: "linear-gradient(158deg, #1E1733 0%, #2a1f4a 45%, #1a1530 100%)",
+          background: "linear-gradient(152deg, #170F4A 0%, #2A1D7E 40%, #3C2D90 70%, #4A2A88 100%)",
         }}
       >
         <VineDecoration />
@@ -320,7 +320,7 @@ export const Component = () => {
             <div>
               <p
                 className="text-white text-lg leading-none"
-                style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
+                style={{ fontFamily: "'Cinzel', Georgia, serif" }}
               >
                 Logos Pulse
               </p>
@@ -333,7 +333,7 @@ export const Component = () => {
           <h1
             className="text-white leading-tight mb-5"
             style={{
-              fontFamily: "'Playfair Display', Georgia, serif",
+              fontFamily: "'Cinzel', Georgia, serif",
               fontWeight: 300,
               fontSize: "clamp(28px, 3vw, 40px)",
             }}
@@ -370,7 +370,7 @@ export const Component = () => {
             <p
               className="text-white/75 leading-relaxed mb-3"
               style={{
-                fontFamily: "'EB Garamond', Georgia, serif",
+                fontFamily: "'Spectral', 'EB Garamond', Georgia, serif",
                 fontStyle: "italic",
                 fontSize: "17px",
                 lineHeight: "1.75",
@@ -380,7 +380,7 @@ export const Component = () => {
             </p>
             <p
               className="text-sm font-medium"
-              style={{ color: "#c9982a", fontFamily: "'Playfair Display', serif" }}
+              style={{ color: "#c9982a", fontFamily: "'Cinzel', serif" }}
             >
               — {verse.ref}
             </p>
@@ -399,7 +399,7 @@ export const Component = () => {
       {/* ── Right: form panel ── */}
       <div
         className="flex-1 flex items-center justify-center px-6 py-10 overflow-y-auto"
-        style={{ background: "#F8F7FF" }}
+        style={{ background: "#F3F0E8" }}
       >
         {/* Breathing cross watermark */}
         <div
@@ -408,8 +408,8 @@ export const Component = () => {
           aria-hidden
         >
           <svg width="280" height="280" viewBox="0 0 280 280">
-            <rect x="120" y="20" width="40" height="240" rx="20" fill="#3B2F8E" />
-            <rect x="20" y="100" width="240" height="40" rx="20" fill="#3B2F8E" />
+            <rect x="120" y="20" width="40" height="240" rx="20" fill="#2A1D7E" />
+            <rect x="20" y="100" width="240" height="40" rx="20" fill="#2A1D7E" />
           </svg>
         </div>
 
@@ -420,10 +420,10 @@ export const Component = () => {
         >
           {/* Mobile logo */}
           <div className="lg:hidden flex items-center gap-2 mb-10">
-            <BookOpen size={20} color="#3B2F8E" />
+            <BookOpen size={20} color="#2A1D7E" />
             <span
               className="text-lg text-[#1A1A2E]"
-              style={{ fontFamily: "'Playfair Display', serif" }}
+              style={{ fontFamily: "'Cinzel', serif" }}
             >
               Logos Pulse
             </span>
@@ -434,7 +434,7 @@ export const Component = () => {
             <h2
               className="text-[#1A1A2E] mb-1.5"
               style={{
-                fontFamily: "'Playfair Display', Georgia, serif",
+                fontFamily: "'Cinzel', Georgia, serif",
                 fontWeight: 400,
                 fontSize: "28px",
               }}
@@ -451,7 +451,7 @@ export const Component = () => {
           {/* Mode toggle pill */}
           <div
             className="relative flex p-1 rounded-full mb-8 self-start w-fit"
-            style={{ background: "#ede9f8" }}
+            style={{ background: "rgba(42,29,126,0.08)" }}
           >
             {/* Sliding indicator */}
             <div
@@ -459,7 +459,7 @@ export const Component = () => {
               style={{
                 left: mode === "login" ? "4px" : "50%",
                 width: "calc(50% - 4px)",
-                background: "#3B2F8E",
+                background: "#2A1D7E",
                 boxShadow: "0 2px 12px rgba(59,47,142,0.35)",
               }}
             />
@@ -470,7 +470,7 @@ export const Component = () => {
                 onClick={() => switchMode(m)}
                 className={cn(
                   "relative z-10 px-5 py-2 text-sm font-semibold rounded-full transition-colors duration-300 capitalize",
-                  mode === m ? "text-white" : "text-[#6B7280] hover:text-[#3B2F8E]"
+                  mode === m ? "text-white" : "text-[#6B7280] hover:text-[#2A1D7E]"
                 )}
               >
                 {m === "login" ? "Sign In" : "Register"}
@@ -526,11 +526,11 @@ export const Component = () => {
                       step={15}
                       value={prayerGoal}
                       onChange={(e) => setPrayerGoal(Number(e.target.value))}
-                      className="flex-1 accent-[#3B2F8E] h-1.5 cursor-pointer"
+                      className="flex-1 accent-[#2A1D7E] h-1.5 cursor-pointer"
                     />
                     <span
                       className="text-base font-bold w-20 text-right flex-shrink-0"
-                      style={{ color: "#3B2F8E", fontFamily: "'Playfair Display', serif" }}
+                      style={{ color: "#2A1D7E", fontFamily: "'Cinzel', serif" }}
                     >
                       {prayerGoal} min
                     </span>
@@ -547,7 +547,7 @@ export const Component = () => {
                 <div className="text-right -mt-1">
                   <button
                     type="button"
-                    className="text-xs text-[#6B7280] hover:text-[#3B2F8E] transition-colors underline-offset-2 hover:underline"
+                    className="text-xs text-[#6B7280] hover:text-[#2A1D7E] transition-colors underline-offset-2 hover:underline"
                   >
                     Forgot password?
                   </button>
@@ -565,7 +565,7 @@ export const Component = () => {
                 )}
                 style={{
                   background:
-                    "linear-gradient(135deg, #3B2F8E 0%, #5B4FC4 100%)",
+                    "linear-gradient(135deg, #2A1D7E 0%, #4B3DC0 100%)",
                   boxShadow: "0 4px 20px rgba(59,47,142,0.35), inset 0 1px 0 rgba(255,255,255,0.15)",
                 }}
               >
@@ -589,7 +589,7 @@ export const Component = () => {
               type="button"
               onClick={() => switchMode(mode === "login" ? "register" : "login")}
               className="font-semibold transition-colors hover:underline underline-offset-2"
-              style={{ color: "#3B2F8E" }}
+              style={{ color: "#2A1D7E" }}
             >
               {mode === "login" ? "Register here" : "Sign in"}
             </button>
