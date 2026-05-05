@@ -1,0 +1,1509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Logos Pulse — Sacred Manuscript UI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600&family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        cream:    { DEFAULT:'#fbfaf1', dim:'#f0efe6', deep:'#e8e7db' },
+        sage:     { 50:'#f2f5ec', 100:'#dde8cc', 200:'#bdd49a', 300:'#97bc67', 400:'#72a33a', DEFAULT:'#3e5219', 600:'#334316', 700:'#273311', dark:'#1a2e0d' },
+        gold:     { light:'#f0d98a', DEFAULT:'#c9982a', deep:'#9e7420' },
+        parchment:'#fff8ee',
+        ink:      { DEFAULT:'#1b1c17', soft:'#45483c', muted:'#75796b', faint:'#a8ab9c' },
+        moss:     { DEFAULT:'#445030', light:'#5b6846', pale:'#dae8be' },
+        ember:    { DEFAULT:'#c26b2c', light:'#f0c89a', pale:'#fdf0e5' },
+        crimson:  { DEFAULT:'#b5383c', pale:'#fde8e8' },
+        teal:     { DEFAULT:'#0d7377', pale:'#e0f4f4' },
+      },
+      fontFamily: {
+        serif:    ['"Noto Serif"', 'Georgia', 'serif'],
+        garamond: ['"EB Garamond"', 'Georgia', 'serif'],
+        sans:     ['Inter', 'system-ui', 'sans-serif'],
+      },
+      keyframes: {
+        fadeUp:   { '0%':{ opacity:'0', transform:'translateY(16px)' }, '100%':{ opacity:'1', transform:'translateY(0)' } },
+        breathe:  { '0%,100%':{ boxShadow:'0 0 0 0 rgba(194,107,44,0)' }, '50%':{ boxShadow:'0 0 0 10px rgba(194,107,44,0.15)' } },
+        shimmer:  { '0%':{ backgroundPosition:'-200% 0' }, '100%':{ backgroundPosition:'200% 0' } },
+        glow:     { '0%,100%':{ opacity:'0.6' }, '50%':{ opacity:'1' } },
+        slideIn:  { '0%':{ opacity:'0', transform:'translateX(-12px)' }, '100%':{ opacity:'1', transform:'translateX(0)' } },
+        scaleIn:  { '0%':{ opacity:'0', transform:'scale(0.95)' }, '100%':{ opacity:'1', transform:'scale(1)' } },
+      },
+      animation: {
+        fadeUp:  'fadeUp 0.5s ease-out both',
+        breathe: 'breathe 3s ease-in-out infinite',
+        shimmer: 'shimmer 2.5s linear infinite',
+        glow:    'glow 2s ease-in-out infinite',
+        slideIn: 'slideIn 0.35s ease-out both',
+        scaleIn: 'scaleIn 0.3s ease-out both',
+      },
+      boxShadow: {
+        feather: '0 8px 40px -8px rgba(62,82,25,0.10)',
+        card:    '0 2px 20px -4px rgba(62,82,25,0.08)',
+        glow:    '0 0 24px 4px rgba(201,152,42,0.18)',
+        inset:   'inset 0 1px 0 rgba(255,255,255,0.6)',
+      }
+    }
+  }
+}
+</script>
+<style>
+  /* ── Base ── */
+  *, *::before, *::after { box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: #fbfaf1; color: #1b1c17; margin: 0; }
+  .font-serif  { font-family: 'Noto Serif', serif; }
+  .font-garamond { font-family: 'EB Garamond', serif; }
+  .ms { font-family: 'Material Symbols Outlined'; font-size: 20px; line-height: 1; font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; vertical-align: middle; }
+  .ms-fill { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  .ms-lg { font-size: 28px; }
+  .ms-xl { font-size: 40px; }
+  /* ── Progress shimmer ── */
+  .progress-bar {
+    background: linear-gradient(90deg, #3e5219 0%, #72a33a 40%, #3e5219 60%, #3e5219 100%);
+    background-size: 200% 100%;
+    animation: shimmer 2.5s linear infinite;
+    border-radius: 9999px;
+  }
+  /* ── Page system ── */
+  .page { display: none; }
+  .page.active { display: block; }
+  /* ── Tab system ── */
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+  .tab-btn { border-bottom: 2px solid transparent; transition: all 0.2s; color: #75796b; padding: 10px 4px; font-size: 14px; font-weight: 500; cursor: pointer; white-space: nowrap; }
+  .tab-btn.active { border-bottom-color: #3e5219; color: #3e5219; }
+  .tab-btn:hover:not(.active) { color: #45483c; }
+  /* ── Sidebar nav ── */
+  .nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 20px; border-left: 3px solid transparent; font-family: 'Noto Serif', serif; font-size: 14px; color: rgba(255,255,255,0.55); cursor: pointer; transition: all 0.25s; border-radius: 0 8px 8px 0; margin-right: 12px; }
+  .nav-item:hover  { color: rgba(255,255,255,0.85); background: rgba(255,255,255,0.06); }
+  .nav-item.active { border-left-color: #c9982a; color: #ffffff; background: rgba(201,152,42,0.12); }
+  /* ── Scripture block ── */
+  .scripture-block { background: #fff8ee; border-left: 3px solid #c9982a; padding: 16px 20px; border-radius: 0 10px 10px 0; font-family: 'EB Garamond', serif; font-style: italic; font-size: 18px; line-height: 1.7; color: #3e5219; }
+  /* ── Card ── */
+  .card { background: #ffffff; border-radius: 16px; box-shadow: 0 2px 20px -4px rgba(62,82,25,0.08); }
+  .card-parchment { background: #fbfaf1; border-radius: 16px; border: 1px solid #e8e7db; }
+  /* ── Role badges ── */
+  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; }
+  .badge-warrior { background: #e8eaf6; color: #3e5219; }
+  .badge-pastor   { background: #e0f4f4; color: #0d7377; }
+  .badge-bishop   { background: #fef3d4; color: #9e7420; }
+  .badge-admin    { background: #fde8e8; color: #b5383c; }
+  /* ── Status badges ── */
+  .status-done    { background: #d8f0e3; color: #2d6a4f; }
+  .status-pending { background: #fdf0e5; color: #c26b2c; }
+  .status-faith   { background: #fef3d4; color: #9e7420; }
+  /* ── Confession blocks ── */
+  .confession-block { background: #f0faf4; border-left: 3px solid #2d6a4f; padding: 14px 18px; border-radius: 0 10px 10px 0; font-size: 14px; color: #2d6a4f; }
+  .declaration-block { background: #fdf0e5; border-left: 3px solid #c26b2c; padding: 14px 18px; border-radius: 0 10px 10px 0; font-size: 14px; color: #c26b2c; }
+  /* ── Heatmap day ── */
+  .heatday { width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; }
+  .heatday-done    { background: #3e5219; color: #fff; }
+  .heatday-miss    { background: #fde8e8; color: #b5383c; }
+  .heatday-future  { background: #efeee6; color: #a8ab9c; }
+  .heatday-today   { background: #3e5219; color: #fff; outline: 2px solid #c9982a; outline-offset: 2px; }
+  /* ── Gold decorative ── */
+  .gold-rule { height: 1px; background: linear-gradient(90deg, transparent, #c9982a 30%, #c9982a 70%, transparent); margin: 20px 0; opacity: 0.4; }
+  /* ── Verse number ── */
+  .verse-num { font-size: 9px; font-weight: 700; color: #3e5219; vertical-align: super; margin-right: 2px; opacity: 0.7; }
+  /* ── Login form ── */
+  .form-input { width: 100%; background: #f5f4eb; border: none; border-bottom: 1.5px solid #c5c8b8; border-radius: 8px 8px 0 0; padding: 14px 16px; font-size: 15px; color: #1b1c17; outline: none; transition: border-color 0.2s; }
+  .form-input:focus { border-bottom-color: #3e5219; background: #fff; }
+  /* ── Confess line ── */
+  .confess-line { font-family: 'Noto Serif', serif; font-size: 24px; line-height: 1.6; color: #1b1c17; text-align: center; padding: 24px 0; }
+  /* ── Staggered animation delays ── */
+  [style*="--d:"] { animation-delay: var(--d); }
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: #f0efe6; }
+  ::-webkit-scrollbar-thumb { background: #c5c8b8; border-radius: 9999px; }
+  /* ── Category pills ── */
+  .cat-pill { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 999px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; white-space: nowrap; border: 1.5px solid transparent; }
+  .cat-pill.active { background: #3e5219; color: #fff; border-color: #3e5219; }
+  .cat-pill:not(.active) { background: #fff; color: #45483c; border-color: #e8e7db; }
+  .cat-pill:not(.active):hover { border-color: #3e5219; color: #3e5219; }
+  /* ── Sidebar overlay on mobile ── */
+  #sidebar { width: 252px; min-height: 100vh; background: linear-gradient(170deg, #1a2e0d 0%, #0e1d07 60%, #141f00 100%); flex-shrink: 0; }
+</style>
+</head>
+
+<!-- ════════════════════════════════════════════════════════
+     LOGIN PAGE
+════════════════════════════════════════════════════════ -->
+<body>
+<div id="loginPage" class="page active min-h-screen flex items-stretch">
+  <!-- Left: brand panel -->
+  <div class="hidden lg:flex flex-col justify-between w-[480px] flex-shrink-0 p-12 relative overflow-hidden"
+       style="background:linear-gradient(150deg,#1a2e0d 0%,#273311 50%,#3e5219 100%)">
+    <!-- Decorative botanical SVG -->
+    <svg class="absolute inset-0 w-full h-full opacity-10" viewBox="0 0 480 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M240 900 C240 900 120 700 80 500 C40 300 160 150 240 0" stroke="#c9982a" stroke-width="1.5" fill="none"/>
+      <path d="M240 900 C240 900 360 700 400 500 C440 300 320 150 240 0" stroke="#c9982a" stroke-width="1" fill="none" opacity="0.6"/>
+      <circle cx="240" cy="200" r="60" stroke="#c9982a" stroke-width="0.5" fill="none"/>
+      <circle cx="240" cy="200" r="90" stroke="#c9982a" stroke-width="0.3" fill="none" opacity="0.5"/>
+      <circle cx="240" cy="450" r="40" stroke="#c9982a" stroke-width="0.5" fill="none"/>
+      <circle cx="240" cy="700" r="50" stroke="#c9982a" stroke-width="0.5" fill="none" opacity="0.7"/>
+    </svg>
+    <!-- Top -->
+    <div class="relative">
+      <div class="flex items-center gap-3 mb-16">
+        <div class="w-10 h-10 rounded-full border border-gold flex items-center justify-center">
+          <span class="ms text-gold" style="font-size:18px">auto_stories</span>
+        </div>
+        <span class="font-serif text-xl text-white tracking-wide">Logos Pulse</span>
+      </div>
+      <h1 class="font-serif text-5xl text-white leading-tight mb-6" style="font-weight:300">Track your<br/><em class="text-gold-light">walk with God</em></h1>
+      <p class="text-white/50 leading-relaxed text-base">A sanctuary for daily prayer, scripture reading, and spiritual reflection — designed for the whole church family.</p>
+    </div>
+    <!-- Verse -->
+    <div class="relative border-l border-gold/30 pl-6">
+      <p class="font-garamond italic text-white/70 text-xl leading-relaxed">"Your word is a lamp to my feet and a light to my path."</p>
+      <p class="text-gold/70 text-sm mt-3 font-serif">Psalm 119:105</p>
+    </div>
+    <!-- Bottom tagline -->
+    <p class="relative text-white/25 text-xs tracking-widest uppercase">Prayer · Scripture · Reflection</p>
+  </div>
+
+  <!-- Right: form panel -->
+  <div class="flex-1 flex items-center justify-center p-8" style="background:#fbfaf1">
+    <div class="w-full max-w-md animate-fadeUp">
+      <!-- Mobile logo -->
+      <div class="lg:hidden flex items-center gap-2 mb-10">
+        <div class="w-8 h-8 rounded-full bg-sage flex items-center justify-center">
+          <span class="ms text-white" style="font-size:16px">auto_stories</span>
+        </div>
+        <span class="font-serif text-lg text-sage">Logos Pulse</span>
+      </div>
+      <h2 class="font-serif text-3xl text-ink mb-2" style="font-weight:400">Welcome back</h2>
+      <p class="text-ink-muted text-sm mb-8">Sign in to your sanctuary</p>
+
+      <!-- Tabs -->
+      <div class="flex gap-6 border-b border-cream-deep mb-8">
+        <button class="tab-btn active" onclick="switchLoginTab('signin',this)">Sign In</button>
+        <button class="tab-btn" onclick="switchLoginTab('register',this)">Register</button>
+        <button class="tab-btn" onclick="switchLoginTab('forgot',this)">Forgot Password</button>
+      </div>
+
+      <!-- Sign In -->
+      <div id="lt-signin" class="tab-panel active space-y-4">
+        <div>
+          <label class="block text-xs font-medium text-ink-muted uppercase tracking-widest mb-2">Email Address</label>
+          <div class="relative">
+            <span class="ms absolute left-3 top-3.5 text-ink-faint">mail</span>
+            <input class="form-input pl-10" type="email" placeholder="you@church.org"/>
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-ink-muted uppercase tracking-widest mb-2">Password</label>
+          <div class="relative">
+            <span class="ms absolute left-3 top-3.5 text-ink-faint">lock</span>
+            <input class="form-input pl-10" type="password" placeholder="••••••••"/>
+            <button class="absolute right-3 top-3.5">
+              <span class="ms text-ink-faint">visibility</span>
+            </button>
+          </div>
+        </div>
+        <button onclick="enterApp()" class="w-full py-3.5 rounded-xl text-white font-medium text-base transition-all hover:opacity-90 active:scale-[0.99]"
+                style="background:#3e5219;box-shadow:0 4px 20px -4px rgba(62,82,25,0.4)">
+          Sign In
+        </button>
+        <p class="text-center text-sm text-ink-muted">Forgot your password? <button class="text-sage underline-offset-2 hover:underline" onclick="switchLoginTab('forgot',null)">Reset it</button></p>
+      </div>
+
+      <!-- Register -->
+      <div id="lt-register" class="tab-panel space-y-4">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-ink-muted uppercase tracking-widest mb-2">First Name</label>
+            <input class="form-input" type="text" placeholder="Ananda"/>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-ink-muted uppercase tracking-widest mb-2">Last Name</label>
+            <input class="form-input" type="text" placeholder="Raj"/>
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-ink-muted uppercase tracking-widest mb-2">Email Address</label>
+          <input class="form-input" type="email" placeholder="you@church.org"/>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-ink-muted uppercase tracking-widest mb-2">Your Pastor</label>
+          <select class="form-input">
+            <option>Ps. Samuel Patta</option>
+            <option>Ps. Deepak Avinash</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-ink-muted uppercase tracking-widest mb-2">Daily Prayer Goal</label>
+          <div class="flex items-center gap-4">
+            <input type="range" min="15" max="195" value="60" class="flex-1 accent-sage"/>
+            <span class="text-sage font-semibold w-20 text-right">60 min</span>
+          </div>
+        </div>
+        <button class="w-full py-3.5 rounded-xl text-white font-medium" style="background:#3e5219">Create Account</button>
+      </div>
+
+      <!-- Forgot -->
+      <div id="lt-forgot" class="tab-panel space-y-4">
+        <p class="text-ink-soft text-sm">Enter your email and we'll send a reset link to your pastor.</p>
+        <div>
+          <label class="block text-xs font-medium text-ink-muted uppercase tracking-widest mb-2">Email Address</label>
+          <input class="form-input" type="email" placeholder="you@church.org"/>
+        </div>
+        <button class="w-full py-3.5 rounded-xl text-white font-medium" style="background:#3e5219">Send Reset Link</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     MAIN APP
+════════════════════════════════════════════════════════ -->
+<div id="mainApp" class="page flex min-h-screen">
+
+  <!-- ── Sidebar ── -->
+  <div id="sidebar" class="hidden lg:flex flex-col py-8 flex-shrink-0 sticky top-0 h-screen overflow-y-auto">
+    <!-- Logo -->
+    <div class="px-6 mb-10">
+      <div class="flex items-center gap-3 mb-1">
+        <div class="w-9 h-9 rounded-full border border-gold/40 flex items-center justify-center">
+          <span class="ms text-gold" style="font-size:16px">auto_stories</span>
+        </div>
+        <span class="font-serif text-lg text-white">Logos Pulse</span>
+      </div>
+      <p class="text-white/25 text-xs tracking-widest uppercase pl-12">Sanctuary</p>
+    </div>
+
+    <!-- User -->
+    <div class="mx-4 mb-6 p-4 rounded-xl" style="background:rgba(255,255,255,0.06)">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-sage" style="background:#c9982a">AR</div>
+        <div class="min-w-0">
+          <p class="text-white text-sm font-medium truncate">Ananda Raj</p>
+          <span class="badge badge-warrior text-[10px]">Prayer Warrior</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Nav -->
+    <nav class="flex-1 space-y-0.5 px-2">
+      <div class="nav-item active" onclick="showPage('dashboard',this)">
+        <span class="ms">home</span><span>Dashboard</span>
+      </div>
+      <div class="nav-item" onclick="showPage('dailyEntry',this)">
+        <span class="ms">edit_note</span><span>Daily Entry</span>
+      </div>
+      <div class="nav-item" onclick="showPage('dailyLog',this)">
+        <span class="ms">calendar_month</span><span>Daily Log</span>
+      </div>
+      <div class="nav-item" onclick="showPage('weeklyAssign',this)">
+        <span class="ms">menu_book</span><span>Weekly Assignment</span>
+      </div>
+      <div class="nav-item" onclick="showPage('streaks',this)">
+        <span class="ms">local_fire_department</span><span>Streaks &amp; Stats</span>
+      </div>
+      <div class="nav-item" onclick="showPage('sermonNotes',this)">
+        <span class="ms">description</span><span>Sermon Notes</span>
+      </div>
+      <div class="nav-item" onclick="showPage('prayerJournal',this)">
+        <span class="ms">self_improvement</span><span>Prayer Journal</span>
+      </div>
+      <div class="nav-item" onclick="showPage('prayerEngine',this)">
+        <span class="ms">flare</span><span>Prayer Engine</span>
+      </div>
+      <div class="nav-item" onclick="showPage('readingPlan',this)">
+        <span class="ms">import_contacts</span><span>Reading Plan</span>
+      </div>
+      <div class="nav-item" onclick="showPage('fasting',this)">
+        <span class="ms">restaurant</span><span>Fasting</span>
+      </div>
+      <div class="nav-item" onclick="showPage('testimonies',this)">
+        <span class="ms">celebration</span><span>Testimonies</span>
+      </div>
+      <div class="mt-4 pt-4 border-t border-white/10">
+        <div class="nav-item" onclick="showPage('pastorDash',this)">
+          <span class="ms text-teal">groups</span><span class="text-teal-pale">Pastor Dashboard</span>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Footer -->
+    <div class="px-4 pt-4 border-t border-white/10 space-y-1">
+      <div class="nav-item" onclick="showPage('settings',this)"><span class="ms">settings</span><span>Settings</span></div>
+      <div class="nav-item text-crimson/70 hover:text-crimson" onclick="showPage('loginPage_back')">
+        <span class="ms">logout</span><span>Sign Out</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Main content ── -->
+  <div class="flex-1 min-w-0 overflow-x-hidden">
+
+    <!-- Top bar -->
+    <header class="sticky top-0 z-30 flex items-center justify-between px-6 py-3 border-b border-cream-deep"
+            style="background:rgba(251,250,241,0.92);backdrop-filter:blur(12px)">
+      <div class="flex items-center gap-3">
+        <button class="lg:hidden p-2 rounded-lg hover:bg-cream-dim"><span class="ms">menu</span></button>
+        <h2 id="pageTitle" class="font-serif text-lg text-ink">Dashboard</h2>
+      </div>
+      <div class="flex items-center gap-2">
+        <button class="relative p-2 rounded-lg hover:bg-cream-dim">
+          <span class="ms">notifications</span>
+          <span class="absolute top-1.5 right-1.5 w-4 h-4 bg-crimson text-white text-[9px] rounded-full flex items-center justify-center font-bold">3</span>
+        </button>
+        <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-sage cursor-pointer" style="background:#c9982a">AR</div>
+      </div>
+    </header>
+
+    <!-- ═══════════════════ DASHBOARD ═══════════════════ -->
+    <div id="page-dashboard" class="page active p-6 lg:p-8 max-w-6xl mx-auto space-y-8">
+
+      <!-- Hero -->
+      <div class="rounded-2xl overflow-hidden relative" style="background:linear-gradient(135deg,#1a2e0d 0%,#3e5219 60%,#445030 100%);min-height:180px">
+        <svg class="absolute inset-0 w-full h-full opacity-10" viewBox="0 0 900 180" preserveAspectRatio="xMidYMid slice">
+          <circle cx="800" cy="90" r="150" fill="#c9982a"/>
+          <circle cx="100" cy="20" r="80" fill="#c9982a"/>
+        </svg>
+        <div class="relative p-8 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div class="animate-fadeUp" style="--d:0.05s">
+            <p class="text-white/50 text-xs tracking-widest uppercase mb-2">Good Morning</p>
+            <h1 class="font-serif text-4xl text-white mb-3" style="font-weight:300">Ananda Raj</h1>
+            <p class="font-garamond italic text-white/70 text-lg leading-relaxed max-w-md">"The Lord is my shepherd; I shall not want."<br/><span class="text-gold/80 text-sm not-italic font-serif">— Psalm 23:1</span></p>
+          </div>
+          <!-- Growth score -->
+          <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-6 text-center min-w-[160px] animate-fadeUp" style="--d:0.15s;border:1px solid rgba(201,152,42,0.3)">
+            <div class="text-4xl mb-1">🌲</div>
+            <div class="font-serif text-4xl text-white font-light">72</div>
+            <div class="text-gold text-xs tracking-widest uppercase mt-1">Tree Level</div>
+            <div class="text-white/40 text-xs mt-1">Spiritual Growth</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Streak cards -->
+      <div class="grid grid-cols-3 gap-4 animate-fadeUp" style="--d:0.1s">
+        <div class="card p-5 text-center hover:shadow-feather transition-shadow cursor-pointer">
+          <div class="text-2xl mb-1">🔥</div>
+          <div class="font-serif text-3xl text-sage font-light">14</div>
+          <div class="text-ink-muted text-xs uppercase tracking-wider mt-1">Current Streak</div>
+        </div>
+        <div class="card p-5 text-center hover:shadow-feather transition-shadow cursor-pointer">
+          <div class="text-2xl mb-1">🏆</div>
+          <div class="font-serif text-3xl text-moss font-light">21</div>
+          <div class="text-ink-muted text-xs uppercase tracking-wider mt-1">Best Streak</div>
+        </div>
+        <div class="card p-5 text-center hover:shadow-feather transition-shadow cursor-pointer">
+          <div class="text-2xl mb-1">⭐</div>
+          <div class="font-serif text-3xl font-light" style="color:#c9982a">5/6</div>
+          <div class="text-ink-muted text-xs uppercase tracking-wider mt-1">This Week</div>
+        </div>
+      </div>
+
+      <!-- Today status + 7-day chart -->
+      <div class="grid lg:grid-cols-5 gap-4 animate-fadeUp" style="--d:0.2s">
+        <!-- Today status card: DONE -->
+        <div class="lg:col-span-3 card p-6 border-l-4" style="border-left-color:#2d6a4f">
+          <div class="flex items-start justify-between mb-4">
+            <div>
+              <p class="text-xs uppercase tracking-widest text-ink-muted mb-1">Today — May 5, 2026</p>
+              <h3 class="font-serif text-xl text-ink">Entry Complete ✓</h3>
+            </div>
+            <span class="badge status-done">Logged</span>
+          </div>
+          <div class="space-y-3">
+            <div class="flex items-center gap-3 text-sm">
+              <span class="ms text-sage" style="font-size:16px">self_improvement</span>
+              <span class="text-ink-soft">Prayer</span>
+              <span class="ml-auto font-medium text-ink">60 minutes</span>
+            </div>
+            <div class="flex items-center gap-3 text-sm">
+              <span class="ms text-sage" style="font-size:16px">menu_book</span>
+              <span class="text-ink-soft">Reading</span>
+              <span class="ml-auto font-medium text-ink">John 3, 4</span>
+            </div>
+            <div class="flex items-center gap-3 text-sm">
+              <span class="ms text-sage" style="font-size:16px">mic</span>
+              <span class="text-ink-soft">Sermon</span>
+              <span class="ml-auto font-medium text-ink">Grace &amp; Truth</span>
+            </div>
+          </div>
+          <button class="mt-4 flex items-center gap-2 text-xs text-ink-muted hover:text-sage transition-colors">
+            <span class="ms" style="font-size:14px">share</span> Generate WhatsApp Report
+          </button>
+        </div>
+        <!-- 7-day sparkline -->
+        <div class="lg:col-span-2 card p-6">
+          <p class="text-xs uppercase tracking-widest text-ink-muted mb-4">7-Day Activity</p>
+          <div class="flex items-end gap-2 h-24">
+            <!-- Days: Mon-Sun, today (Mon) is logged -->
+            <div class="flex flex-col items-center gap-1 flex-1">
+              <div class="w-full rounded-t-sm" style="height:70%;background:#3e5219;border-radius:4px 4px 0 0"></div>
+              <span class="text-[10px] text-ink-muted">M</span>
+            </div>
+            <div class="flex flex-col items-center gap-1 flex-1">
+              <div class="w-full rounded-t-sm" style="height:85%;background:#3e5219;border-radius:4px 4px 0 0"></div>
+              <span class="text-[10px] text-ink-muted">T</span>
+            </div>
+            <div class="flex flex-col items-center gap-1 flex-1">
+              <div class="w-full" style="height:15%;background:#e3e3da;border-radius:4px 4px 0 0"></div>
+              <span class="text-[10px] text-crimson">W</span>
+            </div>
+            <div class="flex flex-col items-center gap-1 flex-1">
+              <div class="w-full" style="height:60%;background:#3e5219;border-radius:4px 4px 0 0"></div>
+              <span class="text-[10px] text-ink-muted">T</span>
+            </div>
+            <div class="flex flex-col items-center gap-1 flex-1">
+              <div class="w-full" style="height:90%;background:#3e5219;border-radius:4px 4px 0 0"></div>
+              <span class="text-[10px] text-ink-muted">F</span>
+            </div>
+            <div class="flex flex-col items-center gap-1 flex-1">
+              <div class="w-full" style="height:75%;background:#3e5219;border-radius:4px 4px 0 0"></div>
+              <span class="text-[10px] text-ink-muted">S</span>
+            </div>
+            <div class="flex flex-col items-center gap-1 flex-1">
+              <div class="w-full" style="height:100%;background:#c9982a;border-radius:4px 4px 0 0;outline:2px solid #c9982a;outline-offset:1px"></div>
+              <span class="text-[10px] text-gold font-bold">S</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Toolkit cards + confession of week -->
+      <div class="grid lg:grid-cols-3 gap-4 animate-fadeUp" style="--d:0.25s">
+        <div class="card p-5 hover:shadow-feather transition-all hover:-translate-y-0.5 cursor-pointer">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-10 h-10 rounded-full flex items-center justify-center" style="background:#f2f5ec">
+              <span class="ms text-sage">edit_note</span>
+            </div>
+            <span class="font-serif text-base text-ink">Daily Assignment</span>
+          </div>
+          <div class="font-serif text-3xl text-sage font-light">126</div>
+          <div class="text-ink-muted text-xs mt-1">Entries logged</div>
+        </div>
+        <div class="card p-5 hover:shadow-feather transition-all hover:-translate-y-0.5 cursor-pointer">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-10 h-10 rounded-full flex items-center justify-center" style="background:#fff8ee">
+              <span class="ms" style="color:#c9982a">description</span>
+            </div>
+            <span class="font-serif text-base text-ink">Sermon Notes</span>
+          </div>
+          <div class="font-serif text-3xl font-light" style="color:#c9982a">18</div>
+          <div class="text-ink-muted text-xs mt-1">Notes recorded</div>
+        </div>
+        <div class="card p-5 hover:shadow-feather transition-all hover:-translate-y-0.5 cursor-pointer">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-10 h-10 rounded-full flex items-center justify-center" style="background:#e0f4f4">
+              <span class="ms" style="color:#0d7377">self_improvement</span>
+            </div>
+            <span class="font-serif text-base text-ink">Prayer Journal</span>
+          </div>
+          <div class="font-serif text-3xl text-teal font-light">34</div>
+          <div class="text-ink-muted text-xs mt-1">8 answered prayers</div>
+        </div>
+      </div>
+
+      <!-- Confession of the week -->
+      <div class="rounded-2xl p-6 animate-fadeUp" style="--d:0.3s;background:linear-gradient(135deg,#3e5219 0%,#445030 100%)">
+        <p class="text-white/40 text-xs uppercase tracking-widest mb-2">Confession of the Week</p>
+        <h3 class="font-serif text-white text-xl mb-1">Healing &amp; Restoration</h3>
+        <p class="text-white/60 text-sm mb-4">Theme: Jehovah Rapha · Sermon: "By His Stripes"</p>
+        <div class="scripture-block mb-4" style="background:rgba(255,248,238,0.1);border-left-color:#c9982a">
+          <p class="font-garamond italic text-white/80">"He himself bore our sins in his body on the tree, that we might die to sin and live to righteousness. By his wounds you have been healed."</p>
+          <p class="text-gold/70 text-sm mt-2 font-serif not-italic">1 Peter 2:24</p>
+        </div>
+        <button class="px-5 py-2.5 rounded-lg text-sm font-medium" style="background:#c9982a;color:#1a2e0d">Add to My Plan →</button>
+      </div>
+
+      <!-- Prayer category pills -->
+      <div class="animate-fadeUp" style="--d:0.35s">
+        <p class="text-xs uppercase tracking-widest text-ink-muted mb-4">Prayer Categories</p>
+        <div class="flex flex-wrap gap-2">
+          <span class="cat-pill active"><span>💊</span> Healing (6)</span>
+          <span class="cat-pill"><span>💰</span> Provision (4)</span>
+          <span class="cat-pill"><span>✨</span> Faith (8)</span>
+          <span class="cat-pill"><span>🦋</span> Identity (5)</span>
+          <span class="cat-pill"><span>🌍</span> Salvation (3)</span>
+          <span class="cat-pill"><span>🌅</span> Daily (8)</span>
+        </div>
+      </div>
+
+      <!-- Recent sermons -->
+      <div class="animate-fadeUp" style="--d:0.4s">
+        <div class="flex items-center justify-between mb-4">
+          <p class="font-serif text-lg text-ink">Recent Sermon Notes</p>
+          <button class="text-xs text-sage hover:underline">View all →</button>
+        </div>
+        <div class="grid lg:grid-cols-3 gap-4">
+          <div class="card p-5 hover:shadow-feather transition-all hover:-translate-y-0.5 cursor-pointer">
+            <div class="flex justify-between items-start mb-2">
+              <h4 class="font-serif text-sm text-ink leading-snug">Grace &amp; Truth</h4>
+              <span class="text-xs text-ink-muted flex-shrink-0 ml-2">Apr 28</span>
+            </div>
+            <p class="text-xs text-sage font-medium mb-2">Ps. Samuel Patta</p>
+            <p class="text-ink-muted text-xs leading-relaxed">Jesus came full of grace and truth, and from his fullness we have all received...</p>
+            <div class="flex gap-2 mt-3">
+              <span class="badge" style="background:#e8f4ff;color:#1565c0;font-size:10px">📖 3</span>
+              <span class="badge" style="background:#e8f5e9;color:#2e7d32;font-size:10px">✅ 5</span>
+            </div>
+          </div>
+          <div class="card p-5 hover:shadow-feather transition-all hover:-translate-y-0.5 cursor-pointer">
+            <div class="flex justify-between items-start mb-2">
+              <h4 class="font-serif text-sm text-ink leading-snug">The Power of the Cross</h4>
+              <span class="text-xs text-ink-muted flex-shrink-0 ml-2">Apr 21</span>
+            </div>
+            <p class="text-xs text-sage font-medium mb-2">Bishop Samuel Patta</p>
+            <p class="text-ink-muted text-xs leading-relaxed">The cross is the ultimate demonstration of God's love for humanity...</p>
+            <div class="flex gap-2 mt-3">
+              <span class="badge" style="background:#e8f4ff;color:#1565c0;font-size:10px">📖 5</span>
+              <span class="badge" style="background:#fff8e1;color:#f57f17;font-size:10px">💡 1</span>
+            </div>
+          </div>
+          <div class="card p-5 hover:shadow-feather transition-all hover:-translate-y-0.5 cursor-pointer">
+            <div class="flex justify-between items-start mb-2">
+              <h4 class="font-serif text-sm text-ink leading-snug">Walking in the Spirit</h4>
+              <span class="text-xs text-ink-muted flex-shrink-0 ml-2">Apr 14</span>
+            </div>
+            <p class="text-xs text-sage font-medium mb-2">Ps. Deepak Avinash</p>
+            <p class="text-ink-muted text-xs leading-relaxed">Paul's letter to the Galatians calls us to walk by the Spirit...</p>
+            <div class="flex gap-2 mt-3">
+              <span class="badge" style="background:#e8f4ff;color:#1565c0;font-size:10px">📖 4</span>
+              <span class="badge" style="background:#e8f5e9;color:#2e7d32;font-size:10px">✅ 3</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════ DAILY ENTRY ═══════════════════ -->
+    <div id="page-dailyEntry" class="page p-6 lg:p-8 max-w-4xl mx-auto">
+      <div class="mb-6">
+        <h2 class="font-serif text-2xl text-ink">Daily Entry</h2>
+        <p class="text-ink-muted text-sm">Monday, May 5, 2026</p>
+      </div>
+
+      <!-- Tabs -->
+      <div class="flex gap-6 border-b border-cream-deep mb-6 overflow-x-auto">
+        <button class="tab-btn active" onclick="switchTab('entry','read',this)">📖 Read Bible</button>
+        <button class="tab-btn" onclick="switchTab('entry','log',this)">✏️ Log Entry</button>
+        <button class="tab-btn" onclick="switchTab('entry','report',this)">📋 Report</button>
+      </div>
+
+      <!-- Read Bible tab -->
+      <div id="entry-read" class="tab-panel active">
+        <div class="flex gap-3 mb-4">
+          <select class="form-input flex-1" style="border-radius:8px">
+            <option>John</option><option>Matthew</option><option>Romans</option>
+          </select>
+          <select class="form-input w-32" style="border-radius:8px">
+            <option>Chapter 3</option><option>Chapter 4</option>
+          </select>
+        </div>
+        <!-- Progress -->
+        <div class="flex items-center gap-3 mb-6">
+          <span class="text-xs text-ink-muted flex-shrink-0">Today: 1/3 chapters</span>
+          <div class="flex-1 h-2 rounded-full" style="background:#e8e7db">
+            <div class="progress-bar h-2" style="width:33%"></div>
+          </div>
+          <span class="text-xs text-sage font-medium flex-shrink-0">33%</span>
+        </div>
+        <!-- Chapter pills -->
+        <div class="flex gap-2 mb-4">
+          <span class="badge status-done">✓ John 1</span>
+          <span class="badge status-done">✓ John 2</span>
+          <span class="badge status-pending">John 3</span>
+        </div>
+        <!-- Bible text -->
+        <div class="card-parchment p-6 mb-4 max-h-96 overflow-y-auto">
+          <h3 class="font-serif text-center text-xl text-sage mb-5">John 3</h3>
+          <p class="font-garamond text-lg leading-relaxed text-ink" style="line-height:2">
+            <sup class="verse-num">1</sup>Now there was a Pharisee, a man named Nicodemus who was a member of the Jewish ruling council.
+            <sup class="verse-num">2</sup>He came to Jesus at night and said, "Rabbi, we know that you are a teacher who has come from God. For no one could perform the signs you are doing if God were not with him."
+            <sup class="verse-num">3</sup>Jesus replied, "Very truly I tell you, no one can see the kingdom of God unless they are born again."
+            <sup class="verse-num">4</sup>How can someone be born when they are old?" Nicodemus asked. "Surely they cannot enter a second time into their mother's womb to be born!"
+            <sup class="verse-num">5</sup>Jesus answered, "Very truly I tell you, no one can enter the kingdom of God unless they are born of water and the Spirit.
+            <sup class="verse-num">16</sup><mark style="background:rgba(201,152,42,0.2);border-radius:3px;padding:0 2px">For God so loved the world that he gave his one and only Son, that whoever believes in him shall not perish but have eternal life.</mark>
+          </p>
+        </div>
+        <!-- Font size + annotation toggle -->
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex gap-1 p-1 rounded-lg" style="background:#e8e7db">
+            <button class="px-3 py-1 text-xs rounded-md" style="background:#fff">S</button>
+            <button class="px-3 py-1 text-xs rounded-md bg-sage text-white">M</button>
+            <button class="px-3 py-1 text-xs rounded-md">L</button>
+            <button class="px-3 py-1 text-xs rounded-md">XL</button>
+          </div>
+          <button class="flex items-center gap-1.5 text-xs text-ink-soft border border-cream-deep rounded-lg px-3 py-1.5">
+            <span class="ms" style="font-size:14px">bookmark</span> Annotate
+          </button>
+        </div>
+        <!-- Chapter navigation -->
+        <div class="flex gap-3">
+          <button class="flex-1 py-2.5 rounded-xl border border-cream-deep text-sm font-medium text-ink-soft hover:bg-cream-dim transition-colors">◀ Prev Chapter</button>
+          <button class="flex-1 py-2.5 rounded-xl text-white text-sm font-medium transition-colors hover:opacity-90" style="background:#3e5219">✓ Mark Chapter Done</button>
+          <button class="flex-1 py-2.5 rounded-xl border border-cream-deep text-sm font-medium text-ink-soft hover:bg-cream-dim transition-colors">Next ▶</button>
+        </div>
+      </div>
+
+      <!-- Log Entry tab -->
+      <div id="entry-log" class="tab-panel space-y-5">
+        <div>
+          <label class="block text-xs font-medium text-ink-muted uppercase tracking-widest mb-2">Prayer Duration</label>
+          <div class="flex items-center gap-4">
+            <input type="range" min="15" max="195" value="60" class="flex-1 accent-sage"/>
+            <span class="font-serif text-2xl text-sage w-24 text-right">60 min</span>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-medium text-ink-muted uppercase tracking-widest mb-2">Bible Book</label>
+            <select class="form-input" style="border-radius:8px"><option>John</option><option>Matthew</option></select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-ink-muted uppercase tracking-widest mb-2">Chapters Read</label>
+            <select class="form-input" style="border-radius:8px" multiple><option selected>Chapter 3</option><option>Chapter 4</option></select>
+          </div>
+        </div>
+        <label class="flex items-center gap-3 cursor-pointer">
+          <input type="checkbox" class="w-5 h-5 accent-sage rounded"/>
+          <span class="text-sm text-ink">I am fasting today</span>
+        </label>
+        <div class="card-parchment p-5">
+          <p class="text-xs uppercase tracking-widest text-ink-muted mb-4">Sermon Details <span class="text-ink-faint">(optional)</span></p>
+          <div class="space-y-3">
+            <input class="form-input" type="text" placeholder="Sermon title..."/>
+            <input class="form-input" type="text" placeholder="Speaker" value="Ps. Samuel Patta"/>
+            <input class="form-input" type="url" placeholder="YouTube link (optional)"/>
+          </div>
+        </div>
+        <button class="w-full py-3.5 rounded-xl text-white font-medium text-base hover:opacity-90 transition-opacity" style="background:#3e5219;box-shadow:0 4px 20px -4px rgba(62,82,25,0.35)">
+          Save &amp; Generate Report
+        </button>
+      </div>
+
+      <!-- Report tab -->
+      <div id="entry-report" class="tab-panel">
+        <div class="card p-6 mb-4" style="border-left:4px solid #3e5219">
+          <p class="text-xs uppercase tracking-widest text-ink-muted mb-4">WhatsApp Report Preview</p>
+          <div class="font-garamond text-base leading-relaxed text-ink space-y-1">
+            <p>🙏 *Daily Disciplines — May 5, 2026*</p>
+            <p>⏱ Prayer: 60 minutes</p>
+            <p>📖 Reading: John 3, 4</p>
+            <p>🎙 Sermon: Grace &amp; Truth — Ps. Samuel Patta</p>
+            <p>✝️ Confession: Healing &amp; Restoration</p>
+          </div>
+          <div class="gold-rule"></div>
+          <button class="flex items-center gap-2 text-sm font-medium text-sage hover:text-sage-600 transition-colors">
+            <span class="ms" style="font-size:16px">content_copy</span> Copy to Clipboard
+          </button>
+        </div>
+        <div class="card-parchment p-5 rounded-xl" style="background:#f0faf4">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="ms text-moss">check_circle</span>
+            <span class="font-serif text-base text-moss">Entry Saved Successfully</span>
+          </div>
+          <div class="space-y-1 text-sm text-moss/80">
+            <p>🙏 60 minutes of prayer</p>
+            <p>📖 John 3, 4</p>
+            <p>📝 Grace &amp; Truth</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════ STREAKS & STATS ═══════════════════ -->
+    <div id="page-streaks" class="page p-6 lg:p-8 max-w-5xl mx-auto space-y-6">
+      <h2 class="font-serif text-2xl text-ink">Streaks &amp; Stats</h2>
+
+      <!-- Growth Score -->
+      <div class="card p-8 text-center" style="border:2px solid rgba(201,152,42,0.4)">
+        <div class="text-5xl mb-3">🌲</div>
+        <div class="font-serif text-6xl text-sage font-light mb-2">72<span class="text-2xl text-ink-muted">/100</span></div>
+        <div class="text-gold font-serif text-lg mb-1">Tree Level</div>
+        <p class="text-ink-muted text-sm max-w-sm mx-auto">Your consistency and depth are bearing fruit. Keep cultivating your daily walk.</p>
+        <div class="gold-rule max-w-xs mx-auto"></div>
+        <!-- Score breakdown -->
+        <div class="grid grid-cols-2 gap-4 text-left max-w-lg mx-auto">
+          <div>
+            <div class="flex justify-between text-xs mb-1"><span class="text-ink-soft">Consistency</span><span class="text-sage font-medium">34/40</span></div>
+            <div class="h-2 rounded-full" style="background:#e8e7db"><div class="progress-bar h-2" style="width:85%"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between text-xs mb-1"><span class="text-ink-soft">Quantity</span><span class="font-medium" style="color:#c9982a">21/30</span></div>
+            <div class="h-2 rounded-full" style="background:#e8e7db"><div class="h-2 rounded-full" style="width:70%;background:#c9982a"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between text-xs mb-1"><span class="text-ink-soft">Diversity</span><span class="text-teal font-medium">12/20</span></div>
+            <div class="h-2 rounded-full" style="background:#e8e7db"><div class="h-2 rounded-full" style="width:60%;background:#0d7377"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between text-xs mb-1"><span class="text-ink-soft">Engagement</span><span class="text-moss font-medium">5/10</span></div>
+            <div class="h-2 rounded-full" style="background:#e8e7db"><div class="h-2 rounded-full" style="width:50%;background:#445030"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Streak heroes -->
+      <div class="grid grid-cols-2 gap-4">
+        <div class="rounded-2xl p-6 text-center" style="background:linear-gradient(135deg,#c26b2c,#9e4e1a)">
+          <div class="text-3xl mb-2">🔥</div>
+          <div class="font-serif text-5xl text-white font-light">14</div>
+          <div class="text-white/60 text-xs uppercase tracking-widest mt-1">Day Streak</div>
+          <p class="text-white/50 text-xs mt-2">Keep going!</p>
+        </div>
+        <div class="rounded-2xl p-6 text-center" style="background:linear-gradient(135deg,#3e5219,#1a2e0d)">
+          <div class="text-3xl mb-2">🏆</div>
+          <div class="font-serif text-5xl text-white font-light">21</div>
+          <div class="text-white/60 text-xs uppercase tracking-widest mt-1">Best Streak</div>
+          <p class="text-white/50 text-xs mt-2">Personal best!</p>
+        </div>
+      </div>
+
+      <!-- Monthly heatmap -->
+      <div class="card p-6">
+        <div class="flex items-center justify-between mb-5">
+          <button class="p-2 rounded-lg hover:bg-cream-dim"><span class="ms">chevron_left</span></button>
+          <h3 class="font-serif text-lg text-ink">April 2026</h3>
+          <button class="p-2 rounded-lg hover:bg-cream-dim"><span class="ms">chevron_right</span></button>
+        </div>
+        <div class="grid grid-cols-7 gap-1.5 text-center mb-2">
+          <span class="text-[10px] text-ink-muted uppercase">M</span>
+          <span class="text-[10px] text-ink-muted uppercase">T</span>
+          <span class="text-[10px] text-ink-muted uppercase">W</span>
+          <span class="text-[10px] text-ink-muted uppercase">T</span>
+          <span class="text-[10px] text-ink-muted uppercase">F</span>
+          <span class="text-[10px] text-ink-muted uppercase">S</span>
+          <span class="text-[10px] text-ink-muted uppercase">S</span>
+        </div>
+        <div class="grid grid-cols-7 gap-1.5">
+          <div></div><div class="heatday heatday-done">1</div><div class="heatday heatday-done">2</div><div class="heatday heatday-done">3</div><div class="heatday heatday-done">4</div><div class="heatday heatday-done">5</div><div class="heatday heatday-miss">6</div>
+          <div class="heatday heatday-done">7</div><div class="heatday heatday-done">8</div><div class="heatday heatday-miss">9</div><div class="heatday heatday-done">10</div><div class="heatday heatday-done">11</div><div class="heatday heatday-done">12</div><div class="heatday heatday-done">13</div>
+          <div class="heatday heatday-done">14</div><div class="heatday heatday-done">15</div><div class="heatday heatday-done">16</div><div class="heatday heatday-done">17</div><div class="heatday heatday-miss">18</div><div class="heatday heatday-done">19</div><div class="heatday heatday-done">20</div>
+          <div class="heatday heatday-done">21</div><div class="heatday heatday-done">22</div><div class="heatday heatday-done">23</div><div class="heatday heatday-done">24</div><div class="heatday heatday-done">25</div><div class="heatday heatday-done">26</div><div class="heatday heatday-miss">27</div>
+          <div class="heatday heatday-done">28</div><div class="heatday heatday-done">29</div><div class="heatday heatday-done">30</div>
+        </div>
+      </div>
+
+      <!-- Monthly stats -->
+      <div class="grid grid-cols-4 gap-3">
+        <div class="card p-4 text-center">
+          <div class="font-serif text-2xl text-moss font-light">87%</div>
+          <div class="text-ink-muted text-[11px] mt-1">Completion</div>
+        </div>
+        <div class="card p-4 text-center">
+          <div class="font-serif text-2xl text-sage font-light">12.5h</div>
+          <div class="text-ink-muted text-[11px] mt-1">Prayer Hours</div>
+        </div>
+        <div class="card p-4 text-center">
+          <div class="font-serif text-2xl font-light" style="color:#c9982a">42</div>
+          <div class="text-ink-muted text-[11px] mt-1">Chapters Read</div>
+        </div>
+        <div class="card p-4 text-center">
+          <div class="font-serif text-2xl text-teal font-light">6</div>
+          <div class="text-ink-muted text-[11px] mt-1">Sermons</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════ PRAYER JOURNAL ═══════════════════ -->
+    <div id="page-prayerJournal" class="page p-6 lg:p-8 max-w-4xl mx-auto">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h2 class="font-serif text-2xl text-ink">Prayer Journal</h2>
+          <p class="text-ink-muted text-sm">34 prayers · 8 answered</p>
+        </div>
+      </div>
+
+      <!-- Category pills -->
+      <div class="flex gap-2 overflow-x-auto pb-3 mb-6">
+        <span class="cat-pill"><span>💊</span> Healing</span>
+        <span class="cat-pill active"><span>✨</span> Faith</span>
+        <span class="cat-pill"><span>💰</span> Provision</span>
+        <span class="cat-pill"><span>🦋</span> Identity</span>
+        <span class="cat-pill"><span>🌍</span> Salvation</span>
+        <span class="cat-pill"><span>🌅</span> Daily</span>
+        <span class="cat-pill"><span>🙏</span> Prayer Wall</span>
+        <span class="cat-pill"><span>+</span> New</span>
+      </div>
+
+      <!-- Sub-tabs -->
+      <div class="flex gap-6 border-b border-cream-deep mb-6">
+        <button class="tab-btn active" onclick="switchTab('journal','prayers',this)">My Prayers</button>
+        <button class="tab-btn" onclick="switchTab('journal','newprayer',this)">New Prayer</button>
+      </div>
+
+      <!-- My Prayers -->
+      <div id="journal-prayers" class="tab-panel active space-y-3">
+        <!-- Filter -->
+        <div class="flex gap-1 p-1 rounded-xl self-start mb-4" style="background:#efeee6">
+          <button class="px-4 py-1.5 rounded-lg text-xs font-medium bg-white text-ink shadow-sm">All (8)</button>
+          <button class="px-4 py-1.5 rounded-lg text-xs font-medium text-ink-muted">Ongoing</button>
+          <button class="px-4 py-1.5 rounded-lg text-xs font-medium text-ink-muted">Answered</button>
+          <button class="px-4 py-1.5 rounded-lg text-xs font-medium text-ink-muted">Standing</button>
+        </div>
+
+        <!-- Prayer card: Ongoing -->
+        <div class="card p-5" style="border-left:4px solid #3e5219">
+          <div class="flex items-start justify-between mb-3">
+            <h4 class="font-serif text-base text-ink">Lord, open doors for my career</h4>
+            <span class="badge badge-warrior ml-3 flex-shrink-0">Ongoing</span>
+          </div>
+          <div class="scripture-block mb-3">
+            <span class="font-serif text-sm not-italic text-gold font-medium block mb-1">Jeremiah 29:11</span>
+            "For I know the plans I have for you, declares the Lord..."
+          </div>
+          <div class="confession-block mb-3">I confess that God directs my steps and opens doors no man can shut.</div>
+          <div class="flex items-center gap-3 mt-3">
+            <button class="text-xs text-ink-muted hover:text-sage transition-colors">Share with Pastor</button>
+            <select class="ml-auto text-xs border border-cream-deep rounded-lg px-2 py-1 bg-transparent">
+              <option>Ongoing</option><option>Answered</option><option>Standing in Faith</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Prayer card: Answered -->
+        <div class="card p-5" style="border-left:4px solid #2d6a4f;background:#f9fdf9">
+          <div class="flex items-start justify-between mb-3">
+            <h4 class="font-serif text-base text-ink">Healing for my mother</h4>
+            <span class="badge status-done ml-3 flex-shrink-0">✅ Answered</span>
+          </div>
+          <div class="scripture-block mb-3">
+            <span class="font-serif text-sm not-italic text-gold font-medium block mb-1">Isaiah 53:5</span>
+            "By His stripes we are healed..."
+          </div>
+          <p class="text-ink-muted text-xs">Answered May 1, 2026 · <button class="text-sage hover:underline">Share as testimony</button></p>
+        </div>
+
+        <!-- Prayer card: Standing in Faith -->
+        <div class="card p-5" style="border-left:4px solid #c9982a">
+          <div class="flex items-start justify-between mb-3">
+            <h4 class="font-serif text-base text-ink">Breakthrough in ministry</h4>
+            <span class="badge status-faith ml-3 flex-shrink-0">Standing in Faith</span>
+          </div>
+          <p class="text-ink-muted text-sm italic">Believing for open doors and divine connections in the ministry work.</p>
+        </div>
+      </div>
+
+      <!-- New Prayer wizard -->
+      <div id="journal-newprayer" class="tab-panel">
+        <!-- Step dots -->
+        <div class="flex items-center justify-center gap-2 mb-8">
+          <div class="flex items-center gap-1.5">
+            <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white" style="background:#3e5219">1</div>
+            <span class="text-xs text-sage font-medium hidden sm:inline">Purpose</span>
+          </div>
+          <div class="w-8 h-px" style="background:#e8e7db"></div>
+          <div class="flex items-center gap-1.5">
+            <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border-2 border-cream-deep text-ink-muted">2</div>
+            <span class="text-xs text-ink-muted hidden sm:inline">Prayer</span>
+          </div>
+          <div class="w-8 h-px" style="background:#e8e7db"></div>
+          <div class="flex items-center gap-1.5">
+            <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border-2 border-cream-deep text-ink-muted">3</div>
+            <span class="text-xs text-ink-muted hidden sm:inline">Scripture</span>
+          </div>
+          <div class="w-8 h-px" style="background:#e8e7db"></div>
+          <div class="flex items-center gap-1.5">
+            <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border-2 border-cream-deep text-ink-muted">4</div>
+            <span class="text-xs text-ink-muted hidden sm:inline">Confess</span>
+          </div>
+          <div class="w-8 h-px" style="background:#e8e7db"></div>
+          <div class="flex items-center gap-1.5">
+            <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border-2 border-cream-deep text-ink-muted">5</div>
+            <span class="text-xs text-ink-muted hidden sm:inline">Review</span>
+          </div>
+        </div>
+        <div class="card-parchment p-8">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white" style="background:#3e5219">1</div>
+            <h3 class="font-serif text-xl text-ink">What are you believing God for?</h3>
+          </div>
+          <input class="form-input text-base mb-4" type="text" placeholder="e.g. Healing, Provision, Direction..."/>
+          <div>
+            <label class="block text-xs font-medium text-ink-muted uppercase tracking-widest mb-2">Use a template</label>
+            <select class="form-input" style="border-radius:8px">
+              <option value="">— Start from scratch —</option>
+              <option>Healing &amp; Restoration</option>
+              <option>Financial Breakthrough</option>
+              <option>Peace &amp; Direction</option>
+            </select>
+          </div>
+          <div class="flex justify-end mt-6">
+            <button class="px-6 py-3 rounded-xl text-white font-medium" style="background:#3e5219">Next →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════ PRAYER ENGINE ═══════════════════ -->
+    <div id="page-prayerEngine" class="page p-6 lg:p-8 max-w-4xl mx-auto">
+      <h2 class="font-serif text-2xl text-ink mb-6">Prayer Engine</h2>
+
+      <div class="flex gap-6 border-b border-cream-deep mb-6">
+        <button class="tab-btn" onclick="switchTab('engine','discover',this)">🔍 Discover</button>
+        <button class="tab-btn" onclick="switchTab('engine','myplan',this)">📋 My Plan</button>
+        <button class="tab-btn active" onclick="switchTab('engine','confess',this)">🔊 Confess Aloud</button>
+      </div>
+
+      <!-- Discover -->
+      <div id="engine-discover" class="tab-panel space-y-6">
+        <div class="rounded-2xl p-6" style="background:linear-gradient(135deg,#3e5219,#1a2e0d)">
+          <p class="text-white/40 text-xs uppercase tracking-widest mb-2">Confession of the Week</p>
+          <h3 class="font-serif text-white text-xl mb-3">Healing &amp; Restoration</h3>
+          <p class="text-white/60 text-sm mb-4">Theme: Jehovah Rapha · "By His Stripes"</p>
+          <button class="px-5 py-2.5 rounded-lg text-sm font-medium" style="background:#c9982a;color:#1a2e0d">Add to My Plan →</button>
+        </div>
+        <div>
+          <p class="text-xs uppercase tracking-widest text-ink-muted mb-3">What are you believing God for?</p>
+          <div class="flex flex-wrap gap-2">
+            <button class="cat-pill active">🏥 Healing</button>
+            <button class="cat-pill">💰 Finances</button>
+            <button class="cat-pill">✨ Faith &amp; Favor</button>
+            <button class="cat-pill">🦋 Identity</button>
+            <button class="cat-pill">🌍 Salvation</button>
+            <button class="cat-pill">🌅 Daily</button>
+          </div>
+        </div>
+        <div class="grid grid-cols-3 gap-4">
+          <div class="card p-5 hover:shadow-feather cursor-pointer text-center">
+            <div class="text-2xl mb-2">🏥</div>
+            <p class="font-serif text-sm text-ink">Healing</p>
+            <p class="text-ink-muted text-xs mt-1">12 confessions</p>
+          </div>
+          <div class="card p-5 hover:shadow-feather cursor-pointer text-center">
+            <div class="text-2xl mb-2">💰</div>
+            <p class="font-serif text-sm text-ink">Finances</p>
+            <p class="text-ink-muted text-xs mt-1">8 confessions</p>
+          </div>
+          <div class="card p-5 hover:shadow-feather cursor-pointer text-center">
+            <div class="text-2xl mb-2">✨</div>
+            <p class="font-serif text-sm text-ink">Faith</p>
+            <p class="text-ink-muted text-xs mt-1">15 confessions</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- My Plan -->
+      <div id="engine-myplan" class="tab-panel space-y-4">
+        <p class="text-xs uppercase tracking-widest text-ink-muted mb-2">My Confessions</p>
+        <div class="card p-5" style="border-left:4px solid #3e5219">
+          <div class="flex items-start justify-between mb-3">
+            <div>
+              <span class="text-xs text-ink-muted uppercase tracking-wider">Healing &amp; Restoration</span>
+              <h4 class="font-serif text-base text-ink mt-0.5">Jehovah Rapha — Daily Healing Confession</h4>
+            </div>
+            <span class="badge status-done ml-3 flex-shrink-0">Done Today</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="flex-1 h-1.5 rounded-full" style="background:#e8e7db">
+              <div class="h-1.5 rounded-full" style="width:65%;background:#3e5219"></div>
+            </div>
+            <span class="text-xs text-ink-muted">13/21 days</span>
+          </div>
+          <div class="flex gap-2 mt-3">
+            <button class="px-4 py-2 rounded-lg text-xs font-medium opacity-50 cursor-not-allowed" style="background:#3e5219;color:white">✓ Completed</button>
+            <button class="px-4 py-2 rounded-lg text-xs font-medium border border-crimson/30 text-crimson hover:bg-crimson-pale">Remove</button>
+          </div>
+        </div>
+        <div class="card p-5" style="border-left:4px solid #c26b2c">
+          <div class="flex items-start justify-between mb-3">
+            <div>
+              <span class="text-xs text-ink-muted uppercase tracking-wider">Faith &amp; Favor</span>
+              <h4 class="font-serif text-base text-ink mt-0.5">Favor of God — Walking in Blessing</h4>
+            </div>
+            <span class="badge status-pending ml-3 flex-shrink-0 animate-breathe">⏳ Pending</span>
+          </div>
+          <div class="flex gap-2 mt-3">
+            <button class="px-4 py-2 rounded-lg text-xs font-medium text-white hover:opacity-90" style="background:#3e5219" onclick="switchTab('engine','confess',document.querySelector('[onclick*=confess]'))">Confess Now →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Confess Aloud -->
+      <div id="engine-confess" class="tab-panel active">
+        <!-- Plan selector -->
+        <select class="form-input mb-6" style="border-radius:10px">
+          <option>Healing &amp; Restoration (Ongoing)</option>
+          <option>Faith &amp; Favor — Walking in Blessing</option>
+        </select>
+
+        <!-- Reader card -->
+        <div class="card p-8 text-center" style="border:2px solid rgba(62,82,25,0.2)">
+          <p class="text-xs uppercase tracking-widest text-ink-muted mb-1">Healing &amp; Restoration</p>
+          <h3 class="font-serif text-lg text-sage mb-4">Jehovah Rapha — Daily Healing Confession</h3>
+
+          <!-- Progress -->
+          <div class="flex items-center gap-3 mb-6 max-w-xs mx-auto">
+            <div class="flex-1 h-1.5 rounded-full" style="background:#e8e7db">
+              <div class="progress-bar h-1.5" style="width:37.5%"></div>
+            </div>
+            <span class="text-xs text-ink-muted flex-shrink-0">Line 3 of 8</span>
+          </div>
+
+          <!-- Type badge -->
+          <span class="badge badge-warrior mb-6 uppercase tracking-widest">Confess</span>
+
+          <!-- Main text -->
+          <div class="confess-line max-w-xl mx-auto">
+            "I am the righteousness of God in Christ Jesus. No sickness, disease, or infirmity has any right to my body, for I am redeemed from the curse of the law."
+          </div>
+
+          <!-- Scripture -->
+          <p class="font-garamond italic text-gold text-base mt-4 mb-6">2 Corinthians 5:21 · Galatians 3:13</p>
+
+          <div class="gold-rule max-w-xs mx-auto"></div>
+
+          <!-- Navigation -->
+          <div class="flex gap-3 justify-center mt-6">
+            <button class="px-8 py-3 rounded-xl border border-cream-deep text-sm font-medium text-ink-soft hover:bg-cream-dim transition-colors">◀ Previous</button>
+            <button class="px-8 py-3 rounded-xl text-white text-sm font-medium hover:opacity-90 transition-opacity" style="background:#3e5219;box-shadow:0 4px 16px -4px rgba(62,82,25,0.35)">Next ▶</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════ SERMON NOTES ═══════════════════ -->
+    <div id="page-sermonNotes" class="page p-6 lg:p-8 max-w-4xl mx-auto">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h2 class="font-serif text-2xl text-ink">Sermon Notes</h2>
+          <p class="text-ink-muted text-sm">18 notes recorded</p>
+        </div>
+      </div>
+
+      <div class="flex gap-6 border-b border-cream-deep mb-6">
+        <button class="tab-btn active" onclick="switchTab('sermon','browse',this)">Browse Notes</button>
+        <button class="tab-btn" onclick="switchTab('sermon','write',this)">✏️ Write Note</button>
+      </div>
+
+      <!-- Browse -->
+      <div id="sermon-browse" class="tab-panel active">
+        <div class="grid sm:grid-cols-3 gap-3 mb-4">
+          <input class="form-input" style="border-radius:8px" type="text" placeholder="Search notes..."/>
+          <select class="form-input" style="border-radius:8px">
+            <option>All Speakers</option>
+            <option>Bishop Samuel Patta</option>
+            <option>Ps. Samuel Patta</option>
+          </select>
+          <select class="form-input" style="border-radius:8px">
+            <option>All Tags</option>
+            <option>grace</option><option>healing</option>
+          </select>
+        </div>
+
+        <div class="space-y-3">
+          <div class="card p-5 hover:shadow-feather transition-all cursor-pointer">
+            <div class="flex items-start justify-between mb-2">
+              <h4 class="font-serif text-base text-ink">Grace &amp; Truth</h4>
+              <span class="text-xs text-ink-muted">Apr 28</span>
+            </div>
+            <p class="text-sage text-sm font-medium mb-2">Ps. Samuel Patta</p>
+            <p class="text-ink-muted text-sm leading-relaxed mb-3">Jesus came full of grace and truth, and from his fullness we have all received grace upon grace...</p>
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="badge" style="background:#e8f4ff;color:#1565c0;font-size:11px">📖 3 refs</span>
+              <span class="badge" style="background:#e8f5e9;color:#2e7d32;font-size:11px">✅ 5 takeaways</span>
+              <span class="badge" style="background:#fff8e1;color:#f57f17;font-size:11px">💡 reflection</span>
+              <span class="ml-auto cat-pill" style="padding:3px 8px;font-size:11px"># grace</span>
+              <span class="cat-pill" style="padding:3px 8px;font-size:11px"># truth</span>
+            </div>
+            <div class="flex gap-2 mt-3">
+              <button class="text-xs text-sage hover:underline">Open</button>
+              <button class="text-xs text-ink-muted hover:text-sage">Edit</button>
+              <button class="text-xs text-ink-muted hover:text-gold ml-1">⭐ Star</button>
+              <button class="ml-auto text-xs text-crimson/60 hover:text-crimson">Delete</button>
+            </div>
+          </div>
+
+          <div class="card p-5 hover:shadow-feather transition-all cursor-pointer">
+            <div class="flex items-start justify-between mb-2">
+              <h4 class="font-serif text-base text-ink">The Power of the Cross</h4>
+              <span class="text-xs text-ink-muted">Apr 21</span>
+            </div>
+            <p class="text-sage text-sm font-medium mb-2">Bishop Samuel Patta</p>
+            <p class="text-ink-muted text-sm leading-relaxed mb-3">The cross is the ultimate demonstration of God's love — redemption, healing, and restoration all flow from Calvary...</p>
+            <div class="flex items-center gap-2">
+              <span class="badge" style="background:#e8f4ff;color:#1565c0;font-size:11px">📖 5 refs</span>
+              <span class="badge" style="background:#e8f5e9;color:#2e7d32;font-size:11px">✅ 4 takeaways</span>
+              <span class="ml-auto cat-pill" style="padding:3px 8px;font-size:11px"># cross</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Write -->
+      <div id="sermon-write" class="tab-panel space-y-5">
+        <div class="grid sm:grid-cols-3 gap-4">
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-medium text-ink-muted uppercase tracking-widest mb-2">Sermon Title</label>
+            <input class="form-input" type="text" placeholder="The Power of the Resurrection"/>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-ink-muted uppercase tracking-widest mb-2">Date</label>
+            <input class="form-input" type="date"/>
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-ink-muted uppercase tracking-widest mb-2">Speaker</label>
+          <select class="form-input" style="border-radius:8px">
+            <option>Ps. Samuel Patta</option>
+            <option>Bishop Samuel Patta</option>
+            <option>Ps. Deepak Avinash</option>
+            <option>Merlyn Patta</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-medium text-ink-muted uppercase tracking-widest mb-2">Notes</label>
+            <textarea class="form-input" rows="6" placeholder="Write your notes here..."></textarea>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-ink-muted uppercase tracking-widest mb-2">Bible References</label>
+            <textarea class="form-input" rows="3" placeholder="John 3:16, Romans 8:28..."></textarea>
+            <!-- Auto-rendered scripture preview -->
+            <div class="scripture-block mt-3 text-sm">
+              <span class="font-serif not-italic text-gold text-sm font-medium block mb-1">John 3:16</span>
+              "For God so loved the world that he gave his one and only Son..."
+            </div>
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-ink-muted uppercase tracking-widest mb-2">Tags <span class="text-ink-faint">(comma-separated)</span></label>
+          <input class="form-input" type="text" placeholder="grace, truth, love"/>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-ink-muted uppercase tracking-widest mb-2">What I Learned</label>
+          <textarea class="form-input" rows="3" placeholder="Key insight from this sermon..."></textarea>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-ink-muted uppercase tracking-widest mb-2">Key Takeaways</label>
+          <textarea class="form-input" rows="3" placeholder="- First takeaway&#10;- Second takeaway"></textarea>
+        </div>
+        <button class="w-full py-3.5 rounded-xl text-white font-medium hover:opacity-90" style="background:#3e5219">Save Sermon Note</button>
+      </div>
+    </div>
+
+    <!-- ═══════════════════ PASTOR DASHBOARD ═══════════════════ -->
+    <div id="page-pastorDash" class="page p-6 lg:p-8 max-w-6xl mx-auto">
+      <div class="flex items-center gap-3 mb-6">
+        <h2 class="font-serif text-2xl text-ink">Pastor Dashboard</h2>
+        <span class="badge badge-pastor">Pastor</span>
+      </div>
+
+      <!-- Stat cards -->
+      <div class="grid grid-cols-4 gap-4 mb-6">
+        <div class="card p-5 border-l-4" style="border-left-color:#3e5219">
+          <div class="font-serif text-3xl text-sage font-light">18</div>
+          <div class="text-ink-muted text-xs mt-1 uppercase tracking-wider">Total Members</div>
+        </div>
+        <div class="card p-5 border-l-4" style="border-left-color:#2d6a4f">
+          <div class="font-serif text-3xl text-moss font-light">12</div>
+          <div class="text-ink-muted text-xs mt-1 uppercase tracking-wider">Logged Today</div>
+        </div>
+        <div class="card p-5 border-l-4" style="border-left-color:#c26b2c">
+          <div class="font-serif text-3xl font-light" style="color:#c26b2c">6</div>
+          <div class="text-ink-muted text-xs mt-1 uppercase tracking-wider">Not Logged</div>
+        </div>
+        <div class="card p-5 border-l-4" style="border-left-color:#c9982a">
+          <div class="font-serif text-3xl font-light" style="color:#c9982a">9</div>
+          <div class="text-ink-muted text-xs mt-1 uppercase tracking-wider">Reports Sent</div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="flex gap-4 border-b border-cream-deep mb-6 overflow-x-auto">
+        <button class="tab-btn active" onclick="switchTab('pastor','members',this)">Members</button>
+        <button class="tab-btn" onclick="switchTab('pastor','followup',this)">Follow-Up</button>
+        <button class="tab-btn" onclick="switchTab('pastor','leaderboard',this)">Leaderboard</button>
+        <button class="tab-btn" onclick="switchTab('pastor','assignments',this)">Assignments</button>
+        <button class="tab-btn" onclick="switchTab('pastor','carealerts',this)">Care Alerts</button>
+      </div>
+
+      <!-- Members tab -->
+      <div id="pastor-members" class="tab-panel active">
+        <div class="flex flex-col sm:flex-row gap-3 mb-4">
+          <input class="form-input flex-1" style="border-radius:8px" type="text" placeholder="Search members..."/>
+          <div class="flex gap-1 p-1 rounded-xl flex-shrink-0" style="background:#efeee6">
+            <button class="px-3 py-1.5 rounded-lg text-xs font-medium bg-white text-ink shadow-sm">All (18)</button>
+            <button class="px-3 py-1.5 rounded-lg text-xs font-medium text-ink-muted">Logged (12)</button>
+            <button class="px-3 py-1.5 rounded-lg text-xs font-medium text-ink-muted">Not Logged (6)</button>
+            <button class="px-3 py-1.5 rounded-lg text-xs font-medium text-ink-muted">Inactive</button>
+          </div>
+        </div>
+
+        <div class="grid sm:grid-cols-2 gap-3">
+          <!-- Logged member -->
+          <div class="card p-4" style="border-left:4px solid #2d6a4f">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0" style="background:#0d7377">JM</div>
+              <div class="min-w-0">
+                <p class="font-serif text-sm text-ink">James Mathew</p>
+                <p class="text-ink-muted text-xs truncate">james@church.org · LPC-0023</p>
+              </div>
+              <span class="badge status-done ml-auto flex-shrink-0">✅ Logged</span>
+            </div>
+            <div class="space-y-1 text-xs text-ink-muted">
+              <p>🙏 60 min · 📖 John 3 · 📝 Grace &amp; Truth</p>
+            </div>
+          </div>
+
+          <!-- Not logged -->
+          <div class="card p-4 animate-breathe" style="border-left:4px solid #c26b2c">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0" style="background:#75796b">SR</div>
+              <div class="min-w-0">
+                <p class="font-serif text-sm text-ink">Sara Ruth</p>
+                <p class="text-ink-muted text-xs truncate">sara@church.org · LPC-0024</p>
+              </div>
+              <span class="badge status-pending ml-auto flex-shrink-0">⏳ Pending</span>
+            </div>
+            <button class="text-xs border border-ember/40 text-ember rounded-lg px-3 py-1.5 hover:bg-ember-pale transition-colors">Send Reminder</button>
+          </div>
+
+          <!-- Logged member 2 -->
+          <div class="card p-4" style="border-left:4px solid #2d6a4f">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0" style="background:#3e5219">MJ</div>
+              <div class="min-w-0">
+                <p class="font-serif text-sm text-ink">Mary Joseph</p>
+                <p class="text-ink-muted text-xs truncate">mary@church.org · LPC-0025</p>
+              </div>
+              <span class="badge status-done ml-auto flex-shrink-0">✅ Logged</span>
+            </div>
+            <div class="text-xs text-ink-muted"><p>🙏 90 min · 📖 Romans 8 · 📝 Spirit-led Life</p></div>
+          </div>
+
+          <!-- Inactive -->
+          <div class="card p-4" style="border-left:4px solid #b5383c">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0" style="background:#b5383c">DP</div>
+              <div class="min-w-0">
+                <p class="font-serif text-sm text-ink">David Philip</p>
+                <p class="text-ink-muted text-xs truncate">david@church.org · LPC-0031</p>
+              </div>
+              <span class="badge" style="background:#fde8e8;color:#b5383c;font-size:10px" class="ml-auto flex-shrink-0">🔴 Inactive 7d</span>
+            </div>
+            <button class="text-xs border border-crimson/40 text-crimson rounded-lg px-3 py-1.5 hover:bg-crimson-pale transition-colors">Send Care Alert</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Follow-Up tab -->
+      <div id="pastor-followup" class="tab-panel">
+        <div class="space-y-3">
+          <div class="card p-4" style="border-left:3px solid #c9982a">
+            <p class="font-serif text-sm text-ink mb-1">Shared Prayer: <em>Career breakthrough</em></p>
+            <p class="text-ink-muted text-xs">From: James Mathew · 2 days ago</p>
+            <div class="flex gap-2 mt-3">
+              <button class="text-xs text-sage hover:underline">View Prayer</button>
+              <button class="text-xs text-ink-muted hover:text-sage">Pray Together</button>
+            </div>
+          </div>
+          <div class="card p-4" style="border-left:3px solid #c26b2c">
+            <p class="font-serif text-sm text-ink mb-1">Inactive alert: <em>David Philip — 7 days</em></p>
+            <p class="text-ink-muted text-xs">Last logged: Apr 28, 2026</p>
+            <button class="text-xs border border-ember/40 text-ember rounded-lg px-3 py-1.5 mt-3 hover:bg-ember-pale">Send Care Alert</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Leaderboard -->
+      <div id="pastor-leaderboard" class="tab-panel">
+        <div class="space-y-2">
+          <div class="card p-4 flex items-center gap-4">
+            <span class="font-serif text-2xl text-gold font-light w-8">1</span>
+            <div class="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white" style="background:#3e5219">MJ</div>
+            <div class="flex-1">
+              <p class="font-serif text-sm text-ink">Mary Joseph</p>
+              <div class="h-1.5 rounded-full mt-1" style="background:#e8e7db"><div style="width:95%;background:#3e5219" class="h-1.5 rounded-full"></div></div>
+            </div>
+            <span class="font-serif text-lg text-sage font-light">95</span>
+          </div>
+          <div class="card p-4 flex items-center gap-4">
+            <span class="font-serif text-2xl text-ink-muted font-light w-8">2</span>
+            <div class="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white" style="background:#0d7377">JM</div>
+            <div class="flex-1">
+              <p class="font-serif text-sm text-ink">James Mathew</p>
+              <div class="h-1.5 rounded-full mt-1" style="background:#e8e7db"><div style="width:82%;background:#0d7377" class="h-1.5 rounded-full"></div></div>
+            </div>
+            <span class="font-serif text-lg text-teal font-light">82</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Assignments -->
+      <div id="pastor-assignments" class="tab-panel">
+        <div class="card-parchment p-6">
+          <h3 class="font-serif text-lg text-ink mb-5">Create Weekly Assignment</h3>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-xs font-medium text-ink-muted uppercase tracking-widest mb-2">Assign To</label>
+              <select class="form-input" style="border-radius:8px"><option>All Members</option><option>James Mathew</option><option>Sara Ruth</option></select>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-medium text-ink-muted uppercase tracking-widest mb-2">Bible Book</label>
+                <select class="form-input" style="border-radius:8px"><option>John</option><option>Romans</option><option>Psalms</option></select>
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-ink-muted uppercase tracking-widest mb-2">Week Starting</label>
+                <input class="form-input" type="date"/>
+              </div>
+            </div>
+            <button class="px-6 py-3 rounded-xl text-white font-medium text-sm" style="background:#3e5219">Create Assignment</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Care Alerts -->
+      <div id="pastor-carealerts" class="tab-panel space-y-3">
+        <div class="card p-4" style="border-left:4px solid #b5383c">
+          <div class="flex items-start justify-between">
+            <div>
+              <p class="font-serif text-sm text-ink">David Philip</p>
+              <p class="text-crimson text-xs mt-0.5">Inactive 7 days — Last logged Apr 28</p>
+            </div>
+            <span class="badge" style="background:#fde8e8;color:#b5383c">High Priority</span>
+          </div>
+          <div class="flex gap-2 mt-3">
+            <button class="text-xs px-3 py-1.5 rounded-lg text-white" style="background:#b5383c">Send Care Alert</button>
+            <button class="text-xs px-3 py-1.5 rounded-lg border border-cream-deep text-ink-soft">View Profile</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════ SETTINGS (stub) ═══════════════════ -->
+    <div id="page-settings" class="page p-6 lg:p-8 max-w-3xl mx-auto">
+      <h2 class="font-serif text-2xl text-ink mb-6">Settings</h2>
+      <div class="card p-6 mb-4">
+        <h3 class="font-serif text-base text-ink mb-4">Report Preferences</h3>
+        <label class="flex items-center gap-3 cursor-pointer">
+          <input type="checkbox" class="w-5 h-5 accent-sage"/>
+          <span class="text-sm text-ink">Omit sermon line when no sermon is logged</span>
+        </label>
+      </div>
+      <div class="card p-6 mb-4">
+        <h3 class="font-serif text-base text-ink mb-4">Reminders</h3>
+        <label class="flex items-center gap-3 cursor-pointer">
+          <input type="checkbox" class="w-5 h-5 accent-sage" checked/>
+          <div>
+            <span class="text-sm text-ink block">Daily reminder emails</span>
+            <span class="text-ink-muted text-xs">Sent at 7:00 PM if today's entry is missing</span>
+          </div>
+        </label>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div class="card p-5" style="border-left:4px solid #2d6a4f">
+          <p class="font-serif text-sm text-ink mb-1">📤 Export Backup</p>
+          <p class="text-ink-muted text-xs mb-3">Download all your data as JSON</p>
+          <button class="text-xs px-4 py-2 rounded-lg text-white" style="background:#2d6a4f">Download JSON</button>
+        </div>
+        <div class="card p-5" style="border-left:4px solid #c26b2c">
+          <p class="font-serif text-sm text-ink mb-1">📥 Import Data</p>
+          <p class="text-ink-muted text-xs mb-3">Restore from a previous backup</p>
+          <button class="text-xs px-4 py-2 rounded-lg border border-ember/40 text-ember">Choose File</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stub pages for remaining nav items -->
+    <div id="page-dailyLog"     class="page p-6 lg:p-8 max-w-4xl mx-auto"><h2 class="font-serif text-2xl text-ink">Daily Log</h2><p class="text-ink-muted mt-2">Calendar and list view of all entries.</p></div>
+    <div id="page-weeklyAssign" class="page p-6 lg:p-8 max-w-4xl mx-auto"><h2 class="font-serif text-2xl text-ink">Weekly Assignment</h2><p class="text-ink-muted mt-2">Current reading assignment and history.</p></div>
+    <div id="page-readingPlan"  class="page p-6 lg:p-8 max-w-4xl mx-auto"><h2 class="font-serif text-2xl text-ink">Bible Reading Plan</h2><p class="text-ink-muted mt-2">Browse and manage reading plans.</p></div>
+    <div id="page-fasting"      class="page p-6 lg:p-8 max-w-4xl mx-auto"><h2 class="font-serif text-2xl text-ink">Fasting Tracker</h2><p class="text-ink-muted mt-2">Log fasting days and view calendar.</p></div>
+    <div id="page-testimonies"  class="page p-6 lg:p-8 max-w-4xl mx-auto"><h2 class="font-serif text-2xl text-ink">Testimonies</h2><p class="text-ink-muted mt-2">Praise wall and submit your testimony.</p></div>
+
+  </div><!-- /main content -->
+</div><!-- /mainApp -->
+
+<!-- ════════════════════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════════════════════ -->
+<script>
+// ── Navigation ──────────────────────────────────────────
+const pageTitles = {
+  dashboard:    'Dashboard',
+  dailyEntry:   'Daily Entry',
+  dailyLog:     'Daily Log',
+  weeklyAssign: 'Weekly Assignment',
+  streaks:      'Streaks & Stats',
+  sermonNotes:  'Sermon Notes',
+  prayerJournal:'Prayer Journal',
+  prayerEngine: 'Prayer Engine',
+  readingPlan:  'Reading Plan',
+  fasting:      'Fasting Tracker',
+  testimonies:  'Testimonies',
+  pastorDash:   'Pastor Dashboard',
+  settings:     'Settings',
+};
+
+function showPage(name, clickedEl) {
+  // Hide all pages inside mainApp
+  document.querySelectorAll('#mainApp .page').forEach(p => p.classList.remove('active'));
+  const target = document.getElementById('page-' + name);
+  if (target) target.classList.add('active');
+
+  // Update top bar title
+  const titleEl = document.getElementById('pageTitle');
+  if (titleEl) titleEl.textContent = pageTitles[name] || name;
+
+  // Update sidebar active state
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  if (clickedEl) clickedEl.classList.add('active');
+
+  window.scrollTo(0,0);
+}
+
+// ── Tab switching ────────────────────────────────────────
+function switchTab(group, tab, btnEl) {
+  // panels
+  document.querySelectorAll('[id^="' + group + '-"]').forEach(p => p.classList.remove('active'));
+  const panel = document.getElementById(group + '-' + tab);
+  if (panel) panel.classList.add('active');
+
+  // buttons (find sibling buttons in same row)
+  if (btnEl) {
+    const row = btnEl.closest('.flex');
+    if (row) row.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btnEl.classList.add('active');
+  }
+}
+
+// ── Login tab switching ──────────────────────────────────
+function switchLoginTab(tab, btnEl) {
+  ['signin','register','forgot'].forEach(t => {
+    const p = document.getElementById('lt-' + t);
+    if (p) p.classList.remove('active');
+  });
+  const panel = document.getElementById('lt-' + tab);
+  if (panel) panel.classList.add('active');
+
+  if (btnEl) {
+    btnEl.closest('.flex').querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btnEl.classList.add('active');
+  }
+}
+
+// ── Enter app (from login) ───────────────────────────────
+function enterApp() {
+  document.getElementById('loginPage').classList.remove('active');
+  document.getElementById('mainApp').classList.add('active');
+}
+
+// ── Prayer duration slider live update ──────────────────
+document.querySelectorAll('input[type="range"]').forEach(slider => {
+  slider.addEventListener('input', function() {
+    const display = this.nextElementSibling;
+    if (display && display.tagName !== 'INPUT') {
+      display.textContent = this.value + ' min';
+    }
+  });
+});
+</script>
+</body>
+</html>
