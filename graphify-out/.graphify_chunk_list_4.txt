@@ -1,0 +1,22 @@
+/Users/bhargavigunnam/PycharmProjects/Daily_Assignment/bmad-core/agents/bmad-orchestrator.md
+/Users/bhargavigunnam/PycharmProjects/Daily_Assignment/bmad-core/agents/qa.md
+/Users/bhargavigunnam/PycharmProjects/Daily_Assignment/bmad-core/agents/developer.md
+/Users/bhargavigunnam/PycharmProjects/Daily_Assignment/bmad-core/agents/pm.md
+/Users/bhargavigunnam/PycharmProjects/Daily_Assignment/bmad-core/personas/default-personas.md
+/Users/bhargavigunnam/PycharmProjects/Daily_Assignment/bmad-core/templates/requirements.md
+/Users/bhargavigunnam/PycharmProjects/Daily_Assignment/bmad-core/templates/project-brief.md
+/Users/bhargavigunnam/PycharmProjects/Daily_Assignment/bmad-core/templates/sprint-plan.md
+/Users/bhargavigunnam/PycharmProjects/Daily_Assignment/bmad-core/templates/test-plan.md
+/Users/bhargavigunnam/PycharmProjects/Daily_Assignment/bmad-core/templates/architecture-decision-record.md
+/Users/bhargavigunnam/PycharmProjects/Daily_Assignment/bmad-docs/confessions/Financial.pdf
+/Users/bhargavigunnam/PycharmProjects/Daily_Assignment/bmad-docs/confessions/Chruch growth.pdf
+/Users/bhargavigunnam/PycharmProjects/Daily_Assignment/bmad-docs/confessions/Family Blessing.pdf
+/Users/bhargavigunnam/PycharmProjects/Daily_Assignment/bmad-docs/confessions/Health & Healing.pdf
+/Users/bhargavigunnam/PycharmProjects/Daily_Assignment/bmad-docs/confessions/Prayer of protection.pdf
+/Users/bhargavigunnam/PycharmProjects/Daily_Assignment/bmad-docs/confessions/Salvation.pdf
+/Users/bhargavigunnam/PycharmProjects/Daily_Assignment/bmad-docs/confessions/KNOWING_GOD_S_PLAN_FOR_MARR_1.JPG
+/Users/bhargavigunnam/PycharmProjects/Daily_Assignment/bmad-docs/confessions/PRAYERS_AND_SCRIPTURES.JPG
+/Users/bhargavigunnam/PycharmProjects/Daily_Assignment/bmad-docs/confessions/CONFESSION_FOR_BUSINESS.JPG
+/Users/bhargavigunnam/PycharmProjects/Daily_Assignment/bmad-docs/confessions/CONFESSION_TO_DEFEAT_WORRY_.JPG
+/Users/bhargavigunnam/PycharmProjects/Daily_Assignment/bmad-docs/confessions/PRAYERS_AND_DECLARATIONS_FO2.JPG
+/Users/bhargavigunnam/PycharmProjects/Daily_Assignment/bmad-docs/confessions/HOW_TO_RECEIVE_FROM_GOD.JPG

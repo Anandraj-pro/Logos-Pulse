@@ -1,4 +1,5 @@
 import streamlit as st
+import html as _html
 from modules.styles import inject_styles, page_header, section_label, empty_state, spacer
 from modules.auth import require_login, require_password_changed, get_current_role
 from modules import db
@@ -24,17 +25,21 @@ with tab_wall:
             reactions = t.get("reactions") or {"pray": 0, "amen": 0, "hallelujah": 0}
             created = (t.get("created_at") or "")[:10]
 
+            _t_title = _html.escape(t['title'])
+            _t_body = _html.escape(t.get('testimony', '') or '')
+            _t_author = _html.escape(t.get('author_name', 'Member') or 'Member')
+            _t_preview = _t_body[:300].replace('\n', '<br/>') + ('...' if len(_t_body) > 300 else '')
             st.markdown(f"""
             <div class="entry-card" style="border-left:3px solid #D4A843;">
                 <div style="font-family:'DM Serif Display',Georgia,serif; font-size:18px; color:#2A2438; margin-bottom:4px;">
-                    {t['title']}
+                    {_t_title}
                 </div>
                 <div style="font-size:14px; color:#6B6580; line-height:1.7; margin-bottom:8px;">
-                    {t['testimony'][:300].replace(chr(10), '<br/>')}{'...' if len(t.get('testimony','')) > 300 else ''}
+                    {_t_preview}
                 </div>
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                     <span style="font-size:12px; color:#9E96AB;">
-                        {t.get('author_name', 'Member')} &bull; {created}
+                        {_t_author} &bull; {created}
                     </span>
                     <span style="font-size:13px;">
                         \U0001f64f {reactions.get('pray', 0)} &nbsp;
@@ -67,11 +72,14 @@ with tab_wall:
         if pending:
             section_label(f"Pending Approval ({len(pending)})")
             for t in pending:
+                _pt_title = _html.escape(t['title'])
+                _pt_body = _html.escape((t.get('testimony') or '')[:150])
+                _pt_author = _html.escape(t.get('author_name', 'Member') or 'Member')
                 st.markdown(f"""
                 <div class="entry-card" style="border-left:3px solid #D4853A;">
-                    <div style="font-size:15px; font-weight:600; color:#2A2438;">{t['title']}</div>
-                    <div style="font-size:13px; color:#6B6580; margin-top:4px;">{t['testimony'][:150]}...</div>
-                    <div style="font-size:12px; color:#9E96AB; margin-top:4px;">by {t.get('author_name', 'Member')}</div>
+                    <div style="font-size:15px; font-weight:600; color:#2A2438;">{_pt_title}</div>
+                    <div style="font-size:13px; color:#6B6580; margin-top:4px;">{_pt_body}...</div>
+                    <div style="font-size:12px; color:#9E96AB; margin-top:4px;">by {_pt_author}</div>
                 </div>
                 """, unsafe_allow_html=True)
                 if st.button("Approve", key=f"approve_{t['id']}", type="primary", use_container_width=True):

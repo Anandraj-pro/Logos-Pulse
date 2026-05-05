@@ -1,3 +1,4 @@
+import html as _html
 import streamlit as st
 from datetime import date, timedelta
 from modules.styles import inject_styles, page_header, section_label, empty_state, spacer
@@ -7,7 +8,11 @@ from modules.supabase_client import get_admin_client
 from modules.bible_data import get_book_names, get_chapter_count
 from modules.chapter_splitter import split_chapters
 from modules.utils import get_next_monday
-from modules.db import create_group_assignment, get_group_assignments
+from modules.db import (
+    create_group_assignment, get_group_assignments,
+    get_inactive_members, create_care_task, get_care_tasks, complete_care_task,
+    get_reading_plans, enroll_in_plan, get_members_plan_progress,
+)
 
 require_role(["admin", "bishop", "pastor"])
 
@@ -47,8 +52,10 @@ if not members:
     st.stop()
 
 # ==================== TABS ====================
-tab_members, tab_followup, tab_leaderboard, tab_prayers, tab_assign, tab_history, tab_confessions = st.tabs([
-    "\U0001f465 Members", "\U0001f514 Follow-Up", "\U0001f3c6 Leaderboard", "\U0001f64f Shared Prayers", "\U0001f4d6 Create Assignment", "\U0001f4c1 Assignment History", "\u2720\ufe0f Confessions"
+tab_members, tab_followup, tab_leaderboard, tab_prayers, tab_assign, tab_history, tab_confessions, tab_care, tab_plans, tab_digest, tab_wall = st.tabs([
+    "\U0001f465 Members", "\U0001f514 Follow-Up", "\U0001f3c6 Leaderboard", "\U0001f64f Shared Prayers",
+    "\U0001f4d6 Create Assignment", "\U0001f4c1 Assignment History", "\u2720\ufe0f Confessions",
+    "\U0001f6a8 Care Alerts", "\U0001f4da Reading Plans", "\U0001f4f2 Group Report", "\U0001f64c Prayer Wall"
 ])
 
 # ==================== MEMBERS TAB ====================
@@ -98,16 +105,32 @@ with tab_members:
     spacer()
     section_label("Members")
 
-    view_mode = st.segmented_control("Filter", ["All", "Logged Today", "Not Logged"], default="All", label_visibility="collapsed")
+    # Search + filter row
+    _search_col, _filter_col = st.columns([2, 2])
+    with _search_col:
+        _member_search = st.text_input("Search", placeholder="Search by name…", label_visibility="collapsed", key="pd_member_search")
+    with _filter_col:
+        view_mode = st.segmented_control("Filter", ["All", "Logged Today", "Not Logged", "Inactive 7d"], default="All", label_visibility="collapsed", key="pd_view_mode")
+
+    # Inactive 7-day set (for filter)
+    if view_mode == "Inactive 7d":
+        from modules.db import get_inactive_members as _get_inactive
+        _inactive_ids = {m["user_id"] for m in _get_inactive(viewing_pastor_id, threshold_days=7)}
+    else:
+        _inactive_ids = set()
 
     for member in members:
         uid = member["user_id"]
         logged = uid in logged_user_ids
         entry = entry_map.get(uid)
 
+        if _member_search and _member_search.lower() not in member["display_name"].lower():
+            continue
         if view_mode == "Logged Today" and not logged:
             continue
         if view_mode == "Not Logged" and logged:
+            continue
+        if view_mode == "Inactive 7d" and uid not in _inactive_ids:
             continue
 
         status_icon = "\u2705" if logged else "\u274c"
@@ -683,3 +706,362 @@ with tab_confessions:
         st.info("Confession assignments will be available once the Prayer Engine is set up.")
         if st.session_state.get("debug_mode"):
             st.exception(e)
+
+# ==================== CARE ALERTS TAB ====================
+with tab_care:
+    CARE_TYPES = ["Check-In Call", "Prayer Visit", "Message", "Escalate to Bishop"]
+
+    # ── Inactive Members (no entry in 3+ days) ──
+    section_label("\U0001f6a8 Inactive Members (3+ days)")
+    try:
+        inactive = get_inactive_members(viewing_pastor_id, threshold_days=3)
+    except Exception:
+        inactive = []
+
+    # Build a set of member_ids that already have an open task
+    try:
+        open_tasks = get_care_tasks(viewing_pastor_id, status="open")
+    except Exception:
+        open_tasks = []
+
+    tasked_member_ids = {t["member_id"] for t in open_tasks}
+
+    # Get member name map
+    admin_c = get_admin_client()
+    member_name_map: dict = {}
+    for m in members:
+        try:
+            u = admin_c.auth.admin.get_user_by_id(m["user_id"]).user
+            member_name_map[m["user_id"]] = (u.user_metadata or {}).get("preferred_name", u.email)
+        except Exception:
+            member_name_map[m["user_id"]] = "Member"
+
+    untasked_inactive = [i for i in inactive if i["user_id"] not in tasked_member_ids]
+
+    if not untasked_inactive:
+        st.success("No inactive members without a care task. Great work!")
+    else:
+        for row in untasked_inactive:
+            m_name = member_name_map.get(row["user_id"], "Member")
+            days = row.get("days_since_last_entry", "?")
+            with st.expander(f"{m_name} — {days} day(s) inactive", expanded=False):
+                with st.form(key=f"care_form_{row['user_id']}"):
+                    care_type = st.selectbox("Care Type", CARE_TYPES,
+                                             key=f"ct_{row['user_id']}")
+                    note = st.text_area("Care Note (optional, max 500 chars)", max_chars=500,
+                                        key=f"cn_{row['user_id']}")
+                    due = st.date_input("Follow-up Due Date", value=date.today() + timedelta(days=2),
+                                        key=f"cd_{row['user_id']}")
+                    if st.form_submit_button("Create Care Task", type="primary",
+                                             use_container_width=True):
+                        create_care_task(
+                            pastor_id=viewing_pastor_id,
+                            member_id=row["user_id"],
+                            care_type=care_type,
+                            note=note,
+                            due_date=due.isoformat(),
+                        )
+                        st.success(f"Care task created for {m_name}.")
+                        st.rerun()
+
+    spacer()
+
+    # ── Open Tasks ──
+    section_label("\U0001f4cb Open Care Tasks")
+
+    if not open_tasks:
+        st.info("No open care tasks.")
+    else:
+        # Sort by due_date ascending (nulls last)
+        open_tasks.sort(key=lambda t: t.get("due_date") or "9999-99-99")
+        for task in open_tasks:
+            m_name = task.get("member_name", member_name_map.get(task["member_id"], "Member"))
+            due_str = task.get("due_date") or "—"
+            overdue = task.get("due_date") and task["due_date"] < date.today().isoformat()
+            badge_color = "#C44B5B" if overdue else "#D4853A"
+            badge_label = "OVERDUE" if overdue else task["care_type"]
+
+            st.markdown(f"""
+            <div class="entry-card" style="border-left:4px solid {badge_color};">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <span style="font-weight:600; color:#2A2438;">{m_name}</span>
+                        <span style="background:{badge_color}20; color:{badge_color};
+                                     padding:2px 8px; border-radius:8px; font-size:11px;
+                                     font-weight:600; margin-left:8px;">
+                            {badge_label}
+                        </span>
+                    </div>
+                    <div style="font-size:12px; color:#9E96AB;">Due: {due_str}</div>
+                </div>
+                {f'<div style="font-size:13px; color:#6B6580; margin-top:4px;">{task["note"]}</div>' if task.get("note") else ''}
+            </div>
+            """, unsafe_allow_html=True)
+
+            if st.button("Mark Done", key=f"done_{task['id']}", use_container_width=False):
+                complete_care_task(task["id"])
+                st.success("Task marked as done.")
+                st.rerun()
+
+    spacer()
+
+    # ── Completed Tasks (last 10) ──
+    with st.expander("Completed Tasks (recent 10)"):
+        try:
+            done_tasks = get_care_tasks(viewing_pastor_id, status="done")
+        except Exception:
+            done_tasks = []
+        done_tasks = sorted(done_tasks, key=lambda t: t.get("completed_at") or "", reverse=True)[:10]
+        if not done_tasks:
+            st.caption("No completed tasks yet.")
+        else:
+            for task in done_tasks:
+                m_name = task.get("member_name", member_name_map.get(task["member_id"], "Member"))
+                done_at = (task.get("completed_at") or "")[:10]
+                st.markdown(f"✅ **{m_name}** — {task['care_type']} (completed {done_at})")
+
+# ==================== READING PLANS TAB ====================
+with tab_plans:
+    plans = get_reading_plans()
+
+    if not plans:
+        st.info("No reading plans available yet. Ask your admin to seed the built-in plans.")
+    else:
+        # ── Assign a plan ──
+        section_label("\U0001f4e5 Assign a Reading Plan")
+        member_options = {m["display_name"]: m["user_id"] for m in members}
+        plan_options = {p["name"]: p["id"] for p in plans}
+
+        col_m, col_p = st.columns(2)
+        with col_m:
+            selected_member = st.selectbox("Member", options=list(member_options.keys()),
+                                           key="rp_member")
+        with col_p:
+            selected_plan = st.selectbox("Plan", options=list(plan_options.keys()),
+                                         key="rp_plan")
+
+        chosen_plan = next((p for p in plans if p["name"] == selected_plan), None)
+        if chosen_plan:
+            st.caption(chosen_plan.get("description", ""))
+
+        if st.button("\U0001f4e5 Assign Plan", type="primary", key="assign_plan_btn"):
+            enroll_in_plan(
+                user_id=member_options[selected_member],
+                plan_id=plan_options[selected_plan],
+                assigned_by=viewing_pastor_id,
+            )
+            st.success(f"Assigned **{selected_plan}** to {selected_member}.")
+            st.rerun()
+
+        spacer()
+
+        # ── Members' progress ──
+        section_label("\U0001f4ca Members' Reading Progress")
+        try:
+            progress_rows = get_members_plan_progress(viewing_pastor_id)
+        except Exception:
+            progress_rows = []
+
+        if not progress_rows:
+            st.info("No members are currently enrolled in a reading plan.")
+        else:
+            for row in progress_rows:
+                rp = row.get("reading_plans") or {}
+                total = rp.get("total_days", 1)
+                current = row.get("current_day", 1)
+                done = current - 1
+                pct = int(done / total * 100) if total > 0 else 0
+                pct_color = "#3A8F5C" if pct >= 70 else "#D4853A" if pct >= 30 else "#5B4FC4"
+                m_name = row.get("member_name", "Member")
+
+                st.markdown(f"""
+                <div class="entry-card">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                        <div>
+                            <span style="font-weight:600; color:#2A2438;">{m_name}</span>
+                            <span style="font-size:12px; color:#9E96AB; margin-left:8px;">{rp.get('name', '')}</span>
+                        </div>
+                        <span style="font-size:12px; color:{pct_color}; font-weight:600;">
+                            Day {done}/{total} ({pct}%)
+                        </span>
+                    </div>
+                    <div class="progress-bar-bg" style="height:6px;">
+                        <div class="progress-bar-fill" style="width:{pct}%; background:{pct_color};"></div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+# ==================== GROUP REPORT TAB ====================
+with tab_digest:
+    from modules.utils import format_prayer_duration
+
+    section_label("\U0001f4f2 Weekly Group WhatsApp Report")
+    st.caption("Generate a WhatsApp-ready summary of your group's activity this week. Copy and paste into your group chat.")
+
+    today = date.today()
+    week_start = today - timedelta(days=today.weekday())
+    week_end = week_start + timedelta(days=5)
+    week_label = f"{week_start.strftime('%b %d')} – {week_end.strftime('%b %d, %Y')}"
+
+    if st.button("\U0001f504 Generate Report", type="primary", use_container_width=True, key="gen_digest"):
+        st.session_state["digest_ready"] = True
+
+    if st.session_state.get("digest_ready"):
+        admin_d = get_admin_client()
+        member_ids_d = [m["user_id"] for m in members]
+
+        # Fetch all entries for this week across the group
+        week_entries_raw = admin_d.table("daily_entries") \
+            .select("user_id, date, prayer_minutes, chapters_read, chapters_display") \
+            .in_("user_id", member_ids_d) \
+            .gte("date", week_start.isoformat()) \
+            .lte("date", week_end.isoformat()) \
+            .execute()
+        week_entries_map: dict = {}
+        for e in (week_entries_raw.data or []):
+            week_entries_map.setdefault(e["user_id"], []).append(e)
+
+        # Build name map
+        name_map_d: dict = {}
+        for m in members:
+            try:
+                u = admin_d.auth.admin.get_user_by_id(m["user_id"]).user
+                name_map_d[m["user_id"]] = (u.user_metadata or {}).get("preferred_name", u.email.split("@")[0])
+            except Exception:
+                name_map_d[m["user_id"]] = "Member"
+
+        lines = [
+            f"\U0001f4ca *Group Report — {week_label}*",
+            f"Pastor {pastor_name}'s Group • {len(members)} members",
+            "",
+        ]
+
+        total_prayer_min = 0
+        total_chapters = 0
+        members_logged = 0
+
+        import json as _json
+        for m in members:
+            uid = m["user_id"]
+            name = name_map_d.get(uid, "Member")
+            entries = week_entries_map.get(uid, [])
+            days_logged = len(entries)
+            prayer_min = sum(e.get("prayer_minutes", 0) for e in entries)
+            ch_count = 0
+            for e in entries:
+                if e.get("chapters_read"):
+                    chs = _json.loads(e["chapters_read"]) if isinstance(e["chapters_read"], str) else e["chapters_read"]
+                    ch_count += len(chs)
+
+            total_prayer_min += prayer_min
+            total_chapters += ch_count
+            if days_logged > 0:
+                members_logged += 1
+
+            if days_logged == 0:
+                lines.append(f"❌ {name} — No entries this week")
+            else:
+                prayer_str = format_prayer_duration(prayer_min)
+                streak_icon = "\U0001f525" if days_logged >= 5 else "⭐" if days_logged >= 3 else "✅"
+                lines.append(f"{streak_icon} {name} — {days_logged}/6 days | Prayer: {prayer_str} | Chapters: {ch_count}")
+
+        lines += [
+            "",
+            f"\U0001f4ca *Group Totals:*",
+            f"\U0001f64f Total prayer: {format_prayer_duration(total_prayer_min)}",
+            f"\U0001f4d6 Total chapters: {total_chapters}",
+            f"\U0001f465 Members active: {members_logged}/{len(members)}",
+            "",
+            "_Generated by Logos Pulse_",
+        ]
+
+        report_text = "\n".join(lines)
+
+        st.text_area("Copy the report below:", value=report_text, height=320, key="digest_text")
+        st.caption("Select all → Copy → Paste into WhatsApp group chat.")
+
+# ==================== PRAYER WALL (MODERATION) ====================
+with tab_wall:
+    from modules.db import (
+        get_all_prayer_requests_for_moderation, moderate_prayer_request,
+        get_pastor_checkin_requests, acknowledge_checkin_request,
+    )
+
+    section_label("\U0001f64c Prayer Request Moderation")
+    all_reqs = get_all_prayer_requests_for_moderation()
+
+    status_filter = st.selectbox("Show", ["active", "answered", "hidden", "all"], index=0, key="wall_filter")
+    if status_filter != "all":
+        all_reqs = [r for r in all_reqs if r.get("status") == status_filter]
+
+    if not all_reqs:
+        st.caption("No prayer requests matching this filter.")
+    else:
+        for req in all_reqs:
+            profile_info = req.pop("user_profiles", {}) or {}
+            author = "Anonymous" if req.get("is_anonymous") else profile_info.get("display_name", "Member")
+            status_badge_color = {"active": "#3A8F5C", "answered": "#5B4FC4", "hidden": "#9E96AB"}.get(req.get("status"), "#9E96AB")
+
+            _req_title = _html.escape(req['title'])
+            _req_body = _html.escape(req['body']) if req.get('body') else ""
+            _req_author = _html.escape(author)
+            st.markdown(f"""
+            <div class="entry-card">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                    <div style="flex:1;">
+                        <span style="font-family:'DM Serif Display',Georgia,serif; font-size:15px; color:#2A2438;">
+                            {_req_title}
+                        </span>
+                        {"<div style='font-size:13px; color:#6B6580; margin-top:4px;'>" + _req_body + "</div>" if _req_body else ""}
+                    </div>
+                    <div style="text-align:right; margin-left:12px; flex-shrink:0;">
+                        <div style="font-size:11px; color:#9E96AB;">{_req_author}</div>
+                        <span style="background:{status_badge_color}20; color:{status_badge_color};
+                                     padding:2px 8px; border-radius:8px; font-size:11px; font-weight:600;">
+                            {req.get('status','active')}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+            if req.get("status") == "active":
+                c1, c2 = st.columns(2)
+                with c1:
+                    if st.button("Mark Answered", key=f"ans_mod_{req['id']}", use_container_width=True):
+                        moderate_prayer_request(req["id"], "answered")
+                        st.rerun()
+                with c2:
+                    if st.button("Hide", key=f"hide_mod_{req['id']}", use_container_width=True):
+                        moderate_prayer_request(req["id"], "hidden")
+                        st.rerun()
+            elif req.get("status") in ("hidden", "answered"):
+                if st.button("Restore to Active", key=f"restore_mod_{req['id']}", use_container_width=True):
+                    moderate_prayer_request(req["id"], "active")
+                    st.rerun()
+
+    spacer()
+    section_label("\U0001f4cb Check-in Requests from Members")
+    checkin_reqs = get_pastor_checkin_requests(pastor_id=viewing_pastor_id)
+    if not checkin_reqs:
+        st.caption("No pending check-in requests.")
+    else:
+        for cr in checkin_reqs:
+            profile_info = cr.pop("user_profiles", {}) or {}
+            member_name = _html.escape(profile_info.get("display_name", "Member"))
+            _cr_msg = _html.escape(cr['message']) if cr.get('message') else ""
+            st.markdown(f"""
+            <div class="entry-card" style="border-left:3px solid #D4853A;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <span style="font-size:13px; font-weight:600; color:#2A2438;">{member_name}</span>
+                        {"<div style='font-size:12px; color:#6B6580; margin-top:2px;'>" + _cr_msg + "</div>" if _cr_msg else ""}
+                    </div>
+                    <span style="font-size:11px; color:#9E96AB; white-space:nowrap; margin-left:8px;">{cr['created_at'][:10]}</span>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            if cr.get("status") == "pending":
+                if st.button("Acknowledge", key=f"ack_cr_{cr['id']}", use_container_width=True):
+                    acknowledge_checkin_request(cr["id"])
+                    st.rerun()

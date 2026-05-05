@@ -204,6 +204,31 @@ with col4:
     </div>
     """, unsafe_allow_html=True)
 
+# ── Bible Annotations ──
+try:
+    from modules.db import get_bookmark_count, get_highlight_count
+    _bm_count = get_bookmark_count()
+    _hl_count = get_highlight_count()
+    if _bm_count > 0 or _hl_count > 0:
+        spacer(4)
+        _bm_col, _hl_col = st.columns(2)
+        with _bm_col:
+            st.markdown(f"""
+            <div class="stat-card">
+                <div class="stat-value" style="color:#2196F3;">{_bm_count}</div>
+                <div class="stat-label">Verses Bookmarked</div>
+            </div>
+            """, unsafe_allow_html=True)
+        with _hl_col:
+            st.markdown(f"""
+            <div class="stat-card">
+                <div class="stat-value" style="color:#F4C430;">{_hl_count}</div>
+                <div class="stat-label">Verses Highlighted</div>
+            </div>
+            """, unsafe_allow_html=True)
+except Exception:
+    pass
+
 # ==================== CHARTS ====================
 spacer()
 

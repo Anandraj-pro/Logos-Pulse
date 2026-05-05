@@ -5,6 +5,7 @@ from modules.styles import inject_styles, page_header, section_label, empty_stat
 from modules.auth import require_role, get_current_user_id, get_current_role
 from modules.rbac import get_pastors_for_bishop, get_pastors_list, get_members_for_pastor
 from modules.supabase_client import get_admin_client
+from modules.db import get_bishop_care_overview
 
 require_role(["admin", "bishop"])
 
@@ -221,3 +222,105 @@ with tab_trends:
     for ps in pastor_stats:
         trend = "\u2191" if ps["pct"] >= 50 else "\u2193" if ps["pct"] < 30 else "\u2192"
         st.markdown(f"**{ps['display_name']}** \u2014 {ps['member_count']} members, {ps['pct']}% today {trend}")
+
+    # \u2500\u2500 Care Overview \u2500\u2500
+    spacer()
+    section_label("\U0001f6a8 Care Overview")
+    try:
+        bishop_id_for_care = my_id if role == "bishop" else None
+        if bishop_id_for_care:
+            care = get_bishop_care_overview(bishop_id_for_care)
+        else:
+            # Admin view \u2014 aggregate across all pastors
+            all_pastors = get_pastors_list()
+            open_total, inactive_total = 0, 0
+            admin_c = get_admin_client()
+            for p in all_pastors:
+                c = get_bishop_care_overview(p["user_id"])
+                open_total += c["open_tasks"]
+                inactive_total += c["inactive_7d"]
+            care = {"open_tasks": open_total, "inactive_7d": inactive_total}
+
+        col_a, col_b = st.columns(2)
+        ot_color = "#C44B5B" if care["open_tasks"] > 0 else "#3A8F5C"
+        i7_color = "#C44B5B" if care["inactive_7d"] > 0 else "#3A8F5C"
+        with col_a:
+            st.markdown(f"""
+            <div class="stat-card">
+                <div class="stat-value" style="color:{ot_color};">{care['open_tasks']}</div>
+                <div class="stat-label">Open Care Tasks</div>
+                <div style="font-size:11px; color:#C0B8CC; margin-top:2px;">across all pastors</div>
+            </div>
+            """, unsafe_allow_html=True)
+        with col_b:
+            st.markdown(f"""
+            <div class="stat-card">
+                <div class="stat-value" style="color:{i7_color};">{care['inactive_7d']}</div>
+                <div class="stat-label">Inactive 7+ Days</div>
+                <div style="font-size:11px; color:#C0B8CC; margin-top:2px;">members needing attention</div>
+            </div>
+            """, unsafe_allow_html=True)
+        if care["open_tasks"] > 0 or care["inactive_7d"] > 0:
+            st.caption("Open Pastor Dashboard \u2192 Care Alerts to manage follow-up tasks.")
+    except Exception:
+        st.caption("Care overview will appear once care tasks are in use.")
+
+    # \u2500\u2500 Church Health This Week \u2500\u2500
+    spacer()
+    section_label("\u26ea Church Health \u2014 This Week")
+    try:
+        from datetime import timedelta
+        _week_start = date.today() - timedelta(days=date.today().weekday())
+        _week_end = _week_start + timedelta(days=5)
+        _all_member_ids = []
+        for ps in pastor_stats:
+            _all_member_ids.extend(ps.get("member_ids", []))
+
+        if _all_member_ids:
+            _week_entries = admin.table("daily_entries") \
+                .select("user_id, prayer_minutes, chapters_read") \
+                .in_("user_id", _all_member_ids) \
+                .gte("date", _week_start.isoformat()) \
+                .lte("date", _week_end.isoformat()) \
+                .execute()
+            _entries = _week_entries.data or []
+
+            import json as _json
+            _total_prayer = sum(e.get("prayer_minutes", 0) for e in _entries)
+            _total_chapters = 0
+            for e in _entries:
+                if e.get("chapters_read"):
+                    chs = _json.loads(e["chapters_read"]) if isinstance(e["chapters_read"], str) else e["chapters_read"]
+                    _total_chapters += len(chs)
+            _active_uids = len({e["user_id"] for e in _entries})
+            _prayer_hrs = round(_total_prayer / 60, 1)
+
+            _ch_col, _pr_col, _act_col = st.columns(3)
+            with _ch_col:
+                st.markdown(f"""
+                <div class="stat-card">
+                    <div class="stat-value" style="color:#9B5FA8;">{_total_chapters}</div>
+                    <div class="stat-label">Chapters This Week</div>
+                    <div style="font-size:11px; color:#C0B8CC; margin-top:2px;">across all groups</div>
+                </div>
+                """, unsafe_allow_html=True)
+            with _pr_col:
+                st.markdown(f"""
+                <div class="stat-card">
+                    <div class="stat-value" style="color:#5B4FC4;">{_prayer_hrs}h</div>
+                    <div class="stat-label">Prayer Hours</div>
+                    <div style="font-size:11px; color:#C0B8CC; margin-top:2px;">this week</div>
+                </div>
+                """, unsafe_allow_html=True)
+            with _act_col:
+                _act_pct = int(_active_uids / total_members * 100) if total_members > 0 else 0
+                _act_color = "#3A8F5C" if _act_pct >= 70 else "#D4853A" if _act_pct >= 40 else "#C44B5B"
+                st.markdown(f"""
+                <div class="stat-card">
+                    <div class="stat-value" style="color:{_act_color};">{_active_uids}/{total_members}</div>
+                    <div class="stat-label">Active Members</div>
+                    <div style="font-size:11px; color:#C0B8CC; margin-top:2px;">{_act_pct}% engaged</div>
+                </div>
+                """, unsafe_allow_html=True)
+    except Exception:
+        st.caption("Church health stats will appear once members start logging entries.")

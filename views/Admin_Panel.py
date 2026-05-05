@@ -13,9 +13,9 @@ inject_styles()
 
 page_header("\U0001f6e1\ufe0f", "Admin Panel", "Manage users, roles, and platform settings")
 
-tab_users, tab_create, tab_bulk, tab_announce, tab_audit, tab_analytics = st.tabs([
+tab_users, tab_create, tab_bulk, tab_announce, tab_audit, tab_analytics, tab_reminders, tab_export = st.tabs([
     "\U0001f465 All Users", "\u2795 Create Account", "\U0001f4e4 Bulk Import",
-    "\U0001f4e2 Announcements", "\U0001f4dc Audit Log", "\U0001f4ca Analytics"
+    "\U0001f4e2 Announcements", "\U0001f4dc Audit Log", "\U0001f4ca Analytics", "\u23f0 Reminders", "\U0001f4e5 Export"
 ])
 
 # ==================== ALL USERS ====================
@@ -639,3 +639,196 @@ with tab_analytics:
                 if st.button("Cancel", use_container_width=True):
                     st.session_state.pop("digest_preview", None)
                     st.rerun()
+
+# ==================== DAILY REMINDERS ====================
+with tab_reminders:
+    import modules.db as _db2
+    from modules.supabase_client import get_admin_client as _get_admin
+
+    section_label("Daily Reminder System")
+    st.caption(
+        "When enabled, Logos Pulse sends a reminder email at 7:00 PM (IST) "
+        "to Prayer Warriors who haven't logged their disciplines that day."
+    )
+
+    spacer(8)
+
+    # Global on/off toggle
+    _admin2 = _get_admin()
+    _setting_row = _admin2.table("system_settings").select("value").eq("key", "reminders_enabled").execute()
+    _reminders_on = (_setting_row.data[0]["value"] == "true") if _setting_row.data else True
+
+    new_val = st.toggle("Daily reminders enabled", value=_reminders_on)
+    if new_val != _reminders_on:
+        _admin2.table("system_settings").upsert(
+            {"key": "reminders_enabled", "value": "true" if new_val else "false", "updated_at": "now()"},
+            on_conflict="key"
+        ).execute()
+        _db2.log_audit("system_setting.updated", target_type="system_settings",
+                       details={"key": "reminders_enabled", "value": str(new_val)})
+        st.success("Setting saved." if new_val else "Reminders disabled.")
+        st.rerun()
+
+    spacer(8)
+
+    # Last run timestamp from audit_log
+    section_label("Last Reminder Run")
+    _last = _admin2.table("audit_log") \
+        .select("created_at, details") \
+        .eq("action", "reminder_email_sent") \
+        .order("created_at", desc=True) \
+        .limit(1) \
+        .execute()
+
+    if _last.data:
+        _ts = _last.data[0]["created_at"][:19].replace("T", " ")
+        _det = _last.data[0].get("details") or {}
+        st.success(f"Last run: **{_ts} UTC**")
+        if _det.get("sent"):
+            st.caption(f"Sent {_det['sent']} reminder(s), failed {_det.get('failed', 0)}.")
+    else:
+        st.info("No reminder runs recorded yet.")
+
+    spacer(8)
+
+    # Setup instructions
+    with st.expander("Setup: pg_cron + Edge Function"):
+        st.markdown("""
+**Step 1 — Deploy the Edge Function**
+```bash
+supabase functions deploy send-daily-reminders
+supabase secrets set SMTP_HOST=smtp.gmail.com SMTP_PORT=587 \\
+  SMTP_USER=your@gmail.com SMTP_PASSWORD=your-app-password \\
+  FROM_NAME="Logos Pulse" \\
+  APP_URL=https://logos-pulse.streamlit.app \\
+  SUPABASE_URL=https://whyvlkkjbxehdbsgohre.supabase.co \\
+  SUPABASE_SERVICE_ROLE_KEY=<service_role_key>
+```
+
+**Step 2 — Enable pg_cron**
+Supabase Dashboard → Database → Extensions → **pg_cron** (enable)
+
+**Step 3 — Schedule the job (run in SQL Editor)**
+```sql
+SELECT cron.schedule(
+  'daily-reminders',
+  '30 13 * * *',
+  $$
+    SELECT net.http_post(
+      url := 'https://whyvlkkjbxehdbsgohre.supabase.co/functions/v1/send-daily-reminders',
+      headers := jsonb_build_object(
+        'Content-Type', 'application/json',
+        'Authorization', 'Bearer <service_role_key>'
+      ),
+      body := '{}'::jsonb
+    )
+  $$
+);
+```
+Replace `<service_role_key>` with the value from Supabase → Settings → API.
+""")
+
+    spacer(8)
+
+    # ── Reading Plan Seed Data ──
+    section_label("\U0001f4da Reading Plans — Seed Built-in Plans")
+    st.caption("Insert the 3 built-in reading plans (NT in 90 Days, Psalms in 30 Days, Gospels in 28 Days). Safe to run multiple times — skips plans that already exist.")
+
+    if st.button("\U0001f331 Seed Reading Plans", type="primary", key="seed_plans_btn"):
+        try:
+            from modules.seed_reading_plans import seed_reading_plans as _seed_plans
+            result = _seed_plans()
+            if result["inserted"] > 0:
+                st.success(f"Seeded {result['inserted']} plan(s). {result['skipped']} already existed.")
+            else:
+                st.info(f"All {result['skipped']} plan(s) already seeded — nothing to do.")
+        except Exception as e:
+            st.error(f"Seed failed: {e}")
+
+# ==================== EXPORT ====================
+with tab_export:
+    import csv, io
+    from datetime import date as _date, timedelta as _td
+    from modules.db import (
+        get_member_activity_export, get_reading_completions_export, get_prayer_hours_export,
+    )
+    from modules.styles import section_label as _sec
+
+    _sec("\U0001f4e5 Data Export")
+    st.caption("Download member data as CSV for reporting, analysis, or pastoral oversight.")
+
+    exp_type = st.selectbox("Export Type", [
+        "Member Activity Log",
+        "Reading Plan Progress",
+        "Prayer Hours by Member",
+    ], key="exp_type")
+
+    exp_start = _date.today() - _td(days=30)
+    exp_end = _date.today()
+    if exp_type in ("Member Activity Log", "Prayer Hours by Member"):
+        col_d1, col_d2 = st.columns(2)
+        with col_d1:
+            exp_start = st.date_input("From", value=exp_start, key="exp_start")
+        with col_d2:
+            exp_end = st.date_input("To", value=exp_end, key="exp_end")
+
+    if st.button("Generate Export", type="primary", use_container_width=True):
+        try:
+            buf = io.StringIO()
+
+            if exp_type == "Member Activity Log":
+                rows = get_member_activity_export(exp_start.isoformat(), exp_end.isoformat())
+                if not rows:
+                    st.info("No entries in that date range.")
+                else:
+                    writer = csv.DictWriter(buf, fieldnames=["date", "display_name", "role", "prayer_minutes", "chapters_display", "sermons_count"])
+                    writer.writeheader()
+                    for r in rows:
+                        writer.writerow({k: r.get(k, "") for k in writer.fieldnames})
+                    st.download_button(
+                        "\U0001f4e5 Download Member Activity CSV",
+                        data=buf.getvalue(),
+                        file_name=f"member_activity_{exp_start}_{exp_end}.csv",
+                        mime="text/csv",
+                        use_container_width=True,
+                    )
+                    st.success(f"{len(rows)} entries ready.")
+
+            elif exp_type == "Reading Plan Progress":
+                rows = get_reading_completions_export()
+                if not rows:
+                    st.info("No reading plan progress to export.")
+                else:
+                    writer = csv.DictWriter(buf, fieldnames=["display_name", "plan_name", "total_days", "current_day", "status", "enrolled_at", "completed_at"])
+                    writer.writeheader()
+                    for r in rows:
+                        writer.writerow({k: r.get(k, "") for k in writer.fieldnames})
+                    st.download_button(
+                        "\U0001f4e5 Download Reading Plan CSV",
+                        data=buf.getvalue(),
+                        file_name="reading_plan_progress.csv",
+                        mime="text/csv",
+                        use_container_width=True,
+                    )
+                    st.success(f"{len(rows)} records ready.")
+
+            elif exp_type == "Prayer Hours by Member":
+                rows = get_prayer_hours_export(exp_start.isoformat(), exp_end.isoformat())
+                if not rows:
+                    st.info("No prayer entries in that date range.")
+                else:
+                    writer = csv.DictWriter(buf, fieldnames=["display_name", "role", "total_minutes", "total_hours"])
+                    writer.writeheader()
+                    for r in rows:
+                        writer.writerow({k: r.get(k, "") for k in writer.fieldnames})
+                    st.download_button(
+                        "\U0001f4e5 Download Prayer Hours CSV",
+                        data=buf.getvalue(),
+                        file_name=f"prayer_hours_{exp_start}_{exp_end}.csv",
+                        mime="text/csv",
+                        use_container_width=True,
+                    )
+                    st.success(f"{len(rows)} members included.")
+
+        except Exception as e:
+            st.error(f"Export failed: {e}")

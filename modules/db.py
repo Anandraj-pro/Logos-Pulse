@@ -158,7 +158,19 @@ def upsert_daily_entry(entry_date: str, prayer_minutes: int, bible_book: str,
 
     _clear_cache("daily_entries")
     _clear_cache("entry_dates")
-    return _safe_execute(_do, fallback=row_data)
+    result = _safe_execute(_do, fallback=row_data)
+    # Auto-update any tracking goals (best-effort, non-blocking)
+    try:
+        _fasted = bool(row_data.get("fasted"))
+        auto_update_goals(
+            prayer_minutes=prayer_minutes,
+            chapters_count=len(chapters_read or []),
+            fasted=_fasted,
+            entry_date=entry_date,
+        )
+    except Exception:
+        pass
+    return result
 
 
 def get_entry_by_date(entry_date: str) -> Optional[dict]:
@@ -380,7 +392,8 @@ def save_settings(settings: dict):
 def create_sermon_note(title: str, speaker: str, sermon_date: str,
                        notes_text: str, bible_references: list,
                        learnings: str, key_takeaways: str,
-                       additional_thoughts: str) -> dict:
+                       additional_thoughts: str,
+                       tags: list = None) -> dict:
     _clear_cache("all_sermon_notes")
     client = _client()
     result = client.table("sermon_notes").insert({
@@ -393,6 +406,7 @@ def create_sermon_note(title: str, speaker: str, sermon_date: str,
         "learnings": sanitize_html(learnings),
         "key_takeaways": sanitize_html(key_takeaways),
         "additional_thoughts": sanitize_html(additional_thoughts),
+        "tags": [sanitize_html(t) for t in (tags or [])],
     }).execute()
     return result.data[0] if result.data else {}
 
@@ -400,7 +414,8 @@ def create_sermon_note(title: str, speaker: str, sermon_date: str,
 def update_sermon_note(note_id: int, title: str, speaker: str, sermon_date: str,
                        notes_text: str, bible_references: list,
                        learnings: str, key_takeaways: str,
-                       additional_thoughts: str) -> dict:
+                       additional_thoughts: str,
+                       tags: list = None) -> dict:
     _clear_cache("all_sermon_notes")
     client = _client()
     result = client.table("sermon_notes") \
@@ -413,11 +428,24 @@ def update_sermon_note(note_id: int, title: str, speaker: str, sermon_date: str,
             "learnings": sanitize_html(learnings),
             "key_takeaways": sanitize_html(key_takeaways),
             "additional_thoughts": sanitize_html(additional_thoughts),
+            "tags": [sanitize_html(t) for t in (tags or [])],
         }) \
         .eq("id", note_id) \
         .eq("user_id", _uid()) \
         .execute()
     return result.data[0] if result.data else {}
+
+
+def toggle_sermon_starred(note_id: int, current: bool) -> None:
+    _clear_cache("all_sermon_notes")
+    _safe_execute(
+        lambda: _client().table("sermon_notes")
+            .update({"is_starred": not current})
+            .eq("id", note_id)
+            .eq("user_id", _uid())
+            .execute(),
+        fallback=None,
+    )
 
 
 def get_sermon_note(note_id: int) -> Optional[dict]:
@@ -887,7 +915,8 @@ def react_to_testimony(testimony_id: int, reaction: str):
 # --- Personal Goals ---
 
 def create_personal_goal(title: str, description: str, goal_type: str,
-                         target_value: int = None, target_date: str = None) -> dict:
+                         target_value: int = None, target_date: str = None,
+                         tracking_mode: str = "manual", unit: str = None) -> dict:
     client = _client()
     result = client.table("personal_goals").insert({
         "user_id": _uid(),
@@ -896,6 +925,8 @@ def create_personal_goal(title: str, description: str, goal_type: str,
         "goal_type": goal_type,
         "target_value": target_value,
         "target_date": target_date,
+        "tracking_mode": tracking_mode,
+        "unit": unit,
     }).execute()
     return result.data[0] if result.data else {}
 
@@ -917,6 +948,45 @@ def update_goal_progress(goal_id: int, current_value: int, status: str = None):
     if status:
         data["status"] = status
     client.table("personal_goals").update(data).eq("id", goal_id).eq("user_id", _uid()).execute()
+
+
+def auto_update_goals(prayer_minutes: int, chapters_count: int, fasted: bool,
+                      entry_date: str) -> None:
+    """Increment auto-tracking active goals based on today's entry. Skips if already counted today."""
+    from datetime import date as _date
+    uid = _uid()
+    client = _client()
+    goals_result = client.table("personal_goals") \
+        .select("*") \
+        .eq("user_id", uid) \
+        .eq("status", "active") \
+        .neq("tracking_mode", "manual") \
+        .execute()
+    goals = goals_result.data or []
+    for g in goals:
+        if g.get("last_tracked_date") == entry_date:
+            continue  # already counted today
+        mode = g["tracking_mode"]
+        delta = 0
+        if mode == "auto_prayer":
+            delta = prayer_minutes
+        elif mode == "auto_reading":
+            delta = chapters_count
+        elif mode == "auto_fasting":
+            delta = 1 if fasted else 0
+        if delta == 0:
+            continue
+        new_val = (g.get("current_value") or 0) + delta
+        target = g.get("target_value") or 0
+        new_status = "completed" if target > 0 and new_val >= target else None
+        update_data: dict = {
+            "current_value": new_val,
+            "last_tracked_date": entry_date,
+        }
+        if new_status:
+            update_data["status"] = new_status
+        client.table("personal_goals").update(update_data) \
+            .eq("id", g["id"]).eq("user_id", uid).execute()
 
 
 # --- Fasting Log ---
@@ -1432,6 +1502,426 @@ def get_confession_count_today() -> int:
     return len(completions)
 
 
+# ─── System Settings ─────────────────────────────────────────────────────────
+
+def get_system_setting(key: str) -> str | None:
+    admin = get_admin_client()
+    result = admin.table("system_settings").select("value").eq("key", key).execute()
+    return result.data[0]["value"] if result.data else None
+
+
+def set_system_setting(key: str, value: str) -> None:
+    admin = get_admin_client()
+    admin.table("system_settings").upsert(
+        {"key": key, "value": value, "updated_at": "now()"},
+        on_conflict="key"
+    ).execute()
+
+
+# ─── Care Tasks ──────────────────────────────────────────────────────────────
+
+def get_inactive_members(pastor_id: str, threshold_days: int = 3) -> list[dict]:
+    admin = get_admin_client()
+    result = admin.table("inactive_members_view") \
+        .select("*") \
+        .eq("pastor_id", pastor_id) \
+        .gte("days_since_last_entry", threshold_days) \
+        .execute()
+    return result.data or []
+
+
+def create_care_task(pastor_id: str, member_id: str, care_type: str,
+                     note: str, due_date: str = None) -> dict:
+    admin = get_admin_client()
+    result = admin.table("care_tasks").insert({
+        "pastor_id": pastor_id,
+        "member_id": member_id,
+        "care_type": care_type,
+        "note": sanitize_html(note) if note else None,
+        "due_date": due_date,
+        "status": "open",
+    }).execute()
+    log_audit("care_task.created", target_type="care_tasks",
+              target_id=str(result.data[0]["id"]) if result.data else None,
+              details={"member_id": member_id, "care_type": care_type})
+    return result.data[0] if result.data else {}
+
+
+def get_care_tasks(pastor_id: str, status: str = None) -> list[dict]:
+    admin = get_admin_client()
+    q = admin.table("care_tasks").select("*").eq("pastor_id", pastor_id)
+    if status:
+        q = q.eq("status", status)
+    result = q.order("due_date").order("created_at", desc=True).execute()
+    tasks = result.data or []
+
+    # Enrich with member names
+    if tasks:
+        member_ids = list({t["member_id"] for t in tasks})
+        profiles = admin.table("user_profiles") \
+            .select("user_id") \
+            .in_("user_id", member_ids) \
+            .execute()
+        name_map = {}
+        for p in (profiles.data or []):
+            try:
+                u = admin.auth.admin.get_user_by_id(p["user_id"]).user
+                name_map[p["user_id"]] = (u.user_metadata or {}).get("preferred_name", u.email)
+            except Exception:
+                name_map[p["user_id"]] = "Member"
+        for t in tasks:
+            t["member_name"] = name_map.get(t["member_id"], "Member")
+    return tasks
+
+
+def complete_care_task(task_id: int) -> None:
+    from datetime import datetime
+    admin = get_admin_client()
+    admin.table("care_tasks").update({
+        "status": "done",
+        "completed_at": datetime.utcnow().isoformat(),
+    }).eq("id", task_id).execute()
+    log_audit("care_task.completed", target_type="care_tasks", target_id=str(task_id))
+
+
+def get_bishop_care_overview(bishop_id: str) -> dict:
+    admin = get_admin_client()
+    pastor_ids_result = admin.table("user_profiles") \
+        .select("user_id") \
+        .eq("bishop_id", bishop_id) \
+        .eq("role", "pastor") \
+        .execute()
+    pastor_ids = [p["user_id"] for p in (pastor_ids_result.data or [])]
+    if not pastor_ids:
+        return {"open_tasks": 0, "inactive_7d": 0}
+
+    open_tasks = admin.table("care_tasks") \
+        .select("id", count="exact") \
+        .in_("pastor_id", pastor_ids) \
+        .eq("status", "open") \
+        .execute()
+
+    inactive_7d = admin.table("inactive_members_view") \
+        .select("user_id", count="exact") \
+        .in_("pastor_id", pastor_ids) \
+        .gte("days_since_last_entry", 7) \
+        .execute()
+
+    return {
+        "open_tasks": open_tasks.count or 0,
+        "inactive_7d": inactive_7d.count or 0,
+    }
+
+
+# ─── Reading Plans ────────────────────────────────────────────────────────────
+
+def get_reading_plans() -> list[dict]:
+    key = _cache_key("reading_plans")
+    cached = _get_cached(key)
+    if cached is not None:
+        return cached
+    client = _client()
+    result = client.table("reading_plans").select("*").order("id").execute()
+    return _set_cached(key, result.data or [])
+
+
+def get_plan_days(plan_id: int) -> list[dict]:
+    key = _cache_key("plan_days", plan_id)
+    cached = _get_cached(key)
+    if cached is not None:
+        return cached
+    client = _client()
+    result = client.table("reading_plan_days") \
+        .select("*") \
+        .eq("plan_id", plan_id) \
+        .order("day_number") \
+        .execute()
+    return _set_cached(key, result.data or [])
+
+
+def get_member_active_plan(user_id: str = None) -> dict | None:
+    uid = user_id or _uid()
+    key = _cache_key("active_plan", uid)
+    cached = _get_cached(key)
+    if cached is not None:
+        return cached if cached != "__none__" else None
+    admin = get_admin_client()
+    result = admin.table("reading_plan_progress") \
+        .select("*, reading_plans(name, description, total_days)") \
+        .eq("user_id", uid) \
+        .eq("status", "active") \
+        .order("enrolled_at", desc=True) \
+        .limit(1) \
+        .execute()
+    value = result.data[0] if result.data else None
+    _set_cached(key, value if value else "__none__")
+    return value
+
+
+def get_member_completed_plan_ids(user_id: str = None) -> set[int]:
+    uid = user_id or _uid()
+    admin = get_admin_client()
+    result = admin.table("reading_plan_progress") \
+        .select("plan_id") \
+        .eq("user_id", uid) \
+        .eq("status", "completed") \
+        .execute()
+    return {r["plan_id"] for r in (result.data or [])}
+
+
+def abandon_active_plan(user_id: str, except_plan_id: int = None) -> None:
+    """Mark all active plans for user as abandoned (except the given plan_id)."""
+    admin = get_admin_client()
+    query = admin.table("reading_plan_progress") \
+        .update({"status": "abandoned"}) \
+        .eq("user_id", user_id) \
+        .eq("status", "active")
+    if except_plan_id:
+        query = query.neq("plan_id", except_plan_id)
+    query.execute()
+    _clear_cache("active_plan")
+
+
+def enroll_in_plan(user_id: str, plan_id: int, assigned_by: str = None) -> dict | None:
+    admin = get_admin_client()
+    # Abandon any other currently active plan first
+    abandon_active_plan(user_id, except_plan_id=plan_id)
+    row = {
+        "user_id": user_id,
+        "plan_id": plan_id,
+        "current_day": 1,
+        "status": "active",
+        "completed_at": None,
+        "last_completed_date": None,
+        "enrolled_at": "now()",
+    }
+    if assigned_by:
+        row["assigned_by"] = assigned_by
+    result = admin.table("reading_plan_progress").upsert(
+        row, on_conflict="user_id,plan_id"
+    ).execute()
+    _clear_cache("active_plan")
+    log_audit("reading_plan_self_enrolled", target_type="reading_plan_progress",
+              target_id=str(plan_id), details={"plan_id": plan_id})
+    return result.data[0] if result.data else None
+
+
+def mark_plan_day_complete(progress_id: int, total_days: int) -> dict:
+    from datetime import date
+    admin = get_admin_client()
+    prog = admin.table("reading_plan_progress") \
+        .select("current_day") \
+        .eq("id", progress_id) \
+        .single() \
+        .execute()
+    if not prog.data:
+        return {}
+    next_day = prog.data["current_day"] + 1
+    updates: dict = {
+        "current_day": next_day,
+        "last_completed_date": date.today().isoformat(),
+    }
+    if next_day > total_days:
+        from datetime import datetime
+        updates["completed_at"] = datetime.utcnow().isoformat()
+        log_audit("reading_plan_completed", target_type="reading_plan_progress",
+                  target_id=str(progress_id))
+    result = admin.table("reading_plan_progress").update(updates).eq("id", progress_id).execute()
+    _clear_cache("active_plan")
+    return result.data[0] if result.data else {}
+
+
+def get_members_plan_progress(pastor_id: str) -> list[dict]:
+    admin = get_admin_client()
+    members_result = admin.table("user_profiles") \
+        .select("user_id") \
+        .eq("pastor_id", pastor_id) \
+        .execute()
+    member_ids = [m["user_id"] for m in (members_result.data or [])]
+    if not member_ids:
+        return []
+    result = admin.table("reading_plan_progress") \
+        .select("*, reading_plans(name, total_days)") \
+        .in_("user_id", member_ids) \
+        .is_("completed_at", "null") \
+        .execute()
+    rows = result.data or []
+    # Enrich with member names
+    for r in rows:
+        try:
+            u = admin.auth.admin.get_user_by_id(r["user_id"]).user
+            r["member_name"] = (u.user_metadata or {}).get("preferred_name", u.email)
+        except Exception:
+            r["member_name"] = "Member"
+    return rows
+
+
+# ─── Bible Bookmarks & Highlights ────────────────────────────────────────────
+
+def get_bookmarks_for_chapter(book: str, chapter: int) -> list[dict]:
+    uid = _uid()
+    key = _cache_key("bookmarks_chapter", book, chapter)
+    cached = _get_cached(key)
+    if cached is not None:
+        return cached
+    client = _client()
+    result = client.table("bible_bookmarks") \
+        .select("*") \
+        .eq("user_id", uid) \
+        .eq("book", book) \
+        .eq("chapter", chapter) \
+        .execute()
+    return _set_cached(key, result.data or [])
+
+
+def get_all_bookmarks() -> list[dict]:
+    key = _cache_key("all_bookmarks")
+    cached = _get_cached(key)
+    if cached is not None:
+        return cached
+    client = _client()
+    result = client.table("bible_bookmarks") \
+        .select("*") \
+        .eq("user_id", _uid()) \
+        .order("created_at", desc=True) \
+        .execute()
+    return _set_cached(key, result.data or [])
+
+
+def toggle_bookmark(book: str, chapter: int, verse_number: int) -> bool:
+    """Add bookmark if absent, remove if present. Returns True if now bookmarked."""
+    uid = _uid()
+    client = _client()
+    existing = client.table("bible_bookmarks") \
+        .select("id") \
+        .eq("user_id", uid) \
+        .eq("book", book) \
+        .eq("chapter", chapter) \
+        .eq("verse_number", verse_number) \
+        .execute()
+    _clear_cache("bookmarks_chapter")
+    _clear_cache("all_bookmarks")
+    _clear_cache("bookmark_count")
+    if existing.data:
+        client.table("bible_bookmarks").delete().eq("id", existing.data[0]["id"]).execute()
+        # Also remove any highlight for this verse
+        client.table("bible_highlights") \
+            .delete() \
+            .eq("user_id", uid) \
+            .eq("book", book) \
+            .eq("chapter", chapter) \
+            .eq("verse_number", verse_number) \
+            .execute()
+        _clear_cache("highlights_chapter")
+        return False
+    else:
+        client.table("bible_bookmarks").insert({
+            "user_id": uid,
+            "book": book,
+            "chapter": chapter,
+            "verse_number": verse_number,
+            "note": "",
+        }).execute()
+        return True
+
+
+def update_bookmark_note(book: str, chapter: int, verse_number: int, note: str) -> None:
+    client = _client()
+    client.table("bible_bookmarks") \
+        .update({"note": sanitize_html(note)}) \
+        .eq("user_id", _uid()) \
+        .eq("book", book) \
+        .eq("chapter", chapter) \
+        .eq("verse_number", verse_number) \
+        .execute()
+    _clear_cache("all_bookmarks")
+    _clear_cache("bookmarks_chapter")
+
+
+def delete_bookmark(bookmark_id: int) -> None:
+    client = _client()
+    # Get the bookmark to also remove highlight
+    bm = client.table("bible_bookmarks").select("book,chapter,verse_number") \
+        .eq("id", bookmark_id).eq("user_id", _uid()).execute()
+    client.table("bible_bookmarks").delete().eq("id", bookmark_id).eq("user_id", _uid()).execute()
+    if bm.data:
+        b = bm.data[0]
+        client.table("bible_highlights").delete() \
+            .eq("user_id", _uid()) \
+            .eq("book", b["book"]) \
+            .eq("chapter", b["chapter"]) \
+            .eq("verse_number", b["verse_number"]) \
+            .execute()
+        _clear_cache("highlights_chapter")
+    _clear_cache("all_bookmarks")
+    _clear_cache("bookmarks_chapter")
+    _clear_cache("bookmark_count")
+
+
+def get_highlights_for_chapter(book: str, chapter: int) -> list[dict]:
+    key = _cache_key("highlights_chapter", book, chapter)
+    cached = _get_cached(key)
+    if cached is not None:
+        return cached
+    client = _client()
+    result = client.table("bible_highlights") \
+        .select("*") \
+        .eq("user_id", _uid()) \
+        .eq("book", book) \
+        .eq("chapter", chapter) \
+        .execute()
+    return _set_cached(key, result.data or [])
+
+
+def cycle_highlight(book: str, chapter: int, verse_number: int) -> str | None:
+    """Cycle highlight: none → yellow → green → none. Returns new color or None."""
+    uid = _uid()
+    client = _client()
+    existing = client.table("bible_highlights") \
+        .select("id, color") \
+        .eq("user_id", uid) \
+        .eq("book", book) \
+        .eq("chapter", chapter) \
+        .eq("verse_number", verse_number) \
+        .execute()
+    _clear_cache("highlights_chapter")
+    _clear_cache("highlight_count")
+    if not existing.data:
+        client.table("bible_highlights").insert({
+            "user_id": uid, "book": book, "chapter": chapter,
+            "verse_number": verse_number, "color": "yellow",
+        }).execute()
+        return "yellow"
+    current = existing.data[0]["color"]
+    row_id = existing.data[0]["id"]
+    if current == "yellow":
+        client.table("bible_highlights").update({"color": "green"}).eq("id", row_id).execute()
+        return "green"
+    # green → remove
+    client.table("bible_highlights").delete().eq("id", row_id).execute()
+    return None
+
+
+def get_bookmark_count() -> int:
+    key = _cache_key("bookmark_count")
+    cached = _get_cached(key)
+    if cached is not None:
+        return cached
+    client = _client()
+    result = client.table("bible_bookmarks").select("id", count="exact").eq("user_id", _uid()).execute()
+    return _set_cached(key, result.count or 0)
+
+
+def get_highlight_count() -> int:
+    key = _cache_key("highlight_count")
+    cached = _get_cached(key)
+    if cached is not None:
+        return cached
+    client = _client()
+    result = client.table("bible_highlights").select("id", count="exact").eq("user_id", _uid()).execute()
+    return _set_cached(key, result.count or 0)
+
+
 def get_confession_count_this_week() -> int:
     """Count distinct confession days completed in the current Mon–Sat window."""
     from datetime import date as _date
@@ -1449,3 +1939,301 @@ def get_confession_count_this_week() -> int:
     result = _safe_execute(op, fallback=None)
     rows = result.data if result else []
     return len({r["completed_date"] for r in rows})
+
+
+# ============================================================
+# Sprint 8 — Prayer Requests
+# ============================================================
+
+def get_prayer_requests() -> list[dict]:
+    uid = _uid()
+    result = _safe_execute(
+        lambda: _client().table("prayer_requests")
+            .select("*, prayer_request_prays(user_id), user_profiles(display_name)")
+            .eq("status", "active")
+            .order("created_at", desc=True)
+            .execute(),
+        fallback=None,
+    )
+    rows = result.data if result else []
+    for r in rows:
+        prays = r.pop("prayer_request_prays", []) or []
+        profile = r.pop("user_profiles", {}) or {}
+        r["display_name"] = profile.get("display_name", "Member")
+        r["pray_count"] = len(prays)
+        r["has_prayed"] = any(p["user_id"] == uid for p in prays)
+    return rows
+
+
+def get_all_prayer_requests_for_moderation() -> list[dict]:
+    """Admin/pastor: all requests including hidden/answered."""
+    admin = get_admin_client()
+    result = admin.table("prayer_requests") \
+        .select("*, user_profiles(display_name)") \
+        .order("created_at", desc=True) \
+        .execute()
+    return result.data or []
+
+
+def create_prayer_request(title: str, body: str, is_anonymous: bool) -> None:
+    uid = _uid()
+    _safe_execute(
+        lambda: _client().table("prayer_requests").insert({
+            "user_id": uid,
+            "title": sanitize_html(title),
+            "body": sanitize_html(body) if body else None,
+            "is_anonymous": is_anonymous,
+        }).execute(),
+        fallback=None,
+    )
+
+
+def toggle_pray_for(request_id: str) -> bool:
+    """Returns True if now praying, False if un-prayed."""
+    uid = _uid()
+    existing = _safe_execute(
+        lambda: _client().table("prayer_request_prays")
+            .select("id")
+            .eq("request_id", request_id)
+            .eq("user_id", uid)
+            .execute(),
+        fallback=None,
+    )
+    if existing and existing.data:
+        _safe_execute(
+            lambda: _client().table("prayer_request_prays")
+                .delete()
+                .eq("request_id", request_id)
+                .eq("user_id", uid)
+                .execute(),
+            fallback=None,
+        )
+        return False
+    else:
+        _safe_execute(
+            lambda: _client().table("prayer_request_prays")
+                .insert({"request_id": request_id, "user_id": uid})
+                .execute(),
+            fallback=None,
+        )
+        return True
+
+
+def moderate_prayer_request(request_id: str, new_status: str) -> None:
+    """Admin/pastor: hide or mark answered."""
+    get_admin_client().table("prayer_requests") \
+        .update({"status": new_status}) \
+        .eq("id", request_id) \
+        .execute()
+
+
+def mark_prayer_answered(request_id: str) -> None:
+    uid = _uid()
+    _safe_execute(
+        lambda: _client().table("prayer_requests")
+            .update({"status": "answered"})
+            .eq("id", request_id)
+            .eq("user_id", uid)
+            .execute(),
+        fallback=None,
+    )
+
+
+# ============================================================
+# Sprint 8 — Notifications
+# ============================================================
+
+def get_unread_notification_count() -> int:
+    key = _cache_key("notif_unread_count")
+    cached = _get_cached(key)
+    if cached is not None:
+        return cached
+    result = _safe_execute(
+        lambda: _client().table("notifications")
+            .select("id", count="exact")
+            .eq("user_id", _uid())
+            .eq("is_read", False)
+            .execute(),
+        fallback=None,
+    )
+    return _set_cached(key, result.count if result else 0)
+
+
+def get_notifications(limit: int = 30) -> list[dict]:
+    result = _safe_execute(
+        lambda: _client().table("notifications")
+            .select("*")
+            .eq("user_id", _uid())
+            .order("created_at", desc=True)
+            .limit(limit)
+            .execute(),
+        fallback=None,
+    )
+    return result.data if result else []
+
+
+def mark_all_notifications_read() -> None:
+    _safe_execute(
+        lambda: _client().table("notifications")
+            .update({"is_read": True})
+            .eq("user_id", _uid())
+            .eq("is_read", False)
+            .execute(),
+        fallback=None,
+    )
+    _clear_cache("notif_unread_count")
+
+
+def create_notification_for_user(user_id: str, notif_type: str, title: str, body: str = None) -> None:
+    """Service-role: push a notification to any user."""
+    try:
+        get_admin_client().table("notifications").insert({
+            "user_id": user_id,
+            "type": notif_type,
+            "title": sanitize_html(title),
+            "body": sanitize_html(body) if body else None,
+        }).execute()
+    except Exception:
+        pass
+
+
+# ============================================================
+# Sprint 8 — Check-in Requests
+# ============================================================
+
+def create_checkin_request(message: str = None) -> None:
+    uid = _uid()
+    profile = _safe_execute(
+        lambda: _client().table("user_profiles")
+            .select("pastor_id")
+            .eq("user_id", uid)
+            .execute(),
+        fallback=None,
+    )
+    pastor_id = None
+    if profile and profile.data:
+        pastor_id = profile.data[0].get("pastor_id")
+
+    _safe_execute(
+        lambda: _client().table("checkin_requests").insert({
+            "member_id": uid,
+            "pastor_id": pastor_id,
+            "message": sanitize_html(message) if message else None,
+        }).execute(),
+        fallback=None,
+    )
+    if pastor_id:
+        create_notification_for_user(
+            pastor_id, "checkin_request",
+            "Check-in Requested",
+            f"A member has requested a pastoral check-in.",
+        )
+
+
+def get_my_checkin_requests() -> list[dict]:
+    result = _safe_execute(
+        lambda: _client().table("checkin_requests")
+            .select("*")
+            .eq("member_id", _uid())
+            .order("created_at", desc=True)
+            .execute(),
+        fallback=None,
+    )
+    return result.data if result else []
+
+
+def get_pastor_checkin_requests(pastor_id: str = None) -> list[dict]:
+    uid = pastor_id or _uid()
+    admin = get_admin_client()
+    result = admin.table("checkin_requests") \
+        .select("*, user_profiles!checkin_requests_member_id_fkey(display_name)") \
+        .eq("pastor_id", uid) \
+        .order("created_at", desc=True) \
+        .execute()
+    return result.data or []
+
+
+def acknowledge_checkin_request(request_id: int) -> None:
+    get_admin_client().table("checkin_requests") \
+        .update({"status": "acknowledged"}) \
+        .eq("id", request_id) \
+        .execute()
+
+
+# ============================================================
+# Sprint 8 — Analytics Export
+# ============================================================
+
+def get_member_activity_export(start_date: str, end_date: str) -> list[dict]:
+    admin = get_admin_client()
+    entries = admin.table("daily_entries") \
+        .select("user_id, date, prayer_minutes, chapters_display, sermons_count") \
+        .gte("date", start_date) \
+        .lte("date", end_date) \
+        .order("date", desc=False) \
+        .execute()
+    rows = entries.data or []
+
+    profiles = admin.table("user_profiles") \
+        .select("user_id, display_name, role") \
+        .execute()
+    profile_map = {p["user_id"]: p for p in (profiles.data or [])}
+
+    for r in rows:
+        p = profile_map.get(r["user_id"], {})
+        r["display_name"] = p.get("display_name", r["user_id"])
+        r["role"] = p.get("role", "")
+    return rows
+
+
+def get_reading_completions_export() -> list[dict]:
+    admin = get_admin_client()
+    result = admin.table("reading_plan_progress") \
+        .select("user_id, plan_id, current_day, status, enrolled_at, completed_at, reading_plans(name, total_days)") \
+        .neq("status", "abandoned") \
+        .order("enrolled_at", desc=True) \
+        .execute()
+    rows = result.data or []
+
+    profiles = admin.table("user_profiles") \
+        .select("user_id, display_name") \
+        .execute()
+    profile_map = {p["user_id"]: p["display_name"] for p in (profiles.data or [])}
+
+    for r in rows:
+        r["display_name"] = profile_map.get(r["user_id"], r["user_id"])
+        plan = r.pop("reading_plans", {}) or {}
+        r["plan_name"] = plan.get("name", "")
+        r["total_days"] = plan.get("total_days", 0)
+    return rows
+
+
+def get_prayer_hours_export(start_date: str, end_date: str) -> list[dict]:
+    admin = get_admin_client()
+    entries = admin.table("daily_entries") \
+        .select("user_id, prayer_minutes") \
+        .gte("date", start_date) \
+        .lte("date", end_date) \
+        .execute()
+    rows = entries.data or []
+
+    totals: dict[str, int] = {}
+    for r in rows:
+        totals[r["user_id"]] = totals.get(r["user_id"], 0) + (r.get("prayer_minutes") or 0)
+
+    profiles = admin.table("user_profiles") \
+        .select("user_id, display_name, role") \
+        .execute()
+    profile_map = {p["user_id"]: p for p in (profiles.data or [])}
+
+    result = []
+    for uid, mins in sorted(totals.items(), key=lambda x: -x[1]):
+        p = profile_map.get(uid, {})
+        result.append({
+            "user_id": uid,
+            "display_name": p.get("display_name", uid),
+            "role": p.get("role", ""),
+            "total_minutes": mins,
+            "total_hours": round(mins / 60, 2),
+        })
+    return result

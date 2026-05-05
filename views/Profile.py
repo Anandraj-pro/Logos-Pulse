@@ -1,3 +1,4 @@
+import html as _html
 import streamlit as st
 from modules.styles import inject_styles, page_header, section_label, spacer
 from modules.auth import require_login, require_password_changed, change_password, get_current_user_id
@@ -95,7 +96,7 @@ elif role == "pastor" and profile_data.get("bishop_id"):
 spacer()
 
 # ==================== EDIT PROFILE ====================
-tab_edit, tab_password = st.tabs(["\u270f\ufe0f Edit Profile", "\U0001f510 Change Password"])
+tab_edit, tab_password, tab_care = st.tabs(["\u270f\ufe0f Edit Profile", "\U0001f510 Change Password", "\U0001f4cb My Care"])
 
 with tab_edit:
     section_label("Personal Information")
@@ -188,3 +189,47 @@ with tab_password:
                 st.success("Password updated successfully!")
             else:
                 st.error(f"Failed: {result['error']}")
+
+with tab_care:
+    from modules.db import create_checkin_request, get_my_checkin_requests
+
+    section_label("Request a Pastoral Check-in")
+    st.caption("Send a request to your pastor for a personal follow-up.")
+
+    with st.form("checkin_form"):
+        checkin_msg = st.text_area(
+            "Message (optional)",
+            height=80,
+            placeholder="Let your pastor know what you'd like to discuss…",
+        )
+        checkin_submit = st.form_submit_button("Send Check-in Request", type="primary", use_container_width=True)
+
+    if checkin_submit:
+        if not profile_data.get("pastor_id"):
+            st.warning("You haven't been assigned a pastor yet. Contact your admin.")
+        else:
+            create_checkin_request(checkin_msg.strip() if checkin_msg else None)
+            st.success("Request sent! Your pastor will reach out to you.")
+
+    spacer()
+    section_label("My Check-in History")
+    my_reqs = get_my_checkin_requests()
+    if not my_reqs:
+        st.caption("No check-in requests yet.")
+    else:
+        for cr in my_reqs:
+            sc = "#3A8F5C" if cr.get("status") == "acknowledged" else "#D4853A"
+            _cr_msg = _html.escape(cr['message']) if cr.get('message') else ""
+            st.markdown(f"""
+            <div class="entry-card" style="border-left:3px solid {sc};">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <span style="font-size:13px; color:#2A2438; font-weight:600;">
+                            {"Acknowledged ✔" if cr['status'] == 'acknowledged' else "Pending"}
+                        </span>
+                        {"<div style='font-size:12px; color:#6B6580; margin-top:2px;'>" + _cr_msg + "</div>" if _cr_msg else ""}
+                    </div>
+                    <span style="font-size:11px; color:#9E96AB; white-space:nowrap; margin-left:8px;">{cr['created_at'][:10]}</span>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)

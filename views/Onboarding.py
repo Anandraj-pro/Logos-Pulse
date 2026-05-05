@@ -9,7 +9,6 @@ inject_styles()
 user_id = get_current_user_id()
 admin = get_admin_client()
 
-# Check if onboarding already completed
 profile = admin.table("user_profiles") \
     .select("onboarding_completed") \
     .eq("user_id", user_id) \
@@ -18,15 +17,15 @@ profile = admin.table("user_profiles") \
 if profile.data and profile.data[0].get("onboarding_completed"):
     st.rerun()
 
-# Onboarding wizard
 if "onboard_step" not in st.session_state:
     st.session_state["onboard_step"] = 1
 
 step = st.session_state["onboard_step"]
+TOTAL_STEPS = 4
 
 # Progress dots
 dots = ""
-for i in range(1, 5):
+for i in range(1, TOTAL_STEPS + 1):
     if i < step:
         dots += '<span style="width:12px; height:12px; border-radius:50%; background:#5B4FC4; display:inline-block; margin:0 4px;"></span>'
     elif i == step:
@@ -36,7 +35,7 @@ for i in range(1, 5):
 
 st.markdown(f'<div style="text-align:center; margin:20px 0;">{dots}</div>', unsafe_allow_html=True)
 
-# --- Step 1: Welcome ---
+# ── Step 1: Welcome ──────────────────────────────────────────
 if step == 1:
     st.markdown("""
     <div style="text-align:center; padding:40px 20px;">
@@ -54,15 +53,15 @@ if step == 1:
     spacer()
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        if st.button("Let's Get Started \u2192", type="primary", use_container_width=True):
+        if st.button("Let's Get Started →", type="primary", use_container_width=True):
             st.session_state["onboard_step"] = 2
             st.rerun()
 
-# --- Step 2: Set Your Prayer Goal ---
+# ── Step 2: Daily Prayer Goal ────────────────────────────────
 elif step == 2:
     st.markdown("""
     <div style="text-align:center; padding:20px;">
-        <div style="font-size:48px; margin-bottom:12px;">\u23f0</div>
+        <div style="font-size:48px; margin-bottom:12px;">⏰</div>
         <div style="font-family:'DM Serif Display',Georgia,serif; font-size:24px; color:#2A2438; margin-bottom:8px;">
             Set Your Daily Prayer Goal
         </div>
@@ -78,12 +77,11 @@ elif step == 2:
     spacer()
     col1, col2, col3 = st.columns([1, 1, 1])
     with col1:
-        if st.button("\u2190 Back", use_container_width=True):
+        if st.button("← Back", use_container_width=True):
             st.session_state["onboard_step"] = 1
             st.rerun()
     with col3:
-        if st.button("Next \u2192", type="primary", use_container_width=True):
-            # Save goal
+        if st.button("Next →", type="primary", use_container_width=True):
             admin.table("user_profiles") \
                 .update({"prayer_benchmark_min": goal}) \
                 .eq("user_id", user_id) \
@@ -93,71 +91,149 @@ elif step == 2:
             st.session_state["onboard_step"] = 3
             st.rerun()
 
-# --- Step 3: Quick Tour ---
+# ── Step 3: Pick a Reading Plan ──────────────────────────────
 elif step == 3:
     st.markdown("""
     <div style="text-align:center; padding:20px;">
         <div style="font-size:48px; margin-bottom:12px;">\U0001f4d6</div>
-        <div style="font-family:'DM Serif Display',Georgia,serif; font-size:24px; color:#2A2438; margin-bottom:16px;">
-            Here's What You Can Do
+        <div style="font-family:'DM Serif Display',Georgia,serif; font-size:24px; color:#2A2438; margin-bottom:8px;">
+            Start a Reading Plan
+        </div>
+        <div style="font-size:14px; color:#6B6580;">
+            Choose a guided plan to work through — or skip for now.
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-    features = [
-        ("\u270f\ufe0f", "Daily Entry", "Log prayer time, Bible reading, and sermons"),
-        ("\U0001f4d6", "Bible Reader", "Read scripture right in the app"),
-        ("\U0001f4cb", "WhatsApp Report", "Generate and send your daily report to your pastor"),
-        ("\U0001f64f", "Prayer Journal", "Confessions, declarations, and scripture-backed prayers"),
-        ("\U0001f4dd", "Sermon Notes", "Capture insights with Bible reference lookup"),
-        ("\U0001f525", "Streaks & Stats", "Track your consistency with charts and heatmaps"),
-    ]
+    spacer(8)
 
-    for icon, title, desc in features:
-        st.markdown(f"""
-        <div class="entry-card" style="display:flex; align-items:center; gap:12px;">
-            <span style="font-size:24px;">{icon}</span>
-            <div>
-                <div style="font-family:'DM Serif Display',Georgia,serif; font-size:15px; color:#2A2438;">{title}</div>
-                <div style="font-size:13px; color:#9E96AB;">{desc}</div>
+    from modules.db import get_reading_plans, enroll_in_plan
+    plans = get_reading_plans()
+
+    if not plans:
+        st.info("No reading plans seeded yet — your admin can add them from the Admin Panel.")
+    else:
+        selected_plan = st.session_state.get("onboard_plan_id")
+        for p in plans:
+            is_sel = selected_plan == p["id"]
+            border = "border-left:4px solid #5B4FC4;" if is_sel else "border-left:4px solid #EDE8F5;"
+            bg = "background:#F5F3FF;" if is_sel else ""
+            st.markdown(f"""
+            <div class="entry-card" style="{border}{bg}">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <div style="font-family:'DM Serif Display',Georgia,serif; font-size:16px; color:#2A2438;">
+                            {p['name']}
+                        </div>
+                        <div style="font-size:12px; color:#6B6580; margin-top:2px;">{p.get('description','')}</div>
+                    </div>
+                    <span style="font-size:12px; color:#9E96AB; white-space:nowrap; margin-left:12px;">{p['total_days']} days</span>
+                </div>
             </div>
-        </div>
-        """, unsafe_allow_html=True)
+            """, unsafe_allow_html=True)
+            btn_label = "Selected ✓" if is_sel else "Select"
+            btn_type = "primary" if is_sel else "secondary"
+            if st.button(btn_label, key=f"ob_plan_{p['id']}", type=btn_type, use_container_width=True):
+                st.session_state["onboard_plan_id"] = p["id"]
+                st.rerun()
 
     spacer()
     col1, col2, col3 = st.columns([1, 1, 1])
     with col1:
-        if st.button("\u2190 Back", use_container_width=True, key="s3b"):
+        if st.button("← Back", use_container_width=True, key="s3b"):
             st.session_state["onboard_step"] = 2
             st.rerun()
+    with col2:
+        if st.button("Skip", use_container_width=True, key="s3skip"):
+            st.session_state["onboard_step"] = 4
+            st.rerun()
     with col3:
-        if st.button("Next \u2192", type="primary", use_container_width=True, key="s3n"):
+        selected = st.session_state.get("onboard_plan_id")
+        if st.button("Next →", type="primary", use_container_width=True, key="s3n",
+                     disabled=(selected is None)):
+            if selected:
+                enroll_in_plan(user_id=user_id, plan_id=selected)
             st.session_state["onboard_step"] = 4
             st.rerun()
 
-# --- Step 4: Make Your First Entry ---
+# ── Step 4: Set First Goal + Done ────────────────────────────
 elif step == 4:
     st.markdown("""
     <div style="text-align:center; padding:20px;">
-        <div style="font-size:48px; margin-bottom:12px;">\U0001f31f</div>
+        <div style="font-size:48px; margin-bottom:12px;">\U0001f3af</div>
         <div style="font-family:'DM Serif Display',Georgia,serif; font-size:24px; color:#2A2438; margin-bottom:8px;">
-            You're All Set!
+            Set a Personal Goal
         </div>
-        <div style="font-size:14px; color:#6B6580; max-width:400px; margin:0 auto; line-height:1.6;">
-            Your journey starts now. Head to the Dashboard and log your first entry.
-            Every day counts \u2014 let's build that streak!
+        <div style="font-size:14px; color:#6B6580; max-width:360px; margin:0 auto;">
+            Give yourself something to work towards — you can add more goals later.
         </div>
     </div>
     """, unsafe_allow_html=True)
 
+    spacer(8)
+
+    from modules.db import create_personal_goal
+    GOAL_PRESETS = [
+        ("Pray 30 hours this month", "prayer", "auto_prayer", 30 * 60, "minutes"),
+        ("Read 60 chapters this month", "reading", "auto_reading", 60, "chapters"),
+        ("Fast 4 days this month", "fasting", "auto_fasting", 4, "days"),
+    ]
+
+    preset_sel = st.session_state.get("onboard_goal_preset")
+    for idx, (label, gtype, tracking, target, unit) in enumerate(GOAL_PRESETS):
+        is_sel = preset_sel == idx
+        border = "border-left:4px solid #5B4FC4;" if is_sel else "border-left:4px solid #EDE8F5;"
+        bg = "background:#F5F3FF;" if is_sel else ""
+        icon = {"reading": "\U0001f4d6", "prayer": "\U0001f64f", "fasting": "\U0001f374"}[gtype]
+        st.markdown(f"""
+        <div class="entry-card" style="{border}{bg}">
+            <span style="font-size:18px;">{icon}</span>
+            <span style="font-family:'DM Serif Display',Georgia,serif; font-size:15px; color:#2A2438; margin-left:8px;">
+                {label}
+            </span>
+        </div>
+        """, unsafe_allow_html=True)
+        btn_label = "Selected ✓" if is_sel else "Select"
+        if st.button(btn_label, key=f"ob_goal_{idx}",
+                     type="primary" if is_sel else "secondary",
+                     use_container_width=True):
+            st.session_state["onboard_goal_preset"] = idx
+            st.rerun()
+
     spacer()
-    col1, col2, col3 = st.columns([1, 2, 1])
+    col1, col2, col3 = st.columns([1, 1, 1])
+    with col1:
+        if st.button("← Back", use_container_width=True, key="s4b"):
+            st.session_state["onboard_step"] = 3
+            st.rerun()
     with col2:
-        if st.button("\U0001f680 Go to Dashboard", type="primary", use_container_width=True):
-            # Mark onboarding complete
+        if st.button("Skip & Finish", use_container_width=True, key="s4skip"):
             admin.table("user_profiles") \
                 .update({"onboarding_completed": True}) \
                 .eq("user_id", user_id) \
                 .execute()
-            st.session_state.pop("onboard_step", None)
+            for k in ("onboard_step", "onboard_plan_id", "onboard_goal_preset"):
+                st.session_state.pop(k, None)
+            st.rerun()
+    with col3:
+        preset_idx = st.session_state.get("onboard_goal_preset")
+        if st.button("\U0001f680 Finish", type="primary", use_container_width=True, key="s4n",
+                     disabled=(preset_idx is None)):
+            if preset_idx is not None:
+                label, gtype, tracking, target, unit = GOAL_PRESETS[preset_idx]
+                create_personal_goal(
+                    title=label,
+                    description="",
+                    goal_type=gtype,
+                    target_value=target,
+                    target_date=None,
+                    tracking_mode=tracking,
+                    unit=unit,
+                )
+            admin.table("user_profiles") \
+                .update({"onboarding_completed": True}) \
+                .eq("user_id", user_id) \
+                .execute()
+            for k in ("onboard_step", "onboard_plan_id", "onboard_goal_preset"):
+                st.session_state.pop(k, None)
             st.rerun()

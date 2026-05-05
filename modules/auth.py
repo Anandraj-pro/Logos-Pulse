@@ -51,6 +51,8 @@ def sign_in(email: str, password: str) -> dict:
             or user.user_metadata.get("first_name")
             or email.split("@")[0]
         )
+        # Persist refresh token in URL so session survives idle reconnects
+        st.query_params["_s"] = session.refresh_token
 
         return {"success": True, "user": user, "profile": profile_data}
 
@@ -115,6 +117,8 @@ def sign_out():
     ]
     for key in keys_to_clear:
         st.session_state.pop(key, None)
+    # Remove persisted token from URL
+    st.query_params.pop("_s", None)
 
 
 def change_password(new_password: str) -> dict:

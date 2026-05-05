@@ -7,7 +7,7 @@ from modules.message import format_whatsapp_message
 from modules.chapter_splitter import get_today_suggestion
 from modules.bible_data import get_book_names, get_chapter_count
 from modules.clipboard import copy_button
-from modules.bible_reader import fetch_chapter
+from modules.bible_reader import fetch_chapter, render_chapter_with_annotations
 from modules.styles import inject_styles, page_header, section_label, spacer
 from modules.auth import require_login, require_password_changed
 
@@ -110,10 +110,15 @@ with tab_read:
         pills = " ".join(f'<span style="display:inline-block; background:#E8F5E9; color:#2E7D32; border-radius:12px; padding:3px 10px; margin:2px; font-size:12px; font-weight:600;">Ch {c}</span>' for c in sorted_done)
         st.markdown(f"<div style='text-align:center; padding:4px 0 8px 0;'>{pills}</div>", unsafe_allow_html=True)
 
-    # Font size control
+    # Font size + annotate mode controls
     font_sizes = {"Small": 14, "Medium": 17, "Large": 20, "Extra Large": 24}
-    font_choice = st.segmented_control("Font", list(font_sizes.keys()), default="Medium",
-                                       label_visibility="collapsed")
+    ctrl_col, ann_col = st.columns([3, 1])
+    with ctrl_col:
+        font_choice = st.segmented_control("Font", list(font_sizes.keys()), default="Medium",
+                                           label_visibility="collapsed")
+    with ann_col:
+        annotate_mode = st.toggle("🔖 Annotate", value=False,
+                                  help="Per-verse bookmarks and highlights")
     font_size = font_sizes.get(font_choice, 17)
 
     # Fetch chapter
@@ -121,30 +126,33 @@ with tab_read:
         chapter_data = fetch_chapter(read_book, read_chapter)
 
     if chapter_data:
-        verses_html = ""
-        if chapter_data.get("verses"):
-            for verse in chapter_data["verses"]:
-                v_num = verse.get("verse", "")
-                v_text = verse.get("text", "").strip()
-                verses_html += (
-                    f'<span style="color:#5B4FC4; font-weight:700; font-size:{max(font_size - 6, 10)}px; '
-                    f'vertical-align:super; margin-right:2px;">{v_num}</span>'
-                    f'<span>{v_text} </span>'
-                )
-        elif chapter_data.get("text"):
-            verses_html = chapter_data["text"]
+        if annotate_mode:
+            render_chapter_with_annotations(read_book, read_chapter, chapter_data, font_size)
+        else:
+            verses_html = ""
+            if chapter_data.get("verses"):
+                for verse in chapter_data["verses"]:
+                    v_num = verse.get("verse", "")
+                    v_text = verse.get("text", "").strip()
+                    verses_html += (
+                        f'<span style="color:#5B4FC4; font-weight:700; font-size:{max(font_size - 6, 10)}px; '
+                        f'vertical-align:super; margin-right:2px;">{v_num}</span>'
+                        f'<span>{v_text} </span>'
+                    )
+            elif chapter_data.get("text"):
+                verses_html = chapter_data["text"]
 
-        st.markdown(f"""
-        <div style="background:linear-gradient(135deg, #FFF9F0, #FFFEF8);
-                    border:1px solid #E8DCC8; border-radius:14px;
-                    padding:24px 22px; margin:8px 0;
-                    font-family:'DM Serif Display',Georgia,'Times New Roman',serif;
-                    font-size:{font_size}px; line-height:1.9; color:#3C2F1E;
-                    max-height:480px; overflow-y:auto;
-                    box-shadow:0 2px 8px rgba(0,0,0,0.03);">
-            {verses_html}
-        </div>
-        """, unsafe_allow_html=True)
+            st.markdown(f"""
+            <div style="background:linear-gradient(135deg, #FFF9F0, #FFFEF8);
+                        border:1px solid #E8DCC8; border-radius:14px;
+                        padding:24px 22px; margin:8px 0;
+                        font-family:'DM Serif Display',Georgia,'Times New Roman',serif;
+                        font-size:{font_size}px; line-height:1.9; color:#3C2F1E;
+                        max-height:480px; overflow-y:auto;
+                        box-shadow:0 2px 8px rgba(0,0,0,0.03);">
+                {verses_html}
+            </div>
+            """, unsafe_allow_html=True)
     else:
         st.warning("Could not load chapter. Check your internet connection.")
 
@@ -199,7 +207,8 @@ with tab_log:
             if existing and existing["prayer_minutes"] in prayer_options
             else prayer_options.index(default_prayer) if default_prayer in prayer_options else 3
         )
-        prayer_minutes = st.select_slider("Duration (minutes)", options=prayer_options, value=prayer_options[default_idx])
+        prayer_minutes = st.select_slider("Duration (minutes)", options=prayer_options, value=prayer_options[default_idx],
+                                          help="Slide to select how many minutes you prayed today")
 
         # Bible Reading
         section_label("\U0001f4d6 Bible Reading")

@@ -28,6 +28,13 @@ with tab_active:
             type_icons = {"reading": "\U0001f4d6", "prayer": "\U0001f64f", "fasting": "\U0001f374", "custom": "\U0001f3af"}
             icon = type_icons.get(g.get("goal_type", "custom"), "\U0001f3af")
 
+            tracking = g.get("tracking_mode", "manual")
+            auto_badge = ""
+            if tracking != "manual":
+                auto_label = {"auto_prayer": "⚡ Auto: prayer", "auto_reading": "⚡ Auto: reading", "auto_fasting": "⚡ Auto: fasting"}.get(tracking, "")
+                auto_badge = f'<span style="background:#E3F2FD; color:#1565C0; padding:2px 8px; border-radius:8px; font-size:11px; font-weight:600; margin-left:8px;">{auto_label}</span>'
+            unit = g.get("unit") or ""
+
             st.markdown(f"""
             <div class="entry-card">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -35,7 +42,7 @@ with tab_active:
                         <span style="font-size:20px;">{icon}</span>
                         <span style="font-family:'DM Serif Display',Georgia,serif; font-size:16px; color:#2A2438; margin-left:8px;">
                             {g['title']}
-                        </span>
+                        </span>{auto_badge}
                     </div>
                     <span style="font-family:'DM Serif Display',Georgia,serif; font-size:20px; color:{pct_color};">
                         {pct}%
@@ -47,7 +54,7 @@ with tab_active:
                         <div class="progress-bar-fill" style="width:{pct}%;"></div>
                     </div>
                     <div style="font-size:11px; color:#9E96AB; margin-top:4px;">
-                        {current}/{target} {"| Due: " + g['target_date'] if g.get('target_date') else ""}
+                        {current}/{target} {unit} {"| Due: " + g['target_date'] if g.get('target_date') else ""}
                     </div>
                 </div>
             </div>
@@ -56,7 +63,8 @@ with tab_active:
             col1, col2, col3 = st.columns([2, 1, 1])
             with col1:
                 new_val = st.number_input("Progress", min_value=0, max_value=target if target > 0 else 9999,
-                                          value=current, key=f"prog_{g['id']}", label_visibility="collapsed")
+                                          value=current, key=f"prog_{g['id']}", label_visibility="collapsed",
+                                          disabled=(tracking != "manual"))
             with col2:
                 if st.button("Update", key=f"upd_{g['id']}", use_container_width=True):
                     new_status = "completed" if new_val >= target and target > 0 else "active"
@@ -73,6 +81,13 @@ with tab_active:
 with tab_create:
     section_label("Create a New Goal")
 
+    TRACKING_OPTIONS = {
+        "manual": ("Manual (I update progress myself)", None),
+        "auto_prayer": ("Auto — track prayer minutes from daily entries", "minutes"),
+        "auto_reading": ("Auto — track chapters read from daily entries", "chapters"),
+        "auto_fasting": ("Auto — track fasting days from daily entries", "days"),
+    }
+
     with st.form("new_goal_form"):
         g_title = st.text_input("Goal Title", placeholder="e.g., Read the New Testament in 90 days")
         g_desc = st.text_area("Description (optional)", height=80,
@@ -80,10 +95,17 @@ with tab_create:
         g_type = st.selectbox("Goal Type", ["reading", "prayer", "fasting", "custom"],
                               format_func=lambda x: x.title())
 
+        g_tracking = st.selectbox(
+            "Progress Tracking",
+            options=list(TRACKING_OPTIONS.keys()),
+            format_func=lambda x: TRACKING_OPTIONS[x][0],
+            help="Auto-tracking updates this goal automatically each time you save a daily entry.",
+        )
+
         col1, col2 = st.columns(2)
         with col1:
             g_target = st.number_input("Target Value", min_value=1, value=30,
-                                       help="e.g., 260 chapters, 30 days, 100 hours")
+                                       help="e.g., 260 chapters, 30 hours, 12 days")
         with col2:
             g_date = st.date_input("Target Date (optional)")
 
@@ -93,14 +115,17 @@ with tab_create:
         if not g_title.strip():
             st.error("Please enter a goal title.")
         else:
+            _, unit = TRACKING_OPTIONS[g_tracking]
             db.create_personal_goal(
                 title=g_title.strip(),
                 description=g_desc.strip(),
                 goal_type=g_type,
                 target_value=g_target,
                 target_date=g_date.isoformat() if g_date else None,
+                tracking_mode=g_tracking,
+                unit=unit,
             )
-            st.success("Goal created!")
+            st.success("Goal created!" + (" Progress will update automatically from your daily entries." if g_tracking != "manual" else ""))
             st.rerun()
 
 # ==================== COMPLETED ====================

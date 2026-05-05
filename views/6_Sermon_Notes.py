@@ -301,6 +301,17 @@ else:
 
         st.divider()
 
+        # --- Tags ---
+        st.divider()
+        section_label("Tags")
+        _existing_tags = ", ".join(editing_note.get("tags") or []) if editing_note else ""
+        _tags_raw = st.text_input(
+            "Tags (comma-separated)",
+            value=_existing_tags,
+            placeholder="e.g. faith, healing, prayer, prophecy",
+            help="Add keywords to help you find this note later.",
+        )
+
         # --- Reflections ---
         section_label("Reflection")
 
@@ -342,6 +353,7 @@ else:
                                   "start_verse": r.get("start_verse"),
                                   "end_verse": r.get("end_verse")} for r in parsed]
 
+                _tags_list = [t.strip() for t in _tags_raw.split(",") if t.strip()]
                 if editing_id and editing_note:
                     db.update_sermon_note(
                         note_id=editing_id,
@@ -349,7 +361,7 @@ else:
                         sermon_date=sermon_date.isoformat(),
                         notes_text=notes_text, bible_references=refs_list,
                         learnings=learnings, key_takeaways=key_takeaways,
-                        additional_thoughts=additional,
+                        additional_thoughts=additional, tags=_tags_list,
                     )
                     st.session_state.pop("editing_sermon_id", None)
                     st.success("Sermon note updated!")
@@ -359,7 +371,7 @@ else:
                         sermon_date=sermon_date.isoformat(),
                         notes_text=notes_text, bible_references=refs_list,
                         learnings=learnings, key_takeaways=key_takeaways,
-                        additional_thoughts=additional,
+                        additional_thoughts=additional, tags=_tags_list,
                     )
                     st.success("Sermon note saved!")
                 st.rerun()
@@ -372,11 +384,11 @@ else:
             empty_state("\U0001f4dd", "No sermon notes yet", 'Create your first note in the "Write Note" tab')
         else:
             # --- Filters row ---
-            col_search, col_speaker_filter = st.columns([3, 2])
+            col_search, col_speaker_filter, col_starred = st.columns([3, 2, 1])
             with col_search:
                 search = st.text_input(
                     "Search",
-                    placeholder="Search by title, speaker, or content...",
+                    placeholder="Search title, speaker, tag, content...",
                     label_visibility="collapsed",
                 )
             with col_speaker_filter:
@@ -386,6 +398,15 @@ else:
                     options=filter_speakers,
                     label_visibility="collapsed",
                 )
+            with col_starred:
+                only_starred = st.toggle("⭐ Only", value=False, key="sn_starred_filter")
+
+            # Collect all tags for filter
+            _all_tags = sorted({t for n in notes for t in (n.get("tags") or [])})
+            if _all_tags:
+                selected_tag = st.selectbox("Filter by tag", ["All tags"] + _all_tags, label_visibility="collapsed", key="sn_tag_filter")
+            else:
+                selected_tag = "All tags"
 
             # Apply filters
             filtered = notes
@@ -396,10 +417,15 @@ else:
                     search_lower in n.get("speaker", "").lower() or
                     search_lower in n.get("notes_text", "").lower() or
                     search_lower in n.get("learnings", "").lower() or
-                    search_lower in n.get("key_takeaways", "").lower()
+                    search_lower in n.get("key_takeaways", "").lower() or
+                    any(search_lower in t.lower() for t in (n.get("tags") or []))
                 )]
             if selected_speaker != "All Speakers":
                 filtered = [n for n in filtered if n.get("speaker") == selected_speaker]
+            if only_starred:
+                filtered = [n for n in filtered if n.get("is_starred")]
+            if selected_tag != "All tags":
+                filtered = [n for n in filtered if selected_tag in (n.get("tags") or [])]
 
             st.caption(f"{len(filtered)} note(s)")
 
@@ -447,8 +473,14 @@ else:
                 </div>
                 """, unsafe_allow_html=True)
 
+                # Tag badges below card
+                _note_tags = note.get("tags") or []
+                if _note_tags:
+                    _tag_html = " ".join(f'<span style="background:#F3E5F5; color:#7B1FA2; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:500;">#{t}</span>' for t in _note_tags)
+                    st.markdown(_tag_html, unsafe_allow_html=True)
+
                 # Action buttons
-                col_view, col_edit, col_del = st.columns([2, 1, 1])
+                col_view, col_edit, col_star, col_del = st.columns([2, 1, 1, 1])
                 with col_view:
                     if st.button("Open", key=f"view_{note['id']}", use_container_width=True):
                         st.session_state["view_sermon_id"] = note["id"]
@@ -456,6 +488,11 @@ else:
                 with col_edit:
                     if st.button("Edit", key=f"edit_{note['id']}", use_container_width=True):
                         st.session_state["editing_sermon_id"] = note["id"]
+                        st.rerun()
+                with col_star:
+                    _star_label = "⭐" if note.get("is_starred") else "☆"
+                    if st.button(_star_label, key=f"star_{note['id']}", use_container_width=True, help="Toggle favourite"):
+                        db.toggle_sermon_starred(note["id"], note.get("is_starred", False))
                         st.rerun()
                 with col_del:
                     if st.button("Delete", key=f"del_{note['id']}", use_container_width=True):

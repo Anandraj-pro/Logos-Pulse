@@ -1,4 +1,6 @@
 import streamlit as st
+import html as _html
+import plotly.graph_objects as go
 from datetime import date, timedelta, datetime
 from modules import db
 from modules.utils import calculate_streaks, format_prayer_duration, format_chapters_display
@@ -60,17 +62,19 @@ inject_styles()
 from modules.auth import get_current_role
 _announcements = db.get_active_announcements(role=get_current_role())
 for _ann in _announcements[:3]:
+    _ann_title = _html.escape(_ann.get('title', '') or '')
+    _ann_msg = _html.escape(_ann.get('message', '') or '')
     col_ann, col_dismiss = st.columns([10, 1])
     with col_ann:
         st.markdown(f"""
         <div style="background:linear-gradient(135deg, #EDEBFA, #F5EEFA); border:1px solid #D1C4E9;
                     border-radius:10px; padding:10px 16px; margin-bottom:8px;">
-            <div style="font-size:14px; font-weight:600; color:#3D35A0;">\U0001f4e2 {_ann['title']}</div>
-            <div style="font-size:13px; color:#5B4FC4; margin-top:2px;">{_ann['message']}</div>
+            <div style="font-size:14px; font-weight:600; color:#3D35A0;">\U0001f4e2 {_ann_title}</div>
+            <div style="font-size:13px; color:#5B4FC4; margin-top:2px;">{_ann_msg}</div>
         </div>
         """, unsafe_allow_html=True)
     with col_dismiss:
-        if st.button("\u2716", key=f"dismiss_{_ann['id']}"):
+        if st.button("\u2716", key=f"dismiss_{_ann['id']}", help="Dismiss this announcement", use_container_width=True):
             db.dismiss_announcement(_ann["id"])
             st.rerun()
 
@@ -190,6 +194,42 @@ with col3:
     </div>
     """, unsafe_allow_html=True)
 
+# ── 7-day activity sparkline ─────────────────────────────────
+try:
+    _spark_days = 7
+    _spark_labels, _spark_prayer, _spark_chapters = [], [], []
+    _spark_logged = []
+    for _d in range(_spark_days - 1, -1, -1):
+        _day = date.today() - timedelta(days=_d)
+        _spark_labels.append(_day.strftime("%a"))
+        _e = db.get_entry_by_date(_day.isoformat())
+        _spark_prayer.append(_e.get("prayer_minutes", 0) if _e else 0)
+        _spark_chapters.append(len(json.loads(_e["chapters_read"]) if _e and _e.get("chapters_read") and isinstance(_e["chapters_read"], str) else (_e.get("chapters_read") or [])) if _e else 0)
+        _spark_logged.append(1 if _e else 0)
+
+    _fig = go.Figure()
+    _bar_colors = ["#5B4FC4" if v else "#EDE8F5" for v in _spark_logged]
+    _fig.add_trace(go.Bar(
+        x=_spark_labels, y=_spark_prayer,
+        marker_color=_bar_colors,
+        hovertemplate="%{x}<br>%{y} min prayer<extra></extra>",
+        name="Prayer (min)",
+    ))
+    _fig.update_layout(
+        height=90,
+        margin=dict(l=0, r=0, t=4, b=0),
+        plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="rgba(0,0,0,0)",
+        showlegend=False,
+        xaxis=dict(showgrid=False, tickfont=dict(size=9, color="#9E96AB"), fixedrange=True),
+        yaxis=dict(visible=False, fixedrange=True),
+        bargap=0.3,
+    )
+    st.markdown('<div style="margin-top:8px; margin-bottom:2px; font-size:11px; color:#9E96AB; text-transform:uppercase; letter-spacing:1px;">Last 7 days — prayer minutes</div>', unsafe_allow_html=True)
+    st.plotly_chart(_fig, use_container_width=True, config={"displayModeBar": False})
+except Exception:
+    pass
+
 spacer()
 
 # ==================== TODAY'S STATUS + Q1: QUICK LOG ====================
@@ -206,7 +246,7 @@ if today_entry:
 
     st.markdown(f"""
     <div class="today-card today-done">
-        <div class="today-title" style="color:#2E7D32;">
+        <div class="today-title" style="color:#3A8F5C;">
             \u2705 Today\u2019s Entry Complete
         </div>
         <div class="today-detail">{details}</div>
@@ -226,7 +266,7 @@ else:
     )
     st.markdown(f"""
     <div class="today-card today-pending">
-        <div class="today-title" style="color:#E65100;">
+        <div class="today-title" style="color:#D4853A;">
             \u23f0 Today\u2019s Entry Pending
         </div>
         <div class="today-detail">{streak_msg}</div>
@@ -285,6 +325,52 @@ if yesterday_entry:
         </div>
     </div>
     """, unsafe_allow_html=True)
+
+# ==================== READING PLAN CARD ====================
+try:
+    from modules.db import get_member_active_plan, get_plan_days
+    _active_plan = get_member_active_plan(get_current_user_id())
+    if _active_plan and not _active_plan.get("completed_at"):
+        _rp = _active_plan.get("reading_plans") or {}
+        _total = _rp.get("total_days", 0)
+        _current = _active_plan.get("current_day", 1)
+        _done = _current - 1
+        _pct = int(_done / _total * 100) if _total > 0 else 0
+        _pct_color = "#3A8F5C" if _pct >= 70 else "#D4853A" if _pct >= 30 else "#5B4FC4"
+        _plan_days = get_plan_days(_active_plan["plan_id"])
+        _today_day = next((d for d in _plan_days if d["day_number"] == _current), None)
+
+        _ch_label = ""
+        if _today_day:
+            cs, ce = _today_day["chapter_start"], _today_day["chapter_end"]
+            _ch_label = f"Ch {cs}" if cs == ce else f"Ch {cs}–{ce}"
+
+        st.markdown(f"""
+        <div class="entry-card" style="border-left:4px solid {_pct_color};">
+            <div style="font-size:11px; color:#9E96AB; text-transform:uppercase; letter-spacing:1.5px; font-weight:600;">
+                Reading Plan
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
+                <div>
+                    <span style="font-family:'DM Serif Display',Georgia,serif; font-size:16px; color:#2A2438;">
+                        \U0001f4d6 {_rp.get('name', 'Reading Plan')}
+                    </span>
+                    {f'<div style="font-size:13px; color:#5B4FC4; margin-top:2px;">Today: {_today_day["book"]} {_ch_label}</div>' if _today_day else ''}
+                </div>
+                <span style="font-size:12px; color:{_pct_color}; font-weight:600; white-space:nowrap; margin-left:12px;">
+                    Day {_done}/{_total}
+                </span>
+            </div>
+            <div class="progress-bar-bg" style="height:5px; margin-top:8px;">
+                <div class="progress-bar-fill" style="width:{_pct}%; background:{_pct_color};"></div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("\U0001f4d6 Open Reading Plan", key="dash_open_plan"):
+            st.switch_page("views/Bible_Reading_Plan.py")
+        spacer(4)
+except Exception:
+    pass
 
 # ==================== Q4: CONTINUE READING BOOKMARK ====================
 try:

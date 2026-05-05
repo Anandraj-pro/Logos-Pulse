@@ -1,3 +1,4 @@
+import html as _html
 import streamlit as st
 import json
 from modules import db
@@ -26,7 +27,7 @@ for cat in categories:
     prayers = db.get_prayers_by_category(cat["id"])
     cat_counts[cat["id"]] = len(prayers)
 
-cols = st.columns(len(categories) + 1)
+cols = st.columns(len(categories) + 3)
 
 # Initialize selected category
 if "pj_category" not in st.session_state and categories:
@@ -51,6 +52,36 @@ for i, cat in enumerate(categories):
             st.session_state.pop("pj_wizard_step", None)
             st.rerun()
 
+# Bible Notes button
+with cols[-3]:
+    is_bn = st.session_state.get("pj_category") == "bible_notes"
+    st.markdown(f"""
+    <div class="cat-card {'cat-card-active' if is_bn else ''}" style="background:{'rgba(33,150,243,0.08)' if is_bn else '#F0F4FF'}; color:#2196F3;">
+        <div class="cat-icon">\U0001f4d6</div>
+        <div class="cat-name">Bible</div>
+        <div class="cat-count">Notes</div>
+    </div>
+    """, unsafe_allow_html=True)
+    if st.button("Bible Notes", key="bible_notes_btn", use_container_width=True,
+                 type="primary" if is_bn else "secondary"):
+        st.session_state["pj_category"] = "bible_notes"
+        st.rerun()
+
+# Prayer Wall button
+with cols[-2]:
+    is_pw = st.session_state.get("pj_category") == "prayer_wall"
+    st.markdown(f"""
+    <div class="cat-card {'cat-card-active' if is_pw else ''}" style="background:{'rgba(58,143,92,0.08)' if is_pw else '#F0FFF4'}; color:#3A8F5C;">
+        <div class="cat-icon">\U0001f64c</div>
+        <div class="cat-name">Prayer</div>
+        <div class="cat-count">Wall</div>
+    </div>
+    """, unsafe_allow_html=True)
+    if st.button("Prayer Wall", key="prayer_wall_btn", use_container_width=True,
+                 type="primary" if is_pw else "secondary"):
+        st.session_state["pj_category"] = "prayer_wall"
+        st.rerun()
+
 # New category button
 with cols[-1]:
     st.markdown("""
@@ -66,8 +97,187 @@ with cols[-1]:
 
 spacer(12)
 
+# ==================== BIBLE NOTES ====================
+if st.session_state.get("pj_category") == "bible_notes":
+    from modules.db import get_all_bookmarks, get_highlight_count, update_bookmark_note, delete_bookmark
+    from modules.auth import get_current_user_id
+
+    section_label("\U0001f516 My Bookmarks")
+
+    all_bm = get_all_bookmarks()
+    hl_count = get_highlight_count()
+
+    if not all_bm and hl_count == 0:
+        st.markdown("""
+        <div style="text-align:center; padding:32px 16px; color:#9E96AB;">
+            <div style="font-size:32px; margin-bottom:8px;">\U0001f4d6</div>
+            <div style="font-size:14px;">No bookmarks yet.</div>
+            <div style="font-size:12px; margin-top:4px;">Open Daily Entry, switch on 🔖 Annotate, and tap ☆ on any verse.</div>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        # Highlight summary
+        if hl_count > 0:
+            st.markdown(f"""
+            <div class="entry-card" style="border-left:4px solid #F4C430;">
+                <span style="font-size:13px; color:#6B6580;">
+                    🟡 <b>{hl_count}</b> verse{"s" if hl_count != 1 else ""} highlighted.
+                    Open Daily Entry → Annotate mode to manage highlights.
+                </span>
+            </div>
+            """, unsafe_allow_html=True)
+            spacer(4)
+
+        if all_bm:
+            # Group by book + chapter
+            from collections import defaultdict
+            grouped: dict = defaultdict(list)
+            for bm in all_bm:
+                grouped[(bm["book"], bm["chapter"])].append(bm)
+
+            for (book, chapter), verses in sorted(grouped.items()):
+                with st.expander(f"\U0001f4d6 {book} {chapter} — {len(verses)} bookmark{'s' if len(verses) != 1 else ''}"):
+                    for bm in sorted(verses, key=lambda x: x["verse_number"]):
+                        col_v, col_del = st.columns([10, 1])
+                        with col_v:
+                            st.markdown(f"""
+                            <div style="font-family:'DM Serif Display',Georgia,serif;
+                                        font-size:14px; color:#2A2438; margin-bottom:2px;">
+                                <span style="color:#5B4FC4; font-weight:700; font-size:11px;
+                                             vertical-align:super; margin-right:4px;">v{bm['verse_number']}</span>
+                                {book} {chapter}:{bm['verse_number']}
+                            </div>
+                            """, unsafe_allow_html=True)
+
+                            note_key = f"bm_note_{bm['id']}"
+                            new_note = st.text_input(
+                                "Note", value=bm.get("note") or "",
+                                key=note_key, placeholder="Add a note…",
+                                label_visibility="collapsed",
+                            )
+                            if new_note != (bm.get("note") or ""):
+                                update_bookmark_note(book, chapter, bm["verse_number"], new_note)
+                                st.rerun()
+                        with col_del:
+                            if st.button("🗑", key=f"del_bm_{bm['id']}", help="Remove bookmark"):
+                                delete_bookmark(bm["id"])
+                                st.rerun()
+
+# ==================== PRAYER WALL ====================
+elif st.session_state.get("pj_category") == "prayer_wall":
+    from modules.db import (
+        get_prayer_requests, create_prayer_request, toggle_pray_for, mark_prayer_answered,
+    )
+    from modules.auth import get_current_user_id as _get_uid_pj
+
+    my_uid = _get_uid_pj()
+    requests = get_prayer_requests()
+
+    col_wall, col_new = st.columns([3, 1])
+    with col_wall:
+        section_label("\U0001f64c Community Prayer Wall")
+    with col_new:
+        if st.button("+ New Request", use_container_width=True, type="primary"):
+            st.session_state["pj_show_new_request"] = not st.session_state.get("pj_show_new_request", False)
+
+    if st.session_state.get("pj_show_new_request"):
+        with st.form("new_prayer_request_form"):
+            pr_title = st.text_input("Prayer Request", placeholder="What do you need prayer for?")
+            pr_body = st.text_area("Details (optional)", height=80, placeholder="Share more context if you'd like…")
+            pr_anon = st.checkbox("Post anonymously")
+            pr_submit = st.form_submit_button("Submit Request", type="primary", use_container_width=True)
+        if pr_submit:
+            if not pr_title.strip():
+                st.error("Please enter a title for your request.")
+            else:
+                create_prayer_request(pr_title.strip(), pr_body.strip(), pr_anon)
+                st.session_state.pop("pj_show_new_request", None)
+                st.success("Your prayer request has been shared with the community.")
+                st.rerun()
+
+    spacer(8)
+
+    if not requests:
+        st.markdown("""
+        <div style="text-align:center; padding:32px 16px; color:#9E96AB;">
+            <div style="font-size:32px; margin-bottom:8px;">\U0001f64c</div>
+            <div style="font-size:14px;">No prayer requests yet.</div>
+            <div style="font-size:12px; margin-top:4px;">Be the first to share a request — the community will pray with you.</div>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        for req in requests:
+            is_mine = req["user_id"] == my_uid
+            author = "Anonymous" if req.get("is_anonymous") else req.get("display_name", "Member")
+            pray_count = req.get("pray_count", 0)
+            has_prayed = req.get("has_prayed", False)
+            pray_color = "#3A8F5C" if has_prayed else "#9E96AB"
+            pray_label = f"\U0001f64f Praying ({pray_count})" if has_prayed else f"\U0001f64f Pray ({pray_count})"
+
+            _title_e = _html.escape(req['title'])
+            _body_e = _html.escape(req['body']) if req.get('body') else ""
+            st.markdown(f"""
+            <div class="entry-card">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                    <div style="font-family:'DM Serif Display',Georgia,serif; font-size:15px; color:#2A2438; flex:1;">
+                        {_title_e}
+                    </div>
+                    <span style="font-size:11px; color:#9E96AB; white-space:nowrap; margin-left:12px;">
+                        {_html.escape(author)}
+                    </span>
+                </div>
+                {"<div style='font-size:13px; color:#6B6580; margin-top:6px;'>" + _body_e + "</div>" if _body_e else ""}
+            </div>
+            """, unsafe_allow_html=True)
+
+            btn_cols = st.columns([2, 2, 6]) if is_mine else st.columns([2, 8])
+            with btn_cols[0]:
+                if st.button(pray_label, key=f"pray_{req['id']}", use_container_width=True):
+                    toggle_pray_for(req["id"])
+                    st.rerun()
+            if is_mine:
+                with btn_cols[1]:
+                    if st.button("Mark Answered", key=f"ans_{req['id']}", use_container_width=True):
+                        mark_prayer_answered(req["id"])
+                        st.session_state["pj_share_testimony_for"] = req["id"]
+                        st.session_state["pj_share_testimony_title"] = req["title"]
+                        st.rerun()
+
+    # Offer to share as testimony after marking answered
+    if st.session_state.get("pj_share_testimony_for"):
+        from modules.db import create_testimony
+        _req_title = st.session_state["pj_share_testimony_title"]
+        st.success(f"🙌 Prayer answered: \"{_req_title}\"")
+        st.markdown("**Would you like to share this as a testimony on the Testimony Wall?**")
+        c1, c2 = st.columns(2)
+        with c1:
+            _anon = st.checkbox("Share anonymously", key="pj_testimony_anon")
+        _testimony_text = st.text_area(
+            "Add details (optional)",
+            placeholder="Share how God answered your prayer…",
+            height=80,
+            key="pj_testimony_text",
+        )
+        col_yes, col_no = st.columns(2)
+        with col_yes:
+            if st.button("✨ Share as Testimony", type="primary", use_container_width=True):
+                create_testimony(
+                    title=f"Answered prayer: {_req_title}",
+                    testimony=_testimony_text.strip() if _testimony_text else f"God answered my prayer: {_req_title}",
+                    is_anonymous=_anon,
+                )
+                st.session_state.pop("pj_share_testimony_for", None)
+                st.session_state.pop("pj_share_testimony_title", None)
+                st.success("Testimony shared! 🎉")
+                st.rerun()
+        with col_no:
+            if st.button("No thanks", use_container_width=True):
+                st.session_state.pop("pj_share_testimony_for", None)
+                st.session_state.pop("pj_share_testimony_title", None)
+                st.rerun()
+
 # ==================== NEW CATEGORY ====================
-if st.session_state.get("pj_category") == "new":
+elif st.session_state.get("pj_category") == "new":
     st.markdown(f"""
     <div class="wizard-step">
         <span class="wizard-step-num" style="background:#5B4FC4;">+</span>

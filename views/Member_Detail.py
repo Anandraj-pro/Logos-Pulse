@@ -86,6 +86,56 @@ if card_id:
 
 spacer()
 
+# ==================== 52-WEEK ACTIVITY HEATMAP ====================
+section_label("\U0001f4c6 Activity — Last 52 Weeks")
+try:
+    all_dates_set = set(all_dates)
+    _weeks = 52
+    _today = date.today()
+    # Align to Monday of the current week
+    _week_start = _today - timedelta(days=_today.weekday())
+
+    _z = []   # heat values per week column (Mon-Sun rows, week cols)
+    _x_labels = []
+    _y_labels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+
+    for w in range(_weeks - 1, -1, -1):
+        col_start = _week_start - timedelta(weeks=w)
+        col_vals = []
+        for d_offset in range(7):
+            d = col_start + timedelta(days=d_offset)
+            col_vals.append(1 if d.isoformat() in all_dates_set else 0)
+        _z.append(col_vals)
+        _x_labels.append(col_start.strftime("%b %d") if col_start.day <= 7 else "")
+
+    # Transpose: rows=days(0-6), cols=weeks
+    _z_T = [[_z[w][d] for w in range(_weeks)] for d in range(7)]
+
+    _hm = go.Figure(go.Heatmap(
+        z=_z_T,
+        x=_x_labels,
+        y=_y_labels,
+        colorscale=[[0, "#EDE8F5"], [1, "#5B4FC4"]],
+        showscale=False,
+        hovertemplate="Week of %{x}<br>%{y}<br>%{z}<extra></extra>",
+        xgap=2, ygap=2,
+    ))
+    _hm.update_layout(
+        height=160,
+        margin=dict(l=40, r=0, t=4, b=0),
+        plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="rgba(0,0,0,0)",
+        xaxis=dict(showgrid=False, tickfont=dict(size=9, color="#9E96AB"), side="top"),
+        yaxis=dict(showgrid=False, tickfont=dict(size=9, color="#9E96AB"), autorange="reversed"),
+    )
+    st.plotly_chart(_hm, use_container_width=True, config={"displayModeBar": False})
+    _logged_total = sum(1 for d in all_dates_set if d >= (_week_start - timedelta(weeks=_weeks)).isoformat())
+    st.caption(f"{_logged_total} entries in the last 52 weeks")
+except Exception:
+    pass
+
+spacer()
+
 # ==================== TABS ====================
 tab_history, tab_charts, tab_notes = st.tabs(["\U0001f4c5 History", "\U0001f4ca Trends", "\U0001f4dd Pastor Notes"])
 
