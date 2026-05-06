@@ -1632,32 +1632,51 @@ def footer():
 
 
 def sidebar_logo():
-    """Render the sidebar logo block."""
+    """Render the sidebar logo block using the SVG brand mark."""
     st.markdown("""
     <div style="text-align:center; padding:10px 0 20px 0;">
-        <div style="font-size:36px; margin-bottom:8px;">&#128591;</div>
+        <!-- SVG brand mark: cross whose horizontal arm is a heartbeat pulse line -->
+        <svg width="44" height="44" viewBox="0 0 100 100" fill="none"
+             style="margin-bottom:10px; display:inline-block;"
+             xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <radialGradient id="lp-sb-glow" cx="50%" cy="50%" r="45%">
+                    <stop offset="0%"   stop-color="#C4902A" stop-opacity="0.14"/>
+                    <stop offset="100%" stop-color="#C4902A" stop-opacity="0"/>
+                </radialGradient>
+            </defs>
+            <rect width="100" height="100" rx="22" fill="#1A1628"/>
+            <rect width="100" height="100" rx="22" fill="url(#lp-sb-glow)"/>
+            <!-- Pulse line: flat left → spike → flat right -->
+            <path d="M 8,40 L 24,40 L 27,35 L 31,48 L 42,12 L 54,40"
+                  stroke="#C96A3C" stroke-width="3.2"
+                  stroke-linecap="round" stroke-linejoin="round"/>
+            <line x1="54" y1="40" x2="92" y2="40"
+                  stroke="#C96A3C" stroke-width="3.2" stroke-linecap="round"/>
+            <!-- Cross vertical bar anchors the spike -->
+            <rect x="46" y="12" width="8" height="76" rx="2.5" fill="#F0E8D6"/>
+        </svg>
         <div style="
             font-family:'Cinzel','Playfair Display',Georgia,serif;
-            font-size:18px;
+            font-size:17px;
             font-weight:600;
-            background: linear-gradient(135deg, #2A1D7E, #C4902A);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            letter-spacing: 0.06em;
+            color:#1A1208;
+            letter-spacing:0.06em;
+            line-height:1.2;
         ">
             Logos Pulse
         </div>
         <div style="
-            font-size:9px;
-            color:#8A85A0;
+            font-size:8.5px;
+            color:#B85A30;
             letter-spacing:2.5px;
             text-transform:uppercase;
-            font-weight:800;
+            font-weight:700;
             margin-top:3px;
             font-family:'Nunito',sans-serif;
+            opacity:0.75;
         ">
-            Spiritual Tracker
+            Sanctuary
         </div>
     </div>
     """, unsafe_allow_html=True)

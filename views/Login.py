@@ -9,246 +9,53 @@ inject_styles()
 if is_authenticated():
     st.rerun()
 
-# ── Page-level CSS ────────────────────────────────────────────────────────────
-# The vine SVG is embedded here as a CSS background-image data URI so that
-# Streamlit's HTML sanitizer (which strips <svg> tags) cannot remove it.
-_VINE_SVG = (
-    "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 380 700'%3E"
-    "%3Cpath d='M190 700 C190 700 155 560 148 410 C140 255 175 120 190 0'"
-    " stroke='%23c9982a' stroke-width='1.1' fill='none' opacity='0.30'/%3E"
-    "%3Cpath d='M174 510 C138 478 102 488 68 455'"
-    " stroke='%23c9982a' stroke-width='0.7' fill='none' opacity='0.22'/%3E"
-    "%3Cpath d='M166 358 C120 328 90 348 52 316'"
-    " stroke='%23c9982a' stroke-width='0.7' fill='none' opacity='0.18'/%3E"
-    "%3Cpath d='M202 460 C242 428 288 444 328 412'"
-    " stroke='%23c9982a' stroke-width='0.7' fill='none' opacity='0.22'/%3E"
-    "%3Cpath d='M198 285 C248 254 300 268 348 238'"
-    " stroke='%23c9982a' stroke-width='0.7' fill='none' opacity='0.18'/%3E"
-    "%3Cellipse cx='68' cy='455' rx='13' ry='8' fill='%23c9982a' opacity='0.14'"
-    " transform='rotate(-28 68 455)'/%3E"
-    "%3Cellipse cx='328' cy='412' rx='13' ry='8' fill='%23c9982a' opacity='0.14'"
-    " transform='rotate(22 328 412)'/%3E"
-    "%3Cg opacity='0.22' transform='translate(22,26)'%3E"
-    "%3Crect x='15' y='6' width='4' height='22' rx='2' fill='%23c9982a'/%3E"
-    "%3Crect x='8' y='13' width='18' height='4' rx='2' fill='%23c9982a'/%3E"
-    "%3C/g%3E"
-    "%3Cg opacity='0.14' transform='translate(336,636)'%3E"
-    "%3Crect x='7' y='0' width='3' height='17' rx='1.5' fill='%23c9982a'/%3E"
-    "%3Crect x='2' y='6' width='13' height='3' rx='1.5' fill='%23c9982a'/%3E"
-    "%3C/g%3E"
-    "%3C/svg%3E"
-)
-
-st.markdown(f"""
+# ── Login-page typography & form classes only (no layout-critical styles here)
+st.markdown("""
 <style>
-[data-testid="stAppViewContainer"] > div:first-child > div:first-child {{
-    padding-top: 0 !important;
-}}
-[data-testid="block-container"] {{
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
-    max-width: 100% !important;
-}}
-section[data-testid="stSidebar"] {{ display: none !important; }}
+section[data-testid="stSidebar"] { display: none !important; }
 
-/* ── Brand panel ── */
-.lp-brand-panel {{
-    background:
-        radial-gradient(ellipse at 20% 15%, rgba(196,144,42,0.20) 0%, transparent 50%),
-        radial-gradient(ellipse at 80% 80%, rgba(107,63,168,0.18) 0%, transparent 48%),
-        linear-gradient(152deg, #170F4A 0%, #2A1D7E 40%, #3C2D90 70%, #4A2A88 100%);
-    border-radius: 20px;
-    padding: 52px 44px 40px 44px;
-    min-height: 82vh;
-    position: relative;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-}}
-
-/* Diagonal hatching + vine SVG — both as background-image layers */
-.lp-brand-panel::before {{
-    content: '';
-    position: absolute;
-    inset: 0;
-    background-image:
-        url("{_VINE_SVG}"),
-        repeating-linear-gradient(
-            -52deg,
-            rgba(255,255,255,0.012) 0px,
-            rgba(255,255,255,0.012) 1px,
-            transparent 1px,
-            transparent 14px
-        );
-    background-size: cover, auto;
-    background-repeat: no-repeat, repeat;
-    pointer-events: none;
-    border-radius: inherit;
-}}
-
-/* Gold orb top-right */
-.lp-brand-panel::after {{
-    content: '';
-    position: absolute;
-    top: -80px; right: -80px;
-    width: 320px; height: 320px;
-    background: radial-gradient(circle, rgba(196,144,42,0.16) 0%, transparent 66%);
-    border-radius: 50%;
-    pointer-events: none;
-}}
-
-.lp-brand-logo {{
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 48px;
-    position: relative;
-    z-index: 1;
-}}
-
-.lp-brand-logo-icon {{
-    width: 44px; height: 44px;
-    border-radius: 12px;
-    background: rgba(196,144,42,0.15);
-    border: 1px solid rgba(196,144,42,0.40);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 22px;
-    flex-shrink: 0;
-}}
-
-.lp-brand-name {{
+.lp-brand-name {
     font-family: 'Cinzel', serif;
-    font-size: 20px;
-    font-weight: 600;
-    color: white;
-    letter-spacing: 0.06em;
-    line-height: 1.2;
-}}
-
-.lp-brand-tag {{
-    font-size: 9px;
-    color: rgba(196,144,42,0.7);
-    text-transform: uppercase;
-    letter-spacing: 2.5px;
-    font-weight: 700;
-    font-family: 'Nunito', sans-serif;
-}}
-
-.lp-brand-headline {{
-    font-family: 'Cinzel', serif;
-    font-size: 36px;
-    font-weight: 600;
-    color: white;
-    line-height: 1.22;
-    letter-spacing: 0.02em;
-    text-shadow: 0 3px 22px rgba(0,0,0,0.30);
-    margin-bottom: 16px;
-    position: relative;
-    z-index: 1;
-}}
-
-.lp-brand-headline em {{
-    font-style: italic;
-    color: #E8C050;
-}}
-
-.lp-brand-sub {{
-    font-size: 14px;
-    color: rgba(255,255,255,0.46);
-    line-height: 1.72;
-    font-family: 'Nunito', sans-serif;
-    position: relative;
-    z-index: 1;
-    margin-bottom: 40px;
-}}
-
-.lp-verse-card {{
-    background: rgba(255,255,255,0.07);
-    border: 1px solid rgba(196,144,42,0.24);
-    border-radius: 16px;
-    padding: 22px 24px;
-    backdrop-filter: blur(8px);
-    position: relative;
-    z-index: 1;
-}}
-
-.lp-verse-label {{
-    font-size: 9px;
-    text-transform: uppercase;
-    letter-spacing: 2.5px;
-    color: rgba(196,144,42,0.75);
-    font-weight: 700;
-    font-family: 'Nunito', sans-serif;
-    margin-bottom: 14px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}}
-
-.lp-verse-label::before {{
-    content: '';
-    width: 24px; height: 1px;
-    background: rgba(196,144,42,0.5);
-    flex-shrink: 0;
-}}
-
-.lp-verse-text {{
+    font-size: 20px; font-weight: 600; color: white;
+    letter-spacing: 0.06em; line-height: 1.2;
+}
+.lp-brand-tag {
+    font-size: 9px; color: rgba(196,144,42,0.72);
+    text-transform: uppercase; letter-spacing: 2.5px;
+    font-weight: 700; font-family: 'Nunito', sans-serif;
+}
+.lp-brand-headline {
+    font-family: 'Cinzel', serif; font-size: 34px; font-weight: 600;
+    color: white; line-height: 1.22; letter-spacing: 0.02em;
+    text-shadow: 0 3px 22px rgba(0,0,0,0.30); margin-bottom: 14px;
+}
+.lp-brand-headline em { font-style: italic; color: #E8C050; }
+.lp-brand-sub {
+    font-size: 14px; color: rgba(255,255,255,0.46);
+    line-height: 1.72; font-family: 'Nunito', sans-serif; margin-bottom: 36px;
+}
+.lp-verse-text {
     font-family: 'Spectral', 'EB Garamond', Georgia, serif;
-    font-style: italic;
-    font-size: 16px;
-    color: rgba(255,255,255,0.82);
-    line-height: 1.82;
-    margin-bottom: 10px;
-}}
-
-.lp-verse-ref {{
-    font-size: 13px;
-    color: #C4902A;
-    font-family: 'Cinzel', serif;
-    font-weight: 500;
-    letter-spacing: 0.04em;
-}}
-
-.lp-brand-footer {{
-    font-size: 10px;
-    color: rgba(255,255,255,0.20);
-    text-transform: uppercase;
-    letter-spacing: 2.5px;
-    font-family: 'Nunito', sans-serif;
-    position: relative;
-    z-index: 1;
-    margin-top: 32px;
-}}
-
-/* ── Form panel ── */
-.lp-form-panel {{
-    padding: 52px 12px 40px 32px;
-}}
-
-.lp-form-title {{
-    font-family: 'Cinzel', serif;
-    font-size: 30px;
-    font-weight: 600;
-    color: #140F1A;
-    letter-spacing: 0.02em;
-    margin-bottom: 6px;
-}}
-
-.lp-form-sub {{
-    font-size: 14px;
-    color: #8A85A0;
-    margin-bottom: 28px;
-    font-family: 'Nunito', sans-serif;
-}}
-
-.lp-gold-rule {{
-    width: 48px;
-    height: 2px;
+    font-style: italic; font-size: 15px;
+    color: rgba(255,255,255,0.82); line-height: 1.82; margin-bottom: 10px;
+}
+.lp-verse-ref {
+    font-size: 13px; color: #C4902A;
+    font-family: 'Cinzel', serif; font-weight: 500; letter-spacing: 0.04em;
+}
+.lp-form-title {
+    font-family: 'Cinzel', serif; font-size: 28px; font-weight: 600;
+    color: #140F1A; letter-spacing: 0.02em; margin-bottom: 6px;
+}
+.lp-form-sub {
+    font-size: 14px; color: #8A85A0;
+    margin-bottom: 28px; font-family: 'Nunito', sans-serif;
+}
+.lp-gold-rule {
+    width: 48px; height: 2px;
     background: linear-gradient(90deg, #C4902A, #E8C050);
-    border-radius: 2px;
-    margin-bottom: 28px;
-}}
+    border-radius: 2px; margin-bottom: 28px;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -267,18 +74,53 @@ verse_text, verse_ref = random.choice(VERSES)
 # ── Two-column layout ─────────────────────────────────────────────────────────
 col_brand, col_form = st.columns([9, 11], gap="large")
 
-# ── LEFT: Brand panel ─────────────────────────────────────────────────────────
+# ── LEFT: Brand panel — all critical styles are INLINE so the gradient always renders
 with col_brand:
     st.markdown(f"""
-    <div class="lp-brand-panel">
-        <div class="lp-brand-logo">
-            <div class="lp-brand-logo-icon">&#128214;</div>
+    <div style="
+        background:
+            radial-gradient(ellipse at 18% 14%, rgba(196,144,42,0.22) 0%, transparent 50%),
+            radial-gradient(ellipse at 82% 82%, rgba(107,63,168,0.20) 0%, transparent 48%),
+            linear-gradient(152deg, #170F4A 0%, #2A1D7E 40%, #3C2D90 68%, #4A2A88 100%);
+        border-radius: 20px;
+        padding: 44px 40px 36px 40px;
+        min-height: 540px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 24px 64px rgba(42,29,126,0.36), 0 4px 16px rgba(42,29,126,0.20);
+    ">
+
+        <!-- Diagonal hatching overlay -->
+        <div style="
+            position:absolute; inset:0; border-radius:20px; pointer-events:none;
+            background: repeating-linear-gradient(
+                -52deg,
+                rgba(255,255,255,0.013) 0px, rgba(255,255,255,0.013) 1px,
+                transparent 1px, transparent 14px
+            );
+        "></div>
+
+        <!-- Gold orb top-right -->
+        <div style="
+            position:absolute; top:-70px; right:-70px;
+            width:300px; height:300px; border-radius:50%; pointer-events:none;
+            background: radial-gradient(circle, rgba(196,144,42,0.18) 0%, transparent 66%);
+        "></div>
+
+        <!-- Logo -->
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:44px; position:relative; z-index:1;">
+            <div style="
+                width:42px; height:42px; border-radius:11px; flex-shrink:0;
+                background:rgba(196,144,42,0.14); border:1px solid rgba(196,144,42,0.40);
+                display:flex; align-items:center; justify-content:center; font-size:20px;
+            ">&#128214;</div>
             <div>
                 <div class="lp-brand-name">Logos Pulse</div>
                 <div class="lp-brand-tag">Sanctuary</div>
             </div>
         </div>
 
+        <!-- Headline + sub -->
         <div style="position:relative; z-index:1;">
             <div class="lp-brand-headline">
                 Track your<br><em>walk with God</em>
@@ -289,20 +131,42 @@ with col_brand:
                 church family.
             </div>
 
-            <div class="lp-verse-card">
-                <div class="lp-verse-label">Verse of the Day</div>
+            <!-- Verse card -->
+            <div style="
+                background:rgba(255,255,255,0.07);
+                border:1px solid rgba(196,144,42,0.26);
+                border-radius:16px; padding:20px 22px;
+                backdrop-filter:blur(8px); position:relative;
+            ">
+                <div style="
+                    font-size:9px; text-transform:uppercase; letter-spacing:2.5px;
+                    color:rgba(196,144,42,0.78); font-weight:700;
+                    font-family:'Nunito',sans-serif; margin-bottom:12px;
+                    display:flex; align-items:center; gap:8px;
+                ">
+                    <span style="display:inline-block;width:22px;height:1px;
+                        background:rgba(196,144,42,0.5);flex-shrink:0;"></span>
+                    Verse of the Day
+                </div>
                 <div class="lp-verse-text">&#8220;{verse_text}&#8221;</div>
                 <div class="lp-verse-ref">&#8212; {verse_ref}</div>
             </div>
         </div>
 
-        <div class="lp-brand-footer">Prayer &bull; Scripture &bull; Reflection</div>
+        <!-- Footer -->
+        <div style="
+            font-size:10px; color:rgba(255,255,255,0.20);
+            text-transform:uppercase; letter-spacing:2.5px;
+            font-family:'Nunito',sans-serif; margin-top:28px;
+            position:relative; z-index:1;
+        ">Prayer &bull; Scripture &bull; Reflection</div>
+
     </div>
     """, unsafe_allow_html=True)
 
 # ── RIGHT: Form panel ─────────────────────────────────────────────────────────
 with col_form:
-    st.markdown('<div class="lp-form-panel">', unsafe_allow_html=True)
+    st.markdown('<div style="padding: 44px 8px 36px 28px;">', unsafe_allow_html=True)
 
     tab_login, tab_register, tab_forgot = st.tabs(["🔑 Sign In", "✏️ Register", "🔄 Forgot Password"])
 
@@ -315,7 +179,7 @@ with col_form:
         """, unsafe_allow_html=True)
 
         with st.form("login_form"):
-            email = st.text_input("Email", placeholder="you@church.org")
+            email    = st.text_input("Email",    placeholder="you@church.org")
             password = st.text_input("Password", type="password", placeholder="Your password")
             submitted = st.form_submit_button("Sign In →", type="primary", use_container_width=True)
 
@@ -346,13 +210,11 @@ with col_form:
 
         with st.form("register_form"):
             reg_email = st.text_input("Email", placeholder="you@church.org", key="reg_email")
-
             col1, col2 = st.columns(2)
             with col1:
                 first_name = st.text_input("First Name", placeholder="John")
             with col2:
                 last_name = st.text_input("Last Name", placeholder="Doe")
-
             preferred_name = st.text_input("Preferred Name", placeholder="What should we call you?")
 
             if pastors:
@@ -360,13 +222,13 @@ with col_form:
                 selected_pastor = st.selectbox("Your Pastor", options=list(pastor_options.keys()))
                 pastor_id = pastor_options[selected_pastor] if selected_pastor else None
             else:
-                st.warning("No pastors available. Ensure Supabase secrets are configured and pastor accounts exist.")
+                st.warning("No pastors available. Ensure Supabase secrets are configured.")
                 pastor_id = None
                 selected_pastor = None
 
-            membership_card = st.text_input("Membership Card ID (optional)", placeholder="e.g. TKT1694")
-            prayer_benchmark = st.number_input("Daily Prayer Goal (minutes)", min_value=15, max_value=480, value=60, step=15)
-            reg_submitted = st.form_submit_button("Create Account →", type="primary", use_container_width=True)
+            membership_card    = st.text_input("Membership Card ID (optional)", placeholder="e.g. TKT1694")
+            prayer_benchmark   = st.number_input("Daily Prayer Goal (minutes)", min_value=15, max_value=480, value=60, step=15)
+            reg_submitted      = st.form_submit_button("Create Account →", type="primary", use_container_width=True)
 
         if reg_submitted:
             if not reg_email or not first_name or not last_name:
@@ -406,7 +268,7 @@ with col_form:
         """, unsafe_allow_html=True)
 
         with st.form("forgot_form"):
-            forgot_email = st.text_input("Email", placeholder="you@church.org", key="forgot_email")
+            forgot_email   = st.text_input("Email", placeholder="you@church.org", key="forgot_email")
             forgot_submitted = st.form_submit_button("Send Reset Link →", type="primary", use_container_width=True)
 
         if forgot_submitted:

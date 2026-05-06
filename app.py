@@ -41,7 +41,7 @@ if not authenticated:
     st.set_page_config(
         page_title="Logos Pulse",
         page_icon="\U0001f64f",
-        layout="centered",
+        layout="wide",
         initial_sidebar_state="collapsed",
     )
     # Hide sidebar completely on login
