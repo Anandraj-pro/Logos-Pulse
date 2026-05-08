@@ -66,34 +66,14 @@ overall_pct = int(total_logged / total_members * 100) if total_members > 0 else 
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
-    st.markdown(f"""
-    <div class="stat-card">
-        <div class="stat-value" style="color:#2196F3;">{total_pastors}</div>
-        <div class="stat-label">Pastors</div>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown(f'<div class="stat-card"><div class="stat-value" style="color:#C48A1C;">{total_pastors}</div><div class="stat-label">Pastors</div></div>', unsafe_allow_html=True)
 with col2:
-    st.markdown(f"""
-    <div class="stat-card">
-        <div class="stat-value" style="color:#5B4FC4;">{total_members}</div>
-        <div class="stat-label">Total Members</div>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown(f'<div class="stat-card"><div class="stat-value" style="color:#B85A30;">{total_members}</div><div class="stat-label">Total Members</div></div>', unsafe_allow_html=True)
 with col3:
-    color = "#3A8F5C" if overall_pct >= 70 else "#D4853A" if overall_pct >= 40 else "#C44B5B"
-    st.markdown(f"""
-    <div class="stat-card">
-        <div class="stat-value" style="color:{color};">{total_logged}/{total_members}</div>
-        <div class="stat-label">Logged Today</div>
-    </div>
-    """, unsafe_allow_html=True)
+    color = "#2B5A3E" if overall_pct >= 70 else "#C48A1C" if overall_pct >= 40 else "#9C2424"
+    st.markdown(f'<div class="stat-card"><div class="stat-value" style="color:{color};">{total_logged}/{total_members}</div><div class="stat-label">Logged Today</div></div>', unsafe_allow_html=True)
 with col4:
-    st.markdown(f"""
-    <div class="stat-card">
-        <div class="stat-value" style="color:{color};">{overall_pct}%</div>
-        <div class="stat-label">Engagement</div>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown(f'<div class="stat-card"><div class="stat-value" style="color:{color};">{overall_pct}%</div><div class="stat-label">Engagement</div></div>', unsafe_allow_html=True)
 
 spacer()
 
@@ -104,33 +84,32 @@ tab_pastors, tab_trends = st.tabs(["\U0001f465 Pastors & Groups", "\U0001f4c8 En
 with tab_pastors:
     for ps in pastor_stats:
         pct = ps["pct"]
-        pct_color = "#3A8F5C" if pct >= 70 else "#D4853A" if pct >= 40 else "#C44B5B"
+        pct_color = "#2B5A3E" if pct >= 70 else "#C48A1C" if pct >= 40 else "#9C2424"
+        pct_bg = "#E4F2EB" if pct >= 70 else "#FDF6E3" if pct >= 40 else "#FDF0E8"
         region_text = f" | {ps['region_or_group']}" if ps.get("region_or_group") else ""
 
-        st.markdown(f"""
-        <div class="entry-card">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <div>
-                    <span style="font-family:'DM Serif Display',Georgia,serif; font-size:16px; color:#2A2438;">
-                        {ps['display_name']}
-                    </span>
-                    <span style="font-size:12px; color:#9E96AB; margin-left:8px;">
-                        {ps['email']}{region_text}
-                    </span>
-                </div>
-                <span style="background:{'#E8F5E9' if pct >= 70 else '#FFF3E0' if pct >= 40 else '#FFEBEE'};
-                             color:{pct_color}; padding:3px 12px;
-                             border-radius:10px; font-size:12px; font-weight:600;">
-                    {ps['logged_today']}/{ps['member_count']} logged ({pct}%)
-                </span>
-            </div>
-            <div style="margin-top:8px;">
-                <div class="progress-bar-bg" style="height:8px;">
-                    <div class="progress-bar-fill" style="width:{pct}%;"></div>
-                </div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(
+            '<div class="entry-card">'
+            '<div style="display:flex; justify-content:space-between; align-items:center;">'
+            '<div>'
+            '<span style="font-family:\'Cormorant\',Georgia,serif; font-size:16px; color:#1A1208;">'
+            + ps['display_name'] + '</span>'
+            '<span style="font-size:12px; color:#A09080; margin-left:8px;">'
+            + ps['email'] + region_text + '</span>'
+            '</div>'
+            '<span style="background:' + pct_bg + '; color:' + pct_color + '; padding:3px 12px;'
+            ' border-radius:10px; font-size:12px; font-weight:600;">'
+            + str(ps['logged_today']) + '/' + str(ps['member_count']) + ' logged (' + str(pct) + '%)'
+            '</span>'
+            '</div>'
+            '<div style="margin-top:8px;">'
+            '<div class="progress-bar-bg" style="height:8px;">'
+            f'<div class="progress-bar-fill" style="width:{pct}%;"></div>'
+            '</div>'
+            '</div>'
+            '</div>',
+            unsafe_allow_html=True
+        )
 
         with st.expander(f"View {ps['display_name']}'s members"):
             p_members = get_members_for_pastor(ps["user_id"])
@@ -156,7 +135,7 @@ with tab_trends:
     section_label("Weekly Engagement \u2014 Last 12 Weeks")
 
     # Build weekly engagement data per pastor
-    colors = ["#5B4FC4", "#3A8F5C", "#D4853A", "#C44B5B", "#2196F3", "#9B5FA8", "#E85D3A", "#009688"]
+    colors = ["#B85A30", "#2B5A3E", "#C48A1C", "#9C2424", "#C48A1C", "#B85A30", "#E85D3A", "#5A4A32"]
 
     fig = go.Figure()
 
@@ -209,8 +188,8 @@ with tab_trends:
         margin=dict(l=0, r=0, t=10, b=0),
         plot_bgcolor="rgba(0,0,0,0)",
         paper_bgcolor="rgba(0,0,0,0)",
-        xaxis=dict(showgrid=False, tickfont=dict(size=9, color="#9E96AB")),
-        yaxis=dict(showgrid=True, gridcolor="#EDE8F5", tickfont=dict(size=10, color="#9E96AB"),
+        xaxis=dict(showgrid=False, tickfont=dict(size=9, color="#A09080")),
+        yaxis=dict(showgrid=True, gridcolor="#F3EFE7", tickfont=dict(size=10, color="#A09080"),
                    title="Engagement %", range=[0, 105]),
         legend=dict(orientation="h", y=-0.15, font=dict(size=11)),
     )
@@ -242,24 +221,26 @@ with tab_trends:
             care = {"open_tasks": open_total, "inactive_7d": inactive_total}
 
         col_a, col_b = st.columns(2)
-        ot_color = "#C44B5B" if care["open_tasks"] > 0 else "#3A8F5C"
-        i7_color = "#C44B5B" if care["inactive_7d"] > 0 else "#3A8F5C"
+        ot_color = "#9C2424" if care["open_tasks"] > 0 else "#2B5A3E"
+        i7_color = "#9C2424" if care["inactive_7d"] > 0 else "#2B5A3E"
         with col_a:
-            st.markdown(f"""
-            <div class="stat-card">
-                <div class="stat-value" style="color:{ot_color};">{care['open_tasks']}</div>
-                <div class="stat-label">Open Care Tasks</div>
-                <div style="font-size:11px; color:#C0B8CC; margin-top:2px;">across all pastors</div>
-            </div>
-            """, unsafe_allow_html=True)
+            st.markdown(
+                '<div class="stat-card">'
+                f'<div class="stat-value" style="color:{ot_color};">{care["open_tasks"]}</div>'
+                '<div class="stat-label">Open Care Tasks</div>'
+                '<div style="font-size:11px; color:#A09080; margin-top:2px;">across all pastors</div>'
+                '</div>',
+                unsafe_allow_html=True
+            )
         with col_b:
-            st.markdown(f"""
-            <div class="stat-card">
-                <div class="stat-value" style="color:{i7_color};">{care['inactive_7d']}</div>
-                <div class="stat-label">Inactive 7+ Days</div>
-                <div style="font-size:11px; color:#C0B8CC; margin-top:2px;">members needing attention</div>
-            </div>
-            """, unsafe_allow_html=True)
+            st.markdown(
+                '<div class="stat-card">'
+                f'<div class="stat-value" style="color:{i7_color};">{care["inactive_7d"]}</div>'
+                '<div class="stat-label">Inactive 7+ Days</div>'
+                '<div style="font-size:11px; color:#A09080; margin-top:2px;">members needing attention</div>'
+                '</div>',
+                unsafe_allow_html=True
+            )
         if care["open_tasks"] > 0 or care["inactive_7d"] > 0:
             st.caption("Open Pastor Dashboard \u2192 Care Alerts to manage follow-up tasks.")
     except Exception:
@@ -297,30 +278,33 @@ with tab_trends:
 
             _ch_col, _pr_col, _act_col = st.columns(3)
             with _ch_col:
-                st.markdown(f"""
-                <div class="stat-card">
-                    <div class="stat-value" style="color:#9B5FA8;">{_total_chapters}</div>
-                    <div class="stat-label">Chapters This Week</div>
-                    <div style="font-size:11px; color:#C0B8CC; margin-top:2px;">across all groups</div>
-                </div>
-                """, unsafe_allow_html=True)
+                st.markdown(
+                    '<div class="stat-card">'
+                    f'<div class="stat-value" style="color:#B85A30;">{_total_chapters}</div>'
+                    '<div class="stat-label">Chapters This Week</div>'
+                    '<div style="font-size:11px; color:#A09080; margin-top:2px;">across all groups</div>'
+                    '</div>',
+                    unsafe_allow_html=True
+                )
             with _pr_col:
-                st.markdown(f"""
-                <div class="stat-card">
-                    <div class="stat-value" style="color:#5B4FC4;">{_prayer_hrs}h</div>
-                    <div class="stat-label">Prayer Hours</div>
-                    <div style="font-size:11px; color:#C0B8CC; margin-top:2px;">this week</div>
-                </div>
-                """, unsafe_allow_html=True)
+                st.markdown(
+                    '<div class="stat-card">'
+                    f'<div class="stat-value" style="color:#B85A30;">{_prayer_hrs}h</div>'
+                    '<div class="stat-label">Prayer Hours</div>'
+                    '<div style="font-size:11px; color:#A09080; margin-top:2px;">this week</div>'
+                    '</div>',
+                    unsafe_allow_html=True
+                )
             with _act_col:
                 _act_pct = int(_active_uids / total_members * 100) if total_members > 0 else 0
-                _act_color = "#3A8F5C" if _act_pct >= 70 else "#D4853A" if _act_pct >= 40 else "#C44B5B"
-                st.markdown(f"""
-                <div class="stat-card">
-                    <div class="stat-value" style="color:{_act_color};">{_active_uids}/{total_members}</div>
-                    <div class="stat-label">Active Members</div>
-                    <div style="font-size:11px; color:#C0B8CC; margin-top:2px;">{_act_pct}% engaged</div>
-                </div>
-                """, unsafe_allow_html=True)
+                _act_color = "#2B5A3E" if _act_pct >= 70 else "#C48A1C" if _act_pct >= 40 else "#9C2424"
+                st.markdown(
+                    '<div class="stat-card">'
+                    f'<div class="stat-value" style="color:{_act_color};">{_active_uids}/{total_members}</div>'
+                    '<div class="stat-label">Active Members</div>'
+                    f'<div style="font-size:11px; color:#A09080; margin-top:2px;">{_act_pct}% engaged</div>'
+                    '</div>',
+                    unsafe_allow_html=True
+                )
     except Exception:
         st.caption("Church health stats will appear once members start logging entries.")

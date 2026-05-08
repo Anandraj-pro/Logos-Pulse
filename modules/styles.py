@@ -1,69 +1,69 @@
 """
-Logos Pulse Design System v4 — Sacred Codex
-Elevates every screen with Cinzel display type, richer depth, and refined warmth.
+Logos Pulse Design System — Daybreak Final
+Warm terra palette with Cormorant display type and Jost UI sans-serif.
 """
 
 import streamlit as st
 
 # ==================== DESIGN TOKENS ====================
 COLORS = {
-    "primary":          "#2A1D7E",
-    "primary_light":    "#4B3DC0",
-    "primary_dark":     "#170F4A",
-    "accent_gold":      "#C4902A",
-    "accent_gold_light":"#E8C050",
+    "primary":          "#B85A30",
+    "primary_light":    "#D46A38",
+    "primary_dark":     "#8C3E1E",
+    "accent_gold":      "#C48A1C",
+    "accent_gold_light":"#DFA830",
     "accent_gold_dark": "#8A6018",
-    "accent_gold_pale": "#FAF0D8",
-    "surface":          "#F3F0E8",
-    "surface_warm":     "#FEFCF8",
-    "card_bg":          "#FEFCF8",
+    "accent_gold_pale": "#FDF6E3",
+    "surface":          "#F9F5EF",
+    "surface_warm":     "#FFFFFF",
+    "card_bg":          "#FFFFFF",
     "card_border":      "rgba(165, 135, 65, 0.14)",
-    "text_primary":     "#140F1A",
-    "text_secondary":   "#3A3255",
-    "text_muted":       "#8A85A0",
+    "text_primary":     "#1A1208",
+    "text_secondary":   "#5A4A32",
+    "text_muted":       "#A09080",
     "success":          "#1E5E3E",
     "success_bg":       "#E4F2EB",
     "warning":          "#A84C16",
     "warning_bg":       "#FFF1E4",
     "danger":           "#9C2424",
     "streak_fire":      "#D44A22",
-    "streak_gold":      "#C4902A",
+    "streak_gold":      "#C48A1C",
 }
 
 # ==================== SHARED CSS ====================
 SHARED_CSS = """
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Spectral:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Nunito:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500&family=Jost:wght@300;400;500;600;700;800&display=swap');
 
 /* ================================================================
    DESIGN TOKENS
    ================================================================ */
 :root {
-    --lp-primary:        #2A1D7E;
-    --lp-primary-light:  #4B3DC0;
-    --lp-primary-dark:   #170F4A;
-    --lp-gold:           #C4902A;
-    --lp-gold-light:     #E8C050;
+    --lp-primary:        #B85A30;
+    --lp-primary-light:  #D46A38;
+    --lp-primary-dark:   #8C3E1E;
+    --lp-gold:           #C48A1C;
+    --lp-gold-light:     #DFA830;
     --lp-gold-dark:      #8A6018;
-    --lp-gold-pale:      #FAF0D8;
-    --lp-bg:             #F3F0E8;
-    --lp-surface:        #FEFCF8;
+    --lp-gold-pale:      #FDF6E3;
+    --lp-bg:             #F9F5EF;
+    --lp-surface:        #FFFFFF;
     --lp-border:         rgba(165, 135, 65, 0.14);
     --lp-border-strong:  rgba(165, 135, 65, 0.30);
-    --lp-text:           #140F1A;
-    --lp-text-2:         #3A3255;
-    --lp-text-3:         #8A85A0;
+    --lp-text:           #1A1208;
+    --lp-text-2:         #5A4A32;
+    --lp-text-3:         #A09080;
     --lp-success:        #1E5E3E;
     --lp-warning:        #A84C16;
     --lp-danger:         #9C2424;
     --lp-r-sm:  10px;
     --lp-r-md:  16px;
     --lp-r-lg:  22px;
-    --lp-shadow-xs: 0 1px 4px rgba(42,29,126,0.04), 0 1px 2px rgba(20,15,26,0.03);
-    --lp-shadow-sm: 0 2px 10px rgba(42,29,126,0.06), 0 1px 4px rgba(20,15,26,0.04);
-    --lp-shadow-md: 0 6px 24px rgba(42,29,126,0.09), 0 2px 8px rgba(20,15,26,0.05);
-    --lp-shadow-lg: 0 14px 44px rgba(42,29,126,0.12), 0 4px 12px rgba(20,15,26,0.06);
-    --lp-glow-indigo: 0 6px 28px rgba(42,29,126,0.22);
+    --lp-shadow-xs: 0 1px 4px rgba(184,90,48,0.04), 0 1px 2px rgba(26,18,8,0.03);
+    --lp-shadow-sm: 0 2px 10px rgba(184,90,48,0.06), 0 1px 4px rgba(26,18,8,0.04);
+    --lp-shadow-md: 0 6px 24px rgba(184,90,48,0.09), 0 2px 8px rgba(26,18,8,0.05);
+    --lp-shadow-lg: 0 14px 44px rgba(184,90,48,0.12), 0 4px 12px rgba(26,18,8,0.06);
+    --lp-glow-indigo: 0 6px 28px rgba(184,90,48,0.22);
     --lp-glow-gold:   0 6px 28px rgba(196,144,42,0.20);
     --lp-gold-stripe: linear-gradient(90deg,
         transparent 0%,
@@ -75,21 +75,72 @@ SHARED_CSS = """
 }
 
 /* ================================================================
+   HIDE ALL STREAMLIT NATIVE CHROME
+   ================================================================ */
+[data-testid="stHeader"],
+[data-testid="stToolbar"],
+[data-testid="stDecoration"],
+[data-testid="stStatusWidget"],
+[data-testid="stSidebar"],
+[data-testid="stSidebarCollapsedControl"],
+[data-testid="stSidebarNavItems"],
+#MainMenu, .stAppToolbar, .stDeployButton,
+button[kind="header"], header { display: none !important; }
+
+#MainMenu { visibility: hidden !important; }
+
+/* ================================================================
+   LAYOUT RESET — strip Streamlit's default header spacing
+   ================================================================ */
+
+/* The AppViewContainer wraps everything — remove any top offset */
+[data-testid="stAppViewContainer"] {
+    padding-top: 0 !important;
+    margin-top:  0 !important;
+}
+
+/* stMain is the scrollable content area — remove Streamlit's
+   built-in header-compensation padding */
+[data-testid="stMain"],
+.stMain,
+.main {
+    padding-top: 0 !important;
+    overflow-x: hidden !important;
+}
+
+/* The actual content block — our fixed nav is 56px, so push
+   content down just enough, then cap width and center it */
+[data-testid="stMainBlockContainer"],
+.main .block-container,
+.block-container {
+    padding-top:    72px !important;   /* 56px nav + 16px breathing room */
+    padding-left:   24px !important;
+    padding-right:  24px !important;
+    padding-bottom: 80px !important;
+    max-width:      1180px !important;
+    margin-left:    auto !important;
+    margin-right:   auto !important;
+}
+
+/* Streamlit sometimes wraps in an extra div — handle it */
+[data-testid="stVerticalBlock"] { width: 100% !important; }
+
+/* ================================================================
    GLOBAL BASE
    ================================================================ */
 .stApp {
-    font-family: 'Nunito', -apple-system, sans-serif !important;
+    font-family: 'Jost', -apple-system, sans-serif !important;
     background:
-        radial-gradient(ellipse at 6% 6%,   rgba(42,29,126,0.055) 0%, transparent 40%),
+        radial-gradient(ellipse at 6% 6%,   rgba(184,90,48,0.055) 0%, transparent 40%),
         radial-gradient(ellipse at 94% 90%,  rgba(196,144,42,0.05)  0%, transparent 40%),
-        radial-gradient(ellipse at 50% -4%,  rgba(75,61,192,0.035) 0%, transparent 45%),
-        radial-gradient(ellipse at 50% 108%, rgba(138,96,168,0.025) 0%, transparent 45%),
-        #F3F0E8 !important;
+        radial-gradient(ellipse at 50% -4%,  rgba(212,106,56,0.035) 0%, transparent 45%),
+        radial-gradient(ellipse at 50% 108%, rgba(138,96,108,0.025) 0%, transparent 45%),
+        #F9F5EF !important;
     color: var(--lp-text) !important;
 }
 
 h1, h2, h3 {
-    font-family: 'Cinzel', 'Playfair Display', Georgia, serif !important;
+    font-family: 'Cormorant', Georgia, serif !important;
     color: var(--lp-text) !important;
     font-weight: 600 !important;
     letter-spacing: 0.01em !important;
@@ -139,22 +190,19 @@ h1, h2, h3 {
    HERO SECTION (Dashboard)
    ================================================================ */
 .hero-section {
-    background:
-        radial-gradient(ellipse at 15% 12%, rgba(196,144,42,0.22) 0%, transparent 52%),
-        radial-gradient(ellipse at 84% 82%, rgba(138,96,168,0.18) 0%, transparent 50%),
-        radial-gradient(ellipse at 52%  3%, rgba(75,61,192,0.12)  0%, transparent 38%),
-        linear-gradient(142deg, #170F4A 0%, #2A1D7E 28%, #4B3DA8 60%, #6B3FA8 100%);
+    background: linear-gradient(148deg, rgba(253,250,245,0.97), rgba(247,242,234,0.94));
+    border: 1px solid rgba(184,90,48,0.14);
     border-radius: var(--lp-r-lg);
     padding: 46px 38px;
     margin-bottom: 24px;
     position: relative;
     overflow: hidden;
     box-shadow:
-        0 28px 70px rgba(42,29,126,0.35),
-        0 6px 18px rgba(42,29,126,0.22),
-        inset 0 1px 0 rgba(255,255,255,0.11),
-        inset 0 -1px 0 rgba(0,0,0,0.08);
+        0 28px 70px rgba(184,90,48,0.12),
+        0 6px 18px rgba(184,90,48,0.08),
+        inset 0 1px 0 rgba(255,255,255,0.90);
     animation: riseUp 0.7s cubic-bezier(0.22,1,0.36,1) both;
+    color: #1A1208;
 }
 
 /* Fine diagonal hatching */
@@ -187,10 +235,10 @@ h1, h2, h3 {
 }
 
 .hero-greeting {
-    font-family: 'Cinzel', serif;
+    font-family: 'Cormorant', serif;
     font-size: 10px;
     font-weight: 600;
-    color: rgba(196,144,42,0.92);
+    color: rgba(196,138,28,0.92);
     letter-spacing: 4px;
     text-transform: uppercase;
     margin-bottom: 10px;
@@ -198,37 +246,37 @@ h1, h2, h3 {
 }
 
 .hero-name {
-    font-family: 'Cinzel', serif;
+    font-family: 'Cormorant', serif;
     font-size: 42px;
     font-weight: 700;
-    color: white;
+    color: #1A1208;
     line-height: 1.12;
     margin-bottom: 5px;
     position: relative;
-    text-shadow: 0 3px 22px rgba(0,0,0,0.32);
+    text-shadow: none;
     letter-spacing: 0.02em;
 }
 
 .hero-date {
     font-size: 12px;
-    color: rgba(255,255,255,0.42);
+    color: rgba(26,18,8,0.42);
     position: relative;
     font-weight: 600;
     letter-spacing: 0.6px;
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Jost', sans-serif;
 }
 
 .hero-verse {
     margin-top: 24px;
     padding: 20px 22px 20px 36px;
-    background: rgba(255,255,255,0.07);
+    background: rgba(255,255,255,0.60);
     border-radius: 14px;
-    font-family: 'Spectral', 'EB Garamond', Georgia, serif;
+    font-family: 'Cormorant', 'Cormorant', Georgia, serif;
     font-style: italic;
     font-size: 16px;
-    color: rgba(255,255,255,0.88);
+    color: rgba(26,18,8,0.88);
     line-height: 1.82;
-    border: 1px solid rgba(196,144,42,0.24);
+    border: 1px solid rgba(196,138,28,0.24);
     position: relative;
     backdrop-filter: blur(6px);
 }
@@ -239,8 +287,8 @@ h1, h2, h3 {
     top: -4px;
     left: 12px;
     font-size: 60px;
-    color: rgba(196,144,42,0.40);
-    font-family: 'Spectral', Georgia, serif;
+    color: rgba(196,138,28,0.40);
+    font-family: 'Cormorant', Georgia, serif;
     line-height: 1;
     font-style: normal;
 }
@@ -249,20 +297,19 @@ h1, h2, h3 {
    PAGE HEADER
    ================================================================ */
 .page-header {
-    background:
-        radial-gradient(ellipse at 82% 18%, rgba(196,144,42,0.18) 0%, transparent 52%),
-        radial-gradient(ellipse at 14% 86%, rgba(138,96,168,0.12) 0%, transparent 46%),
-        linear-gradient(142deg, #170F4A 0%, #2A1D7E 38%, #4B3DA8 100%);
+    background: linear-gradient(148deg, rgba(253,250,245,0.97), rgba(247,242,234,0.94));
+    border: 1px solid rgba(184,90,48,0.14);
     border-radius: var(--lp-r-lg);
     padding: 28px 34px 26px 34px;
     margin-bottom: 26px;
     position: relative;
     overflow: hidden;
     box-shadow:
-        0 16px 50px rgba(42,29,126,0.28),
-        0 2px 10px rgba(42,29,126,0.16),
-        inset 0 1px 0 rgba(255,255,255,0.10);
+        0 16px 50px rgba(184,90,48,0.10),
+        0 2px 10px rgba(184,90,48,0.07),
+        inset 0 1px 0 rgba(255,255,255,0.90);
     animation: fadeInUp 0.5s cubic-bezier(0.22,1,0.36,1) both;
+    color: #1A1208;
 }
 
 .page-header::before {
@@ -291,23 +338,23 @@ h1, h2, h3 {
 }
 
 .page-header-title {
-    font-family: 'Cinzel', 'Playfair Display', Georgia, serif;
+    font-family: 'Cormorant', Georgia, serif;
     font-size: 24px;
     font-weight: 600;
     letter-spacing: 0.02em;
-    color: white;
+    color: #1A1208;
     position: relative;
-    text-shadow: 0 2px 16px rgba(0,0,0,0.24);
+    text-shadow: none;
 }
 
 .page-header-sub {
     font-size: 12px;
-    color: rgba(255,255,255,0.50);
+    color: rgba(26,18,8,0.50);
     margin-top: 6px;
     font-weight: 600;
     letter-spacing: 0.4px;
     position: relative;
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Jost', sans-serif;
 }
 
 /* ================================================================
@@ -340,8 +387,8 @@ h1, h2, h3 {
    ANNOUNCEMENT CARD
    ================================================================ */
 .announcement-card {
-    background: linear-gradient(135deg, rgba(42,29,126,0.055), rgba(75,61,192,0.038));
-    border: 1px solid rgba(42,29,126,0.12);
+    background: linear-gradient(135deg, rgba(184,90,48,0.055), rgba(212,106,56,0.038));
+    border: 1px solid rgba(184,90,48,0.12);
     border-radius: 12px;
     padding: 12px 18px;
     margin-bottom: 10px;
@@ -363,7 +410,7 @@ h1, h2, h3 {
     font-size: 14px;
     font-weight: 700;
     color: var(--lp-primary);
-    font-family: 'Cinzel', serif;
+    font-family: 'Cormorant', serif;
     letter-spacing: 0.01em;
 }
 
@@ -387,14 +434,14 @@ h1, h2, h3 {
     font-weight: 800;
     letter-spacing: 1.2px;
     text-transform: uppercase;
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Jost', sans-serif;
 }
 
 .growth-badge-seed    { background: rgba(138,96,24,0.08);  color: #8A6018; border: 1px solid rgba(138,96,24,0.18); }
 .growth-badge-sprout  { background: rgba(30,94,62,0.08);   color: #1E5E3E; border: 1px solid rgba(30,94,62,0.18); }
-.growth-badge-sapling { background: rgba(42,29,126,0.07);  color: #2A1D7E; border: 1px solid rgba(42,29,126,0.16); }
+.growth-badge-sapling { background: rgba(184,90,48,0.07);  color: #B85A30; border: 1px solid rgba(184,90,48,0.16); }
 .growth-badge-tree    { background: rgba(196,144,42,0.10); color: #8A6018; border: 1px solid rgba(196,144,42,0.22); animation: aureate 3.5s ease-in-out infinite; }
-.growth-badge-forest  { background: linear-gradient(135deg, rgba(42,29,126,0.10), rgba(196,144,42,0.08)); color: #2A1D7E; border: 1px solid rgba(196,144,42,0.28); animation: aureate 3s ease-in-out infinite; }
+.growth-badge-forest  { background: linear-gradient(135deg, rgba(184,90,48,0.10), rgba(196,144,42,0.08)); color: #B85A30; border: 1px solid rgba(196,144,42,0.28); animation: aureate 3s ease-in-out infinite; }
 
 /* ================================================================
    SECTION LABEL
@@ -405,7 +452,7 @@ h1, h2, h3 {
     text-transform: uppercase;
     letter-spacing: 3px;
     font-weight: 800;
-    font-family: 'Cinzel', serif;
+    font-family: 'Cormorant', serif;
     margin: 26px 0 14px 0;
     display: flex;
     align-items: center;
@@ -448,13 +495,13 @@ h1, h2, h3 {
 .metric-card:hover {
     transform: translateY(-5px);
     box-shadow: var(--lp-glow-indigo), var(--lp-shadow-md);
-    border-color: rgba(42,29,126,0.18);
+    border-color: rgba(184,90,48,0.18);
 }
 
 .metric-card:hover::before { opacity: 1; }
 
 .metric-value {
-    font-family: 'Cinzel', 'Playfair Display', Georgia, serif;
+    font-family: 'Cormorant', Georgia, serif;
     font-size: 34px;
     font-weight: 700;
     line-height: 1;
@@ -468,7 +515,7 @@ h1, h2, h3 {
     text-transform: uppercase;
     letter-spacing: 2px;
     font-weight: 800;
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Jost', sans-serif;
 }
 
 /* ================================================================
@@ -500,13 +547,13 @@ h1, h2, h3 {
 .stat-card:hover {
     transform: translateY(-4px);
     box-shadow: var(--lp-glow-indigo);
-    border-color: rgba(42,29,126,0.16);
+    border-color: rgba(184,90,48,0.16);
 }
 
 .stat-card:hover::before { opacity: 1; }
 
 .stat-value {
-    font-family: 'Cinzel', 'Playfair Display', Georgia, serif;
+    font-family: 'Cormorant', Georgia, serif;
     font-size: 30px;
     font-weight: 700;
     line-height: 1;
@@ -521,7 +568,7 @@ h1, h2, h3 {
     letter-spacing: 2px;
     margin-top: 6px;
     font-weight: 800;
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Jost', sans-serif;
 }
 
 /* ================================================================
@@ -577,7 +624,7 @@ h1, h2, h3 {
 .section-icon { font-size: 30px; margin-bottom: 12px; }
 
 .section-title {
-    font-family: 'Cinzel', 'Playfair Display', Georgia, serif;
+    font-family: 'Cormorant', Georgia, serif;
     font-size: 18px;
     font-weight: 600;
     color: var(--lp-text);
@@ -639,7 +686,7 @@ h1, h2, h3 {
     font-weight: 800;
     margin-bottom: 9px;
     position: relative;
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Jost', sans-serif;
 }
 
 .today-detail {
@@ -686,7 +733,7 @@ h1, h2, h3 {
 }
 
 .progress-bar-bg {
-    background: linear-gradient(90deg, rgba(42,29,126,0.07), rgba(196,144,42,0.07));
+    background: linear-gradient(90deg, rgba(184,90,48,0.07), rgba(196,144,42,0.07));
     border-radius: 100px;
     height: 8px;
     overflow: hidden;
@@ -702,7 +749,7 @@ h1, h2, h3 {
     );
     background-size: 200% 100%;
     animation: shimmer 3s linear infinite;
-    box-shadow: 0 0 12px rgba(42,29,126,0.30);
+    box-shadow: 0 0 12px rgba(184,90,48,0.30);
     transition: width 0.8s cubic-bezier(0.22,1,0.36,1);
 }
 
@@ -711,7 +758,7 @@ h1, h2, h3 {
     color: var(--lp-text-3);
     margin-top: 8px;
     font-weight: 700;
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Jost', sans-serif;
 }
 
 /* ================================================================
@@ -756,7 +803,7 @@ h1, h2, h3 {
     border: 1px solid rgba(196,144,42,0.24);
     border-radius: var(--lp-r-md);
     padding: 30px;
-    font-family: 'Spectral', 'EB Garamond', Georgia, serif;
+    font-family: 'Cormorant', 'Cormorant', Georgia, serif;
     font-size: 17px;
     line-height: 1.92;
     color: #2A1A08;
@@ -843,7 +890,7 @@ h1, h2, h3 {
 }
 
 .prayer-name {
-    font-family: 'Cinzel', 'Playfair Display', Georgia, serif;
+    font-family: 'Cormorant', 'Cormorant', Georgia, serif;
     font-size: 17px;
     font-weight: 600;
     color: var(--lp-text);
@@ -857,7 +904,7 @@ h1, h2, h3 {
     font-size: 11px;
     font-weight: 800;
     letter-spacing: 0.5px;
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Jost', sans-serif;
 }
 
 /* ================================================================
@@ -869,7 +916,7 @@ h1, h2, h3 {
     padding: 14px 18px;
     margin: 10px 0;
     border-radius: 8px;
-    font-family: 'Spectral', 'EB Garamond', Georgia, serif;
+    font-family: 'Cormorant', 'Cormorant', Georgia, serif;
     font-size: 15.5px;
     line-height: 1.88;
     color: #2A1A08;
@@ -954,7 +1001,7 @@ h1, h2, h3 {
 }
 
 .cat-icon  { font-size: 28px; margin-bottom: 7px; }
-.cat-name  { font-size: 13px; font-weight: 800; letter-spacing: 0.3px; font-family: 'Nunito', sans-serif; }
+.cat-name  { font-size: 13px; font-weight: 800; letter-spacing: 0.3px; font-family: 'Jost', sans-serif; }
 .cat-count { font-size: 11px; opacity: 0.65; margin-top: 3px; }
 
 /* ================================================================
@@ -993,11 +1040,11 @@ h1, h2, h3 {
     color: white;
     margin-right: 10px;
     box-shadow: 0 2px 10px rgba(42,29,126,0.32);
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Jost', sans-serif;
 }
 
 .wizard-step-title {
-    font-family: 'Cinzel', 'Playfair Display', Georgia, serif;
+    font-family: 'Cormorant', 'Cormorant', Georgia, serif;
     font-size: 16px;
     font-weight: 600;
     color: var(--lp-text);
@@ -1023,7 +1070,7 @@ h1, h2, h3 {
     font-weight: 700;
     margin: 3px 4px;
     transition: transform 0.2s, box-shadow 0.2s;
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Jost', sans-serif;
 }
 
 .prayer-pill:hover {
@@ -1048,7 +1095,7 @@ h1, h2, h3 {
 }
 
 .empty-state-title {
-    font-family: 'Cinzel', Georgia, serif;
+    font-family: 'Cormorant', Georgia, serif;
     font-size: 18px;
     color: var(--lp-text-3);
     font-weight: 500;
@@ -1078,7 +1125,7 @@ h1, h2, h3 {
 }
 
 .streak-num {
-    font-family: 'Cinzel', 'Playfair Display', Georgia, serif;
+    font-family: 'Cormorant', 'Cormorant', Georgia, serif;
     font-size: 72px;
     font-weight: 700;
     line-height: 1;
@@ -1093,7 +1140,7 @@ h1, h2, h3 {
     letter-spacing: 3px;
     margin-top: 10px;
     font-weight: 800;
-    font-family: 'Cinzel', sans-serif;
+    font-family: 'Cormorant', sans-serif;
 }
 
 /* ================================================================
@@ -1107,7 +1154,7 @@ h1, h2, h3 {
     text-transform: uppercase;
     letter-spacing: 0.6px;
     padding: 4px;
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Jost', sans-serif;
 }
 
 .cal-day, .heatmap-day {
@@ -1117,7 +1164,7 @@ h1, h2, h3 {
     font-size: 13px;
     font-weight: 600;
     margin: 2px;
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Jost', sans-serif;
 }
 
 .cal-done, .heatmap-done {
@@ -1155,7 +1202,7 @@ h1, h2, h3 {
 }
 
 .day-row:hover  { transform: translateX(3px); }
-.day-name       { font-weight: 800; width: 100px; color: var(--lp-text); font-family: 'Nunito', sans-serif; }
+.day-name       { font-weight: 800; width: 100px; color: var(--lp-text); font-family: 'Jost', sans-serif; }
 .day-chapters   { flex: 1; color: var(--lp-text-2); }
 .day-status     { font-size: 18px; }
 
@@ -1203,7 +1250,7 @@ h1, h2, h3 {
 }
 
 .lp-footer-brand {
-    font-family: 'Cinzel', 'Playfair Display', Georgia, serif;
+    font-family: 'Cormorant', 'Cormorant', Georgia, serif;
     font-size: 15px;
     font-weight: 600;
     background: linear-gradient(135deg, var(--lp-primary), var(--lp-gold));
@@ -1219,39 +1266,7 @@ h1, h2, h3 {
     margin-top: 4px;
     letter-spacing: 0.5px;
     font-weight: 600;
-    font-family: 'Nunito', sans-serif;
-}
-
-/* ================================================================
-   SIDEBAR
-   ================================================================ */
-[data-testid="stSidebar"] > div:first-child {
-    background:
-        radial-gradient(ellipse at 50% 0%,   rgba(42,29,126,0.060) 0%, transparent 50%),
-        radial-gradient(ellipse at 50% 100%,  rgba(196,144,42,0.035) 0%, transparent 50%),
-        linear-gradient(180deg, #EDE9DF 0%, #E8E4DC 100%) !important;
-    border-right: 1px solid rgba(42,29,126,0.07) !important;
-}
-
-[data-testid="stSidebar"] [data-testid="stSidebarNavLink"] {
-    border-radius: 10px !important;
-    font-weight: 700 !important;
-    font-family: 'Nunito', sans-serif !important;
-    font-size: 14px !important;
-    transition: all 0.22s ease !important;
-    color: var(--lp-text-2) !important;
-}
-
-[data-testid="stSidebar"] [data-testid="stSidebarNavLink"]:hover {
-    background: rgba(42,29,126,0.06) !important;
-    transform: translateX(3px);
-}
-
-[data-testid="stSidebar"] [data-testid="stSidebarNavLink"][aria-current="page"] {
-    background: rgba(42,29,126,0.09) !important;
-    border-left: 3px solid var(--lp-gold) !important;
-    color: var(--lp-primary) !important;
-    font-weight: 800 !important;
+    font-family: 'Jost', sans-serif;
 }
 
 /* ================================================================
@@ -1269,7 +1284,7 @@ h1, h2, h3 {
     border-radius: 10px !important;
     font-weight: 700 !important;
     font-size: 13px !important;
-    font-family: 'Nunito', sans-serif !important;
+    font-family: 'Jost', sans-serif !important;
     transition: all 0.25s cubic-bezier(0.22,1,0.36,1) !important;
     color: var(--lp-text-2) !important;
     padding: 8px 18px !important;
@@ -1288,7 +1303,7 @@ h1, h2, h3 {
     border-radius: 10px !important;
     font-weight: 800 !important;
     font-size: 14px !important;
-    font-family: 'Nunito', sans-serif !important;
+    font-family: 'Jost', sans-serif !important;
     transition: all 0.25s cubic-bezier(0.22,1,0.36,1) !important;
     letter-spacing: 0.3px !important;
 }
@@ -1329,7 +1344,7 @@ h1, h2, h3 {
 .stTextArea > div > div > textarea {
     border-radius: 10px !important;
     border: 1.5px solid rgba(42,29,126,0.13) !important;
-    font-family: 'Nunito', sans-serif !important;
+    font-family: 'Jost', sans-serif !important;
     transition: all 0.22s ease !important;
     background: rgba(254,252,248,0.90) !important;
     color: var(--lp-text) !important;
@@ -1355,7 +1370,7 @@ h1, h2, h3 {
 .stMultiSelect > div > div {
     border-radius: 10px !important;
     border: 1.5px solid rgba(42,29,126,0.13) !important;
-    font-family: 'Nunito', sans-serif !important;
+    font-family: 'Jost', sans-serif !important;
     transition: border-color 0.22s !important;
 }
 
@@ -1395,7 +1410,7 @@ h1, h2, h3 {
    ================================================================ */
 [data-testid="stAlert"] {
     border-radius: 12px !important;
-    font-family: 'Nunito', sans-serif !important;
+    font-family: 'Jost', sans-serif !important;
     font-weight: 600 !important;
 }
 
@@ -1405,7 +1420,7 @@ h1, h2, h3 {
 [data-testid="stDownloadButton"] > button {
     border-radius: 10px !important;
     font-weight: 800 !important;
-    font-family: 'Nunito', sans-serif !important;
+    font-family: 'Jost', sans-serif !important;
 }
 
 /* ================================================================
@@ -1418,6 +1433,95 @@ h1, h2, h3 {
     padding: 18px;
     box-shadow: var(--lp-shadow-xs);
 }
+
+/* ================================================================
+   DAYBREAK SHARED CARD COMPONENTS (used by all pages)
+   ================================================================ */
+.db-card {
+    background: #FFFFFF; border: 1px solid rgba(26,18,8,0.09);
+    border-radius: 16px; padding: 22px;
+    box-shadow: 0 2px 12px rgba(26,18,8,0.06); transition: box-shadow 0.22s;
+    margin-bottom: 16px;
+}
+.db-card:hover { box-shadow: 0 8px 32px rgba(26,18,8,0.09); }
+.db-card-hdr {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px; padding-bottom: 13px;
+    border-bottom: 1px solid rgba(26,18,8,0.05);
+}
+.db-card-title { font-family: 'Cormorant', serif; font-size: 18px; font-weight: 600; color: #1A1208; }
+.db-card-sub {
+    font-size: 9.5px; color: #A09080; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1px; font-family: 'Jost', sans-serif;
+}
+.db-sec-label {
+    font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 3px;
+    color: #A09080; margin: 0 0 14px;
+    display: flex; align-items: center; gap: 12px; font-family: 'Jost', sans-serif;
+}
+.db-sec-label::after {
+    content: ''; flex: 1; height: 1px;
+    background: linear-gradient(90deg, rgba(26,18,8,0.09), transparent);
+}
+.db-stat-val {
+    font-family: 'Jost', sans-serif; font-size: 36px; font-weight: 900;
+    color: #1A1208; line-height: 1; margin-bottom: 5px; font-variant-numeric: tabular-nums;
+}
+.db-stat-lbl {
+    font-size: 9px; color: #A09080; text-transform: uppercase;
+    letter-spacing: 2px; font-weight: 700; font-family: 'Jost', sans-serif;
+}
+.db-stat-sub { font-size: 11px; font-weight: 600; margin-top: 5px; color: #A09080; font-family: 'Jost', sans-serif; }
+.db-streak {
+    background: linear-gradient(148deg, #FFF5EE 0%, #FDEADE 60%, #F8E0D0 100%);
+    border: 1.5px solid rgba(184,90,48,0.22); border-radius: 16px;
+    padding: 24px 20px; text-align: center; margin-bottom: 14px;
+    box-shadow: 0 8px 32px rgba(184,90,48,0.14);
+    position: relative; overflow: hidden; transition: transform 0.28s, box-shadow 0.28s;
+}
+.db-streak:hover { transform: translateY(-3px); box-shadow: 0 14px 44px rgba(184,90,48,0.22); }
+.db-snum {
+    font-family: 'Jost', sans-serif; font-size: 64px; font-weight: 900;
+    color: #B85A30; line-height: 1; font-variant-numeric: tabular-nums; margin-bottom: 3px;
+}
+.db-slbl { font-size: 8.5px; text-transform: uppercase; letter-spacing: 3px; font-weight: 800; color: #A09080; font-family: 'Jost', sans-serif; }
+.db-sbadge { padding: 3px 10px; border-radius: 100px; font-size: 10.5px; font-weight: 700; background: rgba(184,90,48,0.08); color: #B85A30; border: 1px solid rgba(184,90,48,0.20); font-family: 'Jost', sans-serif; }
+.db-day { display: flex; align-items: center; gap: 11px; padding: 8px 9px; border-radius: 9px; margin-bottom: 2px; transition: background 0.16s; }
+.db-day:hover { background: #F9F5EF; }
+.db-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+.db-day.done .db-dot { background: #2B5A3E; box-shadow: 0 0 0 2.5px rgba(43,90,62,0.14); }
+.db-day.pend .db-dot { background: transparent; border: 1.5px solid #A09080; }
+.db-day-name { font-weight: 700; font-size: 13px; width: 76px; color: #1A1208; font-family: 'Jost', sans-serif; }
+.db-day-ch { flex: 1; font-size: 13px; color: #5A4A32; font-family: 'Jost', sans-serif; }
+.db-day-st { font-size: 14px; font-weight: 700; font-family: 'Jost', sans-serif; }
+.db-day.done .db-day-st { color: #2B5A3E; }
+.db-day.pend .db-day-st { color: #A09080; }
+.db-prog-item { margin-bottom: 14px; }
+.db-prog-item:last-child { margin-bottom: 0; }
+.db-prog-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 5px; }
+.db-prog-name { font-size: 13px; font-weight: 600; color: #1A1208; font-family: 'Jost', sans-serif; }
+.db-prog-pct { font-family: 'Jost', sans-serif; font-size: 15px; font-weight: 800; }
+.db-prog-track { height: 5px; background: #EDE8DF; border-radius: 100px; overflow: hidden; }
+.db-prog-fill { height: 100%; border-radius: 100px; transition: width 1.2s cubic-bezier(0.22,1,0.36,1); }
+.fill-terra { background-image: linear-gradient(90deg,#B85A30 0%,#D46A38 50%,#B85A30 100%); background-size: 200% 100%; animation: shimmer 2.8s linear infinite; box-shadow: 0 0 8px rgba(184,90,48,0.22); }
+.fill-gold { background: #C48A1C; }
+.fill-ts { background: #B85A30; }
+.fill-tw { background: #D46A38; opacity: 0.75; }
+.db-pi { display: flex; align-items: center; gap: 10px; padding: 9px 7px; border-radius: 9px; margin-bottom: 2px; transition: background 0.16s; }
+.db-pi:hover { background: #F9F5EF; }
+.db-pcat { width: 31px; height: 31px; border-radius: 8px; background: #F3EFE7; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; transition: transform 0.22s; }
+.db-pi:hover .db-pcat { transform: scale(1.1); }
+.db-pname { font-size: 13.5px; font-weight: 600; color: #1A1208; line-height: 1.3; font-family: 'Jost', sans-serif; }
+.db-pmeta { font-size: 10.5px; color: #A09080; margin-top: 1px; font-family: 'Jost', sans-serif; }
+.db-pbadge { padding: 3px 10px; border-radius: 100px; font-size: 10px; font-weight: 800; flex-shrink: 0; font-family: 'Jost', sans-serif; }
+.db-ongoing { background: #FDF0E8; color: #B85A30; border: 1px solid rgba(184,90,48,0.20); }
+.db-answered { background: #E8F3ED; color: #2B5A3E; border: 1px solid rgba(43,90,62,0.22); }
+.db-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+.db-abtn { background: #F9F5EF; border: 1.5px solid rgba(26,18,8,0.09); border-radius: 10px; padding: 14px 10px; text-align: center; text-decoration: none; display: block; transition: all 0.22s; }
+.db-abtn:hover { border-color: #B85A30; transform: translateY(-3px); box-shadow: 0 6px 18px rgba(184,90,48,0.12); background: #FDF0E8; }
+.db-aicon { font-size: 20px; margin-bottom: 6px; display: block; }
+.db-albl { font-size: 10px; font-weight: 700; color: #5A4A32; text-transform: uppercase; letter-spacing: 1px; font-family: 'Jost', sans-serif; }
+@keyframes fire { 0%,100%{transform:scaleY(1) rotate(-2deg);} 25%{transform:scaleY(1.08) rotate(1deg);} 50%{transform:scaleY(0.95) rotate(-1deg);} 75%{transform:scaleY(1.05) rotate(2deg);} }
 
 /* ================================================================
    MOBILE — 768px
@@ -1554,7 +1658,7 @@ ENHANCEMENT_CSS = """
     }
     [data-testid="stCheckbox"] label,
     [data-testid="stToggle"] label {
-        font-family: 'Nunito', sans-serif !important;
+        font-family: 'Jost', sans-serif !important;
         font-weight: 600 !important;
         color: #3A3255 !important;
     }
@@ -1562,21 +1666,21 @@ ENHANCEMENT_CSS = """
         background: rgba(42,29,126,0.10) !important;
     }
     .stCaption {
-        font-family: 'Nunito', sans-serif !important;
+        font-family: 'Jost', sans-serif !important;
         color: #8A85A0 !important;
     }
     [data-baseweb="select"] [data-baseweb="menu"] {
         border-radius: 12px !important;
         border: 1px solid rgba(42,29,126,0.10) !important;
         box-shadow: 0 8px 28px rgba(42,29,126,0.10) !important;
-        font-family: 'Nunito', sans-serif !important;
+        font-family: 'Jost', sans-serif !important;
     }
     [data-baseweb="tag"] {
         background: rgba(42,29,126,0.09) !important;
         border-radius: 8px !important;
-        color: #2A1D7E !important;
+        color: #B85A30 !important;
         font-weight: 700 !important;
-        font-family: 'Nunito', sans-serif !important;
+        font-family: 'Jost', sans-serif !important;
     }
 </style>
 """
@@ -1589,14 +1693,14 @@ def inject_styles():
 
 
 def page_header(icon: str, title: str, subtitle: str = ""):
-    """Render the gradient page header with optional subtitle."""
-    sub_html = f'<div class="page-header-sub">{subtitle}</div>' if subtitle else ""
-    st.markdown(f"""
-    <div class="page-header">
-        <div class="page-header-title">{icon} {title}</div>
-        {sub_html}
-    </div>
-    """, unsafe_allow_html=True)
+    """Render the Daybreak warm page header with optional subtitle."""
+    st.markdown(
+        '<div class="page-header">'
+        f'<div class="page-header-title">{icon} {title}</div>'
+        + (f'<div class="page-header-sub">{subtitle}</div>' if subtitle else '')
+        + '</div>',
+        unsafe_allow_html=True
+    )
 
 
 def section_label(text: str):
@@ -1606,14 +1710,15 @@ def section_label(text: str):
 
 def empty_state(icon: str, title: str, subtitle: str = ""):
     """Render a centered empty-state placeholder."""
-    sub_html = f'<div class="empty-state-sub">{subtitle}</div>' if subtitle else ""
-    st.markdown(f"""
-    <div class="empty-state">
-        <div class="empty-state-icon">{icon}</div>
-        <div class="empty-state-title">{title}</div>
-        {sub_html}
-    </div>
-    """, unsafe_allow_html=True)
+    sub_html = f'<div class="empty-state-sub">{subtitle}</div>' if subtitle else ''
+    st.markdown(
+        '<div class="empty-state">'
+        + f'<div class="empty-state-icon">{icon}</div>'
+        + f'<div class="empty-state-title">{title}</div>'
+        + sub_html
+        + '</div>',
+        unsafe_allow_html=True
+    )
 
 
 def spacer(height: int = 16):
@@ -1635,29 +1740,26 @@ def sidebar_logo():
     """Render the sidebar logo block using the SVG brand mark."""
     st.markdown("""
     <div style="text-align:center; padding:10px 0 20px 0;">
-        <!-- SVG brand mark: cross whose horizontal arm is a heartbeat pulse line -->
         <svg width="44" height="44" viewBox="0 0 100 100" fill="none"
              style="margin-bottom:10px; display:inline-block;"
              xmlns="http://www.w3.org/2000/svg">
             <defs>
                 <radialGradient id="lp-sb-glow" cx="50%" cy="50%" r="45%">
-                    <stop offset="0%"   stop-color="#C4902A" stop-opacity="0.14"/>
-                    <stop offset="100%" stop-color="#C4902A" stop-opacity="0"/>
+                    <stop offset="0%"   stop-color="#C48A1C" stop-opacity="0.14"/>
+                    <stop offset="100%" stop-color="#C48A1C" stop-opacity="0"/>
                 </radialGradient>
             </defs>
             <rect width="100" height="100" rx="22" fill="#1A1628"/>
             <rect width="100" height="100" rx="22" fill="url(#lp-sb-glow)"/>
-            <!-- Pulse line: flat left → spike → flat right -->
             <path d="M 8,40 L 24,40 L 27,35 L 31,48 L 42,12 L 54,40"
                   stroke="#C96A3C" stroke-width="3.2"
                   stroke-linecap="round" stroke-linejoin="round"/>
             <line x1="54" y1="40" x2="92" y2="40"
                   stroke="#C96A3C" stroke-width="3.2" stroke-linecap="round"/>
-            <!-- Cross vertical bar anchors the spike -->
             <rect x="46" y="12" width="8" height="76" rx="2.5" fill="#F0E8D6"/>
         </svg>
         <div style="
-            font-family:'Cinzel','Playfair Display',Georgia,serif;
+            font-family:'Cormorant','Cormorant',Georgia,serif;
             font-size:17px;
             font-weight:600;
             color:#1A1208;
@@ -1673,7 +1775,7 @@ def sidebar_logo():
             text-transform:uppercase;
             font-weight:700;
             margin-top:3px;
-            font-family:'Nunito',sans-serif;
+            font-family:'Jost',sans-serif;
             opacity:0.75;
         ">
             Sanctuary

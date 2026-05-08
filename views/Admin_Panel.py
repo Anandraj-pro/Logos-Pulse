@@ -79,16 +79,16 @@ with tab_users:
         empty_state("\U0001f465", "No users found")
     else:
         role_colors = {
-            "admin": "#C44B5B",
-            "bishop": "#2196F3",
-            "pastor": "#3A8F5C",
-            "prayer_warrior": "#5B4FC4",
+            "admin": "#B85A30",
+            "bishop": "#C48A1C",
+            "pastor": "#2B5A3E",
+            "prayer_warrior": "#5A4A32",
         }
         role_bgs = {
-            "admin": "#FFEBEE",
-            "bishop": "#E3F2FD",
-            "pastor": "#E8F5E9",
-            "prayer_warrior": "#EDEBFA",
+            "admin": "#FDF0E8",
+            "bishop": "#FDF6E3",
+            "pastor": "#E4F2EB",
+            "prayer_warrior": "#F9F5EF",
         }
 
         for user in users_display:
@@ -99,28 +99,29 @@ with tab_users:
             pw_flag = " \U0001f534" if user["must_change_password"] else ""
             card_info = f" | Card: {user['membership_card_id']}" if user.get("membership_card_id") else ""
 
-            st.markdown(f"""
-            <div class="entry-card">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div>
-                        <span style="font-family:'DM Serif Display',Georgia,serif; font-size:15px; color:#2A2438;">
-                            {user['preferred_name'] or user['first_name']} {user['last_name']}
-                        </span>
-                        <span style="background:{r_bg}; color:{r_color}; padding:2px 10px;
-                                     border-radius:10px; font-size:11px; font-weight:600; margin-left:8px;">
-                            {r_label}
-                        </span>
-                        {f'<span style="font-size:11px; color:#C44B5B; margin-left:6px;" title="Must change password">{pw_flag}</span>' if pw_flag else ''}
-                    </div>
-                    <div style="font-size:12px; color:#9E96AB;">
-                        {user['created_at'][:10] if user['created_at'] else ''}
-                    </div>
-                </div>
-                <div style="font-size:13px; color:#6B6580; margin-top:4px;">
-                    {user['email']}{card_info}
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+            pw_flag_html = '<span style="font-size:11px; color:#9C2424; margin-left:6px;" title="Must change password">' + pw_flag + '</span>' if pw_flag else ''
+            st.markdown(
+                '<div class="entry-card">'
+                '<div style="display:flex; justify-content:space-between; align-items:center;">'
+                '<div>'
+                '<span style="font-family:\'Cormorant\',Georgia,serif; font-size:15px; color:#1A1208;">'
+                + (user['preferred_name'] or user['first_name']) + ' ' + user['last_name'] +
+                '</span>'
+                '<span style="background:' + r_bg + '; color:' + r_color + '; padding:2px 10px;'
+                ' border-radius:10px; font-size:11px; font-weight:600; margin-left:8px;">'
+                + r_label + '</span>'
+                + pw_flag_html +
+                '</div>'
+                '<div style="font-size:12px; color:#A09080;">'
+                + (user['created_at'][:10] if user['created_at'] else '') +
+                '</div>'
+                '</div>'
+                '<div style="font-size:13px; color:#5A4A32; margin-top:4px;">'
+                + user['email'] + card_info +
+                '</div>'
+                '</div>',
+                unsafe_allow_html=True
+            )
 
             # Action buttons
             col_reset, col_del = st.columns([1, 1])
@@ -158,7 +159,7 @@ with tab_create:
     section_label("Create a New Account")
 
     st.markdown("""
-    <div style="font-size:13px; color:#9E96AB; margin-bottom:16px;">
+    <div style="font-size:13px; color:#A09080; margin-bottom:16px;">
         Create Bishop, Pastor, or Prayer Warrior accounts. Each role gets a default password
         that must be changed on first login.
     </div>
@@ -245,7 +246,7 @@ with tab_bulk:
     section_label("Bulk Account Creation via CSV")
 
     st.markdown("""
-    <div style="font-size:13px; color:#9E96AB; margin-bottom:16px;">
+    <div style="font-size:13px; color:#A09080; margin-bottom:16px;">
         Upload a CSV file to create multiple accounts at once.
         Each row creates one account with the role-specific default password.
     </div>
@@ -384,15 +385,18 @@ with tab_announce:
     section_label("Active Announcements")
     _all_ann = admin.table("announcements").select("*").eq("is_active", True).order("created_at", desc=True).execute()
     for a in (_all_ann.data or []):
-        st.markdown(f"""
-        <div class="entry-card">
-            <div style="font-weight:600; color:#2A2438;">\U0001f4e2 {a['title']}</div>
-            <div style="font-size:13px; color:#6B6580; margin-top:4px;">{a['message']}</div>
-            <div style="font-size:11px; color:#9E96AB; margin-top:4px;">
-                Target: {a.get('target_role', 'all').replace('_',' ').title()} | {(a.get('created_at') or '')[:10]}
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        ann_role_label = a.get('target_role', 'all').replace('_', ' ').title()
+        ann_date = (a.get('created_at') or '')[:10]
+        st.markdown(
+            '<div class="entry-card">'
+            '<div style="font-weight:600; color:#1A1208;">\U0001f4e2 ' + a['title'] + '</div>'
+            '<div style="font-size:13px; color:#5A4A32; margin-top:4px;">' + a['message'] + '</div>'
+            '<div style="font-size:11px; color:#A09080; margin-top:4px;">'
+            'Target: ' + ann_role_label + ' | ' + ann_date +
+            '</div>'
+            '</div>',
+            unsafe_allow_html=True
+        )
         if st.button("Deactivate", key=f"deact_{a['id']}", use_container_width=True):
             admin.table("announcements").update({"is_active": False}).eq("id", a["id"]).execute()
             _db.log_audit("announcement.removed", target_type="announcement",
@@ -402,11 +406,11 @@ with tab_announce:
 # ==================== AUDIT LOG ====================
 with tab_audit:
     _ACTION_META = {
-        "user.created":          ("#3A8F5C", "#E8F5E9",  "\ud83d\udc64 Created"),
-        "user.deleted":          ("#C44B5B", "#FFEBEE",  "\ud83d\uddd1\ufe0f Deleted"),
-        "user.password_reset":   ("#D4853A", "#FFF3E0",  "\ud83d\udd11 Pwd Reset"),
-        "announcement.created":  ("#5B4FC4", "#EDEBFA",  "\ud83d\udce2 Announced"),
-        "announcement.removed":  ("#9E96AB", "#F5F3FA",  "\ud83d\udced Ann. Removed"),
+        "user.created":          ("#2B5A3E", "#E4F2EB",  "\ud83d\udc64 Created"),
+        "user.deleted":          ("#9C2424", "#FDF0E8",  "\ud83d\uddd1\ufe0f Deleted"),
+        "user.password_reset":   ("#C48A1C", "#FDF6E3",  "\ud83d\udd11 Pwd Reset"),
+        "announcement.created":  ("#B85A30", "#FDF0E8",  "\ud83d\udce2 Announced"),
+        "announcement.removed":  ("#A09080", "#F9F5EF",  "\ud83d\udced Ann. Removed"),
     }
 
     audit_all = _db.get_audit_log(limit=200)
@@ -424,42 +428,41 @@ with tab_audit:
         and (not search_actor or search_actor.lower() in e.get("actor_name", "").lower())
     ]
 
-    st.markdown(f"""
-    <div style="font-size:12px; color:#9E96AB; margin-bottom:8px;">
-        Showing {len(audit_entries)} of {len(audit_all)} entries
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown(
+        '<div style="font-size:12px; color:#A09080; margin-bottom:8px;">Showing '
+        + str(len(audit_entries)) + ' of ' + str(len(audit_all)) + ' entries</div>',
+        unsafe_allow_html=True
+    )
 
     if not audit_entries:
         empty_state("\U0001f4dc", "No audit entries yet", "Actions will be logged as users interact with the system")
     else:
         for entry in audit_entries:
             action = entry.get("action", "")
-            color, bg, label = _ACTION_META.get(action, ("#9E96AB", "#F5F3FA", action))
+            color, bg, label = _ACTION_META.get(action, ("#A09080", "#F5F3FA", action))
             log_date = (entry.get("created_at") or "")[:19].replace("T", " ")
             details = entry.get("details") or {}
             detail_parts = [f"{k}: {v}" for k, v in details.items() if v is not None]
             detail_str = " &nbsp;\u00b7&nbsp; ".join(detail_parts)
 
-            st.markdown(f"""
-            <div class="entry-card" style="padding:10px 14px; margin-bottom:4px;">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <span style="background:{bg}; color:{color}; font-size:11px; font-weight:600;
-                                     padding:2px 8px; border-radius:8px; white-space:nowrap;">
-                            {label}
-                        </span>
-                        <span style="font-size:13px; color:#2A2438; font-weight:500;">
-                            {entry.get('actor_name', 'System')}
-                        </span>
-                    </div>
-                    <span style="font-size:11px; color:#C0B8CC; white-space:nowrap; margin-left:12px;">
-                        {log_date}
-                    </span>
-                </div>
-                {f'<div style="font-size:12px; color:#9E96AB; margin-top:4px;">{detail_str}</div>' if detail_str else ""}
-            </div>
-            """, unsafe_allow_html=True)
+            detail_html = '<div style="font-size:12px; color:#A09080; margin-top:4px;">' + detail_str + '</div>' if detail_str else ''
+            st.markdown(
+                '<div class="entry-card" style="padding:10px 14px; margin-bottom:4px;">'
+                '<div style="display:flex; justify-content:space-between; align-items:center;">'
+                '<div style="display:flex; align-items:center; gap:10px;">'
+                '<span style="background:' + bg + '; color:' + color + '; font-size:11px; font-weight:600;'
+                ' padding:2px 8px; border-radius:8px; white-space:nowrap;">'
+                + label + '</span>'
+                '<span style="font-size:13px; color:#1A1208; font-weight:500;">'
+                + entry.get('actor_name', 'System') + '</span>'
+                '</div>'
+                '<span style="font-size:11px; color:#A09080; white-space:nowrap; margin-left:12px;">'
+                + log_date + '</span>'
+                '</div>'
+                + detail_html +
+                '</div>',
+                unsafe_allow_html=True
+            )
 
 # ==================== ANALYTICS ====================
 with tab_analytics:
@@ -482,33 +485,13 @@ with tab_analytics:
     col1, col2, col3, col4 = st.columns(4)
 
     with col1:
-        st.markdown(f"""
-        <div class="stat-card">
-            <div class="stat-value" style="color:#2A2438;">{total}</div>
-            <div class="stat-label">Total Users</div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(f'<div class="stat-card"><div class="stat-value" style="color:#1A1208;">{total}</div><div class="stat-label">Total Users</div></div>', unsafe_allow_html=True)
     with col2:
-        st.markdown(f"""
-        <div class="stat-card">
-            <div class="stat-value" style="color:#2196F3;">{counts['bishop']}</div>
-            <div class="stat-label">Bishops</div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(f'<div class="stat-card"><div class="stat-value" style="color:#C48A1C;">{counts["bishop"]}</div><div class="stat-label">Bishops</div></div>', unsafe_allow_html=True)
     with col3:
-        st.markdown(f"""
-        <div class="stat-card">
-            <div class="stat-value" style="color:#3A8F5C;">{counts['pastor']}</div>
-            <div class="stat-label">Pastors</div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(f'<div class="stat-card"><div class="stat-value" style="color:#2B5A3E;">{counts["pastor"]}</div><div class="stat-label">Pastors</div></div>', unsafe_allow_html=True)
     with col4:
-        st.markdown(f"""
-        <div class="stat-card">
-            <div class="stat-value" style="color:#5B4FC4;">{counts['prayer_warrior']}</div>
-            <div class="stat-label">Prayer Warriors</div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(f'<div class="stat-card"><div class="stat-value" style="color:#B85A30;">{counts["prayer_warrior"]}</div><div class="stat-label">Prayer Warriors</div></div>', unsafe_allow_html=True)
 
     spacer()
 
@@ -528,21 +511,20 @@ with tab_analytics:
 
     col1, col2 = st.columns(2)
     with col1:
-        st.markdown(f"""
-        <div class="stat-card">
-            <div class="stat-value" style="color:#3A8F5C;">{logged_today}</div>
-            <div class="stat-label">Logged Today</div>
-            <div style="font-size:11px; color:#C0B8CC; margin-top:2px;">out of {pw_count} warriors</div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(
+            '<div class="stat-card">'
+            f'<div class="stat-value" style="color:#2B5A3E;">{logged_today}</div>'
+            '<div class="stat-label">Logged Today</div>'
+            f'<div style="font-size:11px; color:#A09080; margin-top:2px;">out of {pw_count} warriors</div>'
+            '</div>',
+            unsafe_allow_html=True
+        )
     with col2:
-        pct_color = "#3A8F5C" if login_pct >= 70 else "#D4853A" if login_pct >= 40 else "#C44B5B"
-        st.markdown(f"""
-        <div class="stat-card">
-            <div class="stat-value" style="color:{pct_color};">{login_pct}%</div>
-            <div class="stat-label">Engagement Rate</div>
-        </div>
-        """, unsafe_allow_html=True)
+        pct_color = "#2B5A3E" if login_pct >= 70 else "#C48A1C" if login_pct >= 40 else "#9C2424"
+        st.markdown(
+            f'<div class="stat-card"><div class="stat-value" style="color:{pct_color};">{login_pct}%</div><div class="stat-label">Engagement Rate</div></div>',
+            unsafe_allow_html=True
+        )
 
     # Pending password changes
     spacer()

@@ -79,28 +79,13 @@ with tab_members:
 
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.markdown(f"""
-        <div class="stat-card">
-            <div class="stat-value" style="color:#5B4FC4;">{total_count}</div>
-            <div class="stat-label">Total Members</div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(f'<div class="stat-card"><div class="stat-value" style="color:#B85A30;">{total_count}</div><div class="stat-label">Total Members</div></div>', unsafe_allow_html=True)
     with col2:
-        color = "#3A8F5C" if pct >= 70 else "#D4853A" if pct >= 40 else "#C44B5B"
-        st.markdown(f"""
-        <div class="stat-card">
-            <div class="stat-value" style="color:{color};">{logged_count}/{total_count}</div>
-            <div class="stat-label">Logged Today</div>
-        </div>
-        """, unsafe_allow_html=True)
+        color = "#2B5A3E" if pct >= 70 else "#C48A1C" if pct >= 40 else "#9C2424"
+        st.markdown(f'<div class="stat-card"><div class="stat-value" style="color:{color};">{logged_count}/{total_count}</div><div class="stat-label">Logged Today</div></div>', unsafe_allow_html=True)
     with col3:
         reports_copied = sum(1 for e in (today_entries.data or []) if e.get("report_copied"))
-        st.markdown(f"""
-        <div class="stat-card">
-            <div class="stat-value" style="color:#D4853A;">{reports_copied}</div>
-            <div class="stat-label">Reports Sent</div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(f'<div class="stat-card"><div class="stat-value" style="color:#C48A1C;">{reports_copied}</div><div class="stat-label">Reports Sent</div></div>', unsafe_allow_html=True)
 
     spacer()
     section_label("Members")
@@ -134,8 +119,8 @@ with tab_members:
             continue
 
         status_icon = "\u2705" if logged else "\u274c"
-        status_color = "#3A8F5C" if logged else "#C44B5B"
-        status_bg = "#E8F5E9" if logged else "#FFEBEE"
+        status_color = "#2B5A3E" if logged else "#9C2424"
+        status_bg = "#E4F2EB" if logged else "#FDF0E8"
 
         details = ""
         if entry:
@@ -145,25 +130,25 @@ with tab_members:
 
         card_id_text = f" | Card: {member['membership_card_id']}" if member.get("membership_card_id") else ""
 
-        st.markdown(f"""
-        <div class="entry-card">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <div>
-                    <span style="font-family:'DM Serif Display',Georgia,serif; font-size:15px; color:#2A2438;">
-                        {status_icon} {member['display_name']}
-                    </span>
-                    <span style="font-size:12px; color:#9E96AB; margin-left:8px;">
-                        {member['email']}{card_id_text}
-                    </span>
-                </div>
-                <span style="background:{status_bg}; color:{status_color}; padding:2px 10px;
-                             border-radius:10px; font-size:11px; font-weight:600;">
-                    {"Logged" if logged else "Pending"}
-                </span>
-            </div>
-            {"<div style='font-size:13px; color:#6B6580; margin-top:6px;'>" + details + "</div>" if details else ""}
-        </div>
-        """, unsafe_allow_html=True)
+        status_label = "Logged" if logged else "Pending"
+        details_html = '<div style="font-size:13px; color:#5A4A32; margin-top:6px;">' + details + '</div>' if details else ''
+        st.markdown(
+            '<div class="entry-card">'
+            '<div style="display:flex; justify-content:space-between; align-items:center;">'
+            '<div>'
+            '<span style="font-family:\'Cormorant\',Georgia,serif; font-size:15px; color:#1A1208;">'
+            + status_icon + ' ' + member['display_name'] + '</span>'
+            '<span style="font-size:12px; color:#A09080; margin-left:8px;">'
+            + member['email'] + card_id_text + '</span>'
+            '</div>'
+            '<span style="background:' + status_bg + '; color:' + status_color + '; padding:2px 10px;'
+            ' border-radius:10px; font-size:11px; font-weight:600;">'
+            + status_label + '</span>'
+            '</div>'
+            + details_html +
+            '</div>',
+            unsafe_allow_html=True
+        )
 
         if st.button(f"View {member['display_name']}", key=f"view_{uid}", use_container_width=True):
             st.session_state["viewing_member_id"] = uid
@@ -208,23 +193,23 @@ with tab_followup:
         st.warning(f"{len(needs_followup)} member(s) need follow-up")
 
         for m in needs_followup:
-            urgency_color = "#C44B5B" if m["days_since"] >= 7 else "#D4853A"
-            st.markdown(f"""
-            <div class="entry-card" style="border-left:3px solid {urgency_color};">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span style="font-family:'DM Serif Display',Georgia,serif; font-size:15px; color:#2A2438;">
-                        {m['display_name']}
-                    </span>
-                    <span style="background:#FFEBEE; color:{urgency_color}; padding:2px 10px;
-                                 border-radius:10px; font-size:11px; font-weight:600;">
-                        {m['days_since']} days inactive
-                    </span>
-                </div>
-                <div style="font-size:12px; color:#9E96AB; margin-top:4px;">
-                    Last logged: {m['last_date']} | {m['email']}
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+            urgency_color = "#9C2424" if m["days_since"] >= 7 else "#C48A1C"
+            urgency_bg = "#FDF0E8" if m["days_since"] >= 7 else "#FDF6E3"
+            st.markdown(
+                '<div class="entry-card" style="border-left:3px solid ' + urgency_color + ';">'
+                '<div style="display:flex; justify-content:space-between; align-items:center;">'
+                '<span style="font-family:\'Cormorant\',Georgia,serif; font-size:15px; color:#1A1208;">'
+                + m['display_name'] + '</span>'
+                '<span style="background:' + urgency_bg + '; color:' + urgency_color + '; padding:2px 10px;'
+                ' border-radius:10px; font-size:11px; font-weight:600;">'
+                + str(m['days_since']) + ' days inactive</span>'
+                '</div>'
+                '<div style="font-size:12px; color:#A09080; margin-top:4px;">'
+                'Last logged: ' + m['last_date'] + ' | ' + m['email'] +
+                '</div>'
+                '</div>',
+                unsafe_allow_html=True
+            )
 
             col_note, col_log = st.columns([3, 1])
             with col_note:
@@ -260,11 +245,14 @@ with tab_followup:
             except Exception:
                 fu_name = "Member"
             log_date = (log.get("created_at") or "")[:10]
-            st.markdown(f"""
-            <div style="font-size:13px; color:#6B6580; padding:6px 0; border-bottom:1px solid #EDE8F5;">
-                <b>{fu_name}</b> \u2014 {log.get('notes', '')} <span style="color:#9E96AB; font-size:11px;">({log_date})</span>
-            </div>
-            """, unsafe_allow_html=True)
+            log_notes = log.get('notes', '')
+            st.markdown(
+                '<div style="font-size:13px; color:#5A4A32; padding:6px 0; border-bottom:1px solid #F3EFE7;">'
+                '<b>' + fu_name + '</b> \u2014 ' + log_notes +
+                ' <span style="color:#A09080; font-size:11px;">(' + log_date + ')</span>'
+                '</div>',
+                unsafe_allow_html=True
+            )
     else:
         st.caption("No follow-up logs yet")
 
@@ -299,33 +287,29 @@ with tab_leaderboard:
     for rank, ms in enumerate(member_streaks, 1):
         medal = "\U0001f947" if rank == 1 else "\U0001f948" if rank == 2 else "\U0001f949" if rank == 3 else f"#{rank}"
         streak = ms["current_streak"]
-        streak_color = "#3A8F5C" if streak >= 7 else "#D4853A" if streak >= 3 else "#C44B5B" if streak == 0 else "#5B4FC4"
+        streak_color = "#2B5A3E" if streak >= 7 else "#C48A1C" if streak >= 3 else "#9C2424" if streak == 0 else "#B85A30"
         streak_emoji = "\U0001f525" if streak >= 7 else "\u2b50" if streak >= 3 else ""
 
-        st.markdown(f"""
-        <div class="entry-card">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <div style="display:flex; align-items:center; gap:12px;">
-                    <span style="font-size:20px; min-width:32px; text-align:center;">{medal}</span>
-                    <div>
-                        <span style="font-family:'DM Serif Display',Georgia,serif; font-size:15px; color:#2A2438;">
-                            {ms['display_name']}
-                        </span>
-                        <div style="font-size:12px; color:#9E96AB;">
-                            Best: {ms['best_streak']} days | Total: {ms['total_entries']} entries
-                        </div>
-                    </div>
-                </div>
-                <div style="text-align:right;">
-                    <span style="font-family:'DM Serif Display',Georgia,serif; font-size:24px; color:{streak_color};">
-                        {streak}
-                    </span>
-                    <span style="font-size:14px;"> {streak_emoji}</span>
-                    <div style="font-size:10px; color:#9E96AB; text-transform:uppercase; letter-spacing:1px;">day streak</div>
-                </div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(
+            '<div class="entry-card">'
+            '<div style="display:flex; justify-content:space-between; align-items:center;">'
+            '<div style="display:flex; align-items:center; gap:12px;">'
+            f'<span style="font-size:20px; min-width:32px; text-align:center;">{medal}</span>'
+            '<div>'
+            '<span style="font-family:\'Cormorant\',Georgia,serif; font-size:15px; color:#1A1208;">'
+            + ms['display_name'] + '</span>'
+            f'<div style="font-size:12px; color:#A09080;">Best: {ms["best_streak"]} days | Total: {ms["total_entries"]} entries</div>'
+            '</div>'
+            '</div>'
+            '<div style="text-align:right;">'
+            f'<span style="font-family:\'Cormorant\',Georgia,serif; font-size:24px; color:{streak_color};">{streak}</span>'
+            f'<span style="font-size:14px;"> {streak_emoji}</span>'
+            '<div style="font-size:10px; color:#A09080; text-transform:uppercase; letter-spacing:1px;">day streak</div>'
+            '</div>'
+            '</div>'
+            '</div>',
+            unsafe_allow_html=True
+        )
 
 # ==================== SHARED PRAYERS TAB ====================
 with tab_prayers:
@@ -339,47 +323,48 @@ with tab_prayers:
 
         for prayer in shared_prayers:
             status_config = {
-                "ongoing": ("#D4853A", "#FFF3E0", "Ongoing"),
-                "answered": ("#3A8F5C", "#E8F5E9", "Answered"),
-                "standing_in_faith": ("#5B4FC4", "#EDEBFA", "Standing in Faith"),
+                "ongoing": ("#C48A1C", "#FFF3E0", "Ongoing"),
+                "answered": ("#2B5A3E", "#E4F2EB", "Answered"),
+                "standing_in_faith": ("#B85A30", "#EDEBFA", "Standing in Faith"),
             }
             p_status = prayer.get("status", "ongoing")
             s_color, s_bg, s_label = status_config.get(p_status, ("#888", "#F5F5F5", p_status))
             shared_date = (prayer.get("shared_at") or "")[:10]
 
-            st.markdown(f"""
-            <div class="entry-card" style="border-left:3px solid {s_color};">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div>
-                        <span style="font-family:'DM Serif Display',Georgia,serif; font-size:15px; color:#2A2438;">
-                            {prayer['title']}
-                        </span>
-                        <span style="font-size:12px; color:#9E96AB; margin-left:8px;">
-                            from {prayer.get('member_name', 'Member')}
-                        </span>
-                    </div>
-                    <span style="background:{s_bg}; color:{s_color}; padding:2px 10px;
-                                 border-radius:10px; font-size:11px; font-weight:600;">
-                        {s_label}
-                    </span>
-                </div>
-                {"<div style='font-size:14px; color:#6B6580; margin-top:8px; line-height:1.6; font-style:italic;'>" + prayer['prayer_text'][:200].replace(chr(10), '<br/>') + ('...' if len(prayer.get('prayer_text','')) > 200 else '') + "</div>" if prayer.get('prayer_text') else ""}
-                <div style="font-size:11px; color:#C0B8CC; margin-top:6px;">
-                    Shared on {shared_date}
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+            prayer_body_html = ''
+            if prayer.get('prayer_text'):
+                truncated = prayer['prayer_text'][:200].replace(chr(10), '<br/>')
+                ellipsis = '...' if len(prayer.get('prayer_text', '')) > 200 else ''
+                prayer_body_html = '<div style="font-size:14px; color:#5A4A32; margin-top:8px; line-height:1.6; font-style:italic;">' + truncated + ellipsis + '</div>'
+            st.markdown(
+                '<div class="entry-card" style="border-left:3px solid ' + s_color + ';">'
+                '<div style="display:flex; justify-content:space-between; align-items:center;">'
+                '<div>'
+                '<span style="font-family:\'Cormorant\',Georgia,serif; font-size:15px; color:#1A1208;">'
+                + prayer['title'] + '</span>'
+                '<span style="font-size:12px; color:#A09080; margin-left:8px;">from '
+                + prayer.get('member_name', 'Member') + '</span>'
+                '</div>'
+                '<span style="background:' + s_bg + '; color:' + s_color + '; padding:2px 10px;'
+                ' border-radius:10px; font-size:11px; font-weight:600;">'
+                + s_label + '</span>'
+                '</div>'
+                + prayer_body_html +
+                '<div style="font-size:11px; color:#A09080; margin-top:6px;">Shared on ' + shared_date + '</div>'
+                '</div>',
+                unsafe_allow_html=True
+            )
 
 # ==================== CREATE ASSIGNMENT TAB ====================
 with tab_assign:
     section_label("Assign Bible Reading to Group")
 
-    st.markdown(f"""
-    <div style="font-size:13px; color:#9E96AB; margin-bottom:16px;">
-        This assignment will be pushed to all <b>{len(members)}</b> member(s) in your group.
-        It replaces any active assignment they currently have.
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown(
+        f'<div style="font-size:13px; color:#A09080; margin-bottom:16px;">'
+        f'This assignment will be pushed to all <b>{len(members)}</b> member(s) in your group. '
+        f'It replaces any active assignment they currently have.</div>',
+        unsafe_allow_html=True
+    )
 
     # REQ-2: Multi-book assignment support
     st.caption("You can add multiple book ranges (e.g., Hebrews 7-13 + 1 Corinthians 7-11)")
@@ -448,21 +433,21 @@ with tab_assign:
             chapters = breakdown.get(key, [])
             if chapters:
                 ch_range = f"Ch {chapters[0]}\u2013{chapters[-1]}" if len(chapters) > 1 else f"Ch {chapters[0]}"
-                st.markdown(f"""
-                <div class="day-row day-pending">
-                    <span class="day-name">{label}</span>
-                    <span class="day-chapters">{ch_range} ({len(chapters)} ch)</span>
-                </div>
-                """, unsafe_allow_html=True)
+                st.markdown(
+                    f'<div class="day-row day-pending">'
+                    f'<span class="day-name">{label}</span>'
+                    f'<span class="day-chapters">{ch_range} ({len(chapters)} ch)</span>'
+                    f'</div>',
+                    unsafe_allow_html=True
+                )
 
         spacer(12)
 
-        st.markdown(f"""
-        <div class="goal-banner">
-            \U0001f465 This will be assigned to <b>{len(members)}</b> member(s):
-            {', '.join(m['display_name'] for m in members[:5])}{'...' if len(members) > 5 else ''}
-        </div>
-        """, unsafe_allow_html=True)
+        member_names = ', '.join(m['display_name'] for m in members[:5]) + ('...' if len(members) > 5 else '')
+        st.markdown(
+            f'<div class="goal-banner">\U0001f465 This will be assigned to <b>{len(members)}</b> member(s): {member_names}</div>',
+            unsafe_allow_html=True
+        )
 
         if st.button("Assign to Group", type="primary", use_container_width=True):
             ws = st.session_state["grp_week_start"]
@@ -517,37 +502,34 @@ with tab_history:
             active_count = sum(1 for r in (same_assignment.data or []) if r["status"] == "ACTIVE")
 
             status_config = {
-                "ACTIVE": ("#D4853A", "#FFF3E0", "\U0001f7e1"),
-                "COMPLETED": ("#3A8F5C", "#E8F5E9", "\u2705"),
+                "ACTIVE": ("#C48A1C", "#FDF6E3", "\U0001f7e1"),
+                "COMPLETED": ("#2B5A3E", "#E4F2EB", "\u2705"),
             }
             s_color, s_bg, s_icon = status_config.get(
                 "ACTIVE" if active_count > 0 else "COMPLETED",
-                ("#888", "#F5F5F5", "\u26aa")
+                ("#5A4A32", "#F9F5EF", "\u26aa")
             )
 
             assign_key = f"{a['book']}_{a['start_chapter']}_{a['week_start_date']}"
 
-            st.markdown(f"""
-            <div class="entry-card">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div>
-                        <span style="font-family:'DM Serif Display',Georgia,serif; font-weight:400; color:#2A2438; font-size:15px;">
-                            {s_icon} {a['book']} {a['start_chapter']}\u2013{a['end_chapter']}
-                        </span>
-                        <span style="font-size:12px; color:#9E96AB; margin-left:8px;">
-                            {a['total_chapters']} chapters | {member_count} members
-                        </span>
-                    </div>
-                    <span style="background:{s_bg}; color:{s_color}; padding:3px 10px;
-                                 border-radius:12px; font-size:11px; font-weight:600;">
-                        {active_count} active
-                    </span>
-                </div>
-                <div style="font-size:12px; color:#9E96AB; margin-top:4px;">
-                    Week of {a['week_start_date']}
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+            st.markdown(
+                '<div class="entry-card">'
+                '<div style="display:flex; justify-content:space-between; align-items:center;">'
+                '<div>'
+                '<span style="font-family:\'Cormorant\',Georgia,serif; font-weight:400; color:#1A1208; font-size:15px;">'
+                + s_icon + ' ' + a['book'] + ' ' + str(a['start_chapter']) + '\u2013' + str(a['end_chapter']) +
+                '</span>'
+                '<span style="font-size:12px; color:#A09080; margin-left:8px;">'
+                + str(a['total_chapters']) + ' chapters | ' + str(member_count) + ' members</span>'
+                '</div>'
+                '<span style="background:' + s_bg + '; color:' + s_color + '; padding:3px 10px;'
+                ' border-radius:12px; font-size:11px; font-weight:600;">'
+                + str(active_count) + ' active</span>'
+                '</div>'
+                '<div style="font-size:12px; color:#A09080; margin-top:4px;">Week of ' + a['week_start_date'] + '</div>'
+                '</div>',
+                unsafe_allow_html=True
+            )
 
             # Cancel button for active assignments
             if active_count > 0:
@@ -584,12 +566,13 @@ with tab_confessions:
         assigned_plans = db.get_pastor_assigned_plans(viewing_pastor_id)
 
         if assigned_plans:
-            st.markdown(f"""
-            <div class="stat-card" style="text-align:center;">
-                <div class="stat-value">{len(assigned_plans)}</div>
-                <div class="stat-label">Active Confession Assignments</div>
-            </div>
-            """, unsafe_allow_html=True)
+            st.markdown(
+                f'<div class="stat-card" style="text-align:center;">'
+                f'<div class="stat-value">{len(assigned_plans)}</div>'
+                f'<div class="stat-label">Active Confession Assignments</div>'
+                f'</div>',
+                unsafe_allow_html=True
+            )
             spacer()
 
             for plan in assigned_plans:
@@ -626,24 +609,25 @@ with tab_confessions:
                 else:
                     days_since = "Not started"
 
-                st.markdown(f"""
-                <div class="entry-card" style="padding:16px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <div>
-                            <strong>{member_name}</strong>
-                            <span style="color:#6B6580; font-size:13px;"> &mdash; {tpl.get('name', 'Confession')}</span>
-                        </div>
-                        <span style="font-size:12px; color:#6B6580;">{progress_text}</span>
-                    </div>
-                    <div style="display:flex; justify-content:space-between; margin-top:8px;">
-                        <span style="font-size:12px; color:#9E96AB;">Last active: {days_since}</span>
-                        <span style="font-size:12px; color:#9E96AB;">{plan.get('plan_type', '').replace('_', ' ').title()}</span>
-                    </div>
-                    <div style="height:4px; background:#EDE8F5; border-radius:2px; margin-top:8px; overflow:hidden;">
-                        <div style="height:100%; width:{pct:.0f}%; background:#5B4FC4; border-radius:2px;"></div>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
+                plan_type_label = plan.get('plan_type', '').replace('_', ' ').title()
+                st.markdown(
+                    '<div class="entry-card" style="padding:16px;">'
+                    '<div style="display:flex; justify-content:space-between; align-items:center;">'
+                    '<div><strong>' + member_name + '</strong>'
+                    '<span style="color:#5A4A32; font-size:13px;"> &mdash; ' + tpl.get('name', 'Confession') + '</span>'
+                    '</div>'
+                    '<span style="font-size:12px; color:#5A4A32;">' + progress_text + '</span>'
+                    '</div>'
+                    '<div style="display:flex; justify-content:space-between; margin-top:8px;">'
+                    '<span style="font-size:12px; color:#A09080;">Last active: ' + days_since + '</span>'
+                    '<span style="font-size:12px; color:#A09080;">' + plan_type_label + '</span>'
+                    '</div>'
+                    '<div style="height:4px; background:#F3EFE7; border-radius:2px; margin-top:8px; overflow:hidden;">'
+                    f'<div style="height:100%; width:{pct:.0f}%; background:#B85A30; border-radius:2px;"></div>'
+                    '</div>'
+                    '</div>',
+                    unsafe_allow_html=True
+                )
         else:
             empty_state("✝️", "No Confession Assignments", "Assign confessions to members below.")
 
@@ -778,25 +762,24 @@ with tab_care:
             m_name = task.get("member_name", member_name_map.get(task["member_id"], "Member"))
             due_str = task.get("due_date") or "—"
             overdue = task.get("due_date") and task["due_date"] < date.today().isoformat()
-            badge_color = "#C44B5B" if overdue else "#D4853A"
+            badge_color = "#9C2424" if overdue else "#C48A1C"
             badge_label = "OVERDUE" if overdue else task["care_type"]
-
-            st.markdown(f"""
-            <div class="entry-card" style="border-left:4px solid {badge_color};">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div>
-                        <span style="font-weight:600; color:#2A2438;">{m_name}</span>
-                        <span style="background:{badge_color}20; color:{badge_color};
-                                     padding:2px 8px; border-radius:8px; font-size:11px;
-                                     font-weight:600; margin-left:8px;">
-                            {badge_label}
-                        </span>
-                    </div>
-                    <div style="font-size:12px; color:#9E96AB;">Due: {due_str}</div>
-                </div>
-                {f'<div style="font-size:13px; color:#6B6580; margin-top:4px;">{task["note"]}</div>' if task.get("note") else ''}
-            </div>
-            """, unsafe_allow_html=True)
+            note_html = '<div style="font-size:13px; color:#5A4A32; margin-top:4px;">' + task["note"] + '</div>' if task.get("note") else ''
+            st.markdown(
+                '<div class="entry-card" style="border-left:4px solid ' + badge_color + ';">'
+                '<div style="display:flex; justify-content:space-between; align-items:center;">'
+                '<div>'
+                '<span style="font-weight:600; color:#1A1208;">' + m_name + '</span>'
+                '<span style="background:' + badge_color + '20; color:' + badge_color + ';'
+                ' padding:2px 8px; border-radius:8px; font-size:11px; font-weight:600; margin-left:8px;">'
+                + badge_label + '</span>'
+                '</div>'
+                '<div style="font-size:12px; color:#A09080;">Due: ' + due_str + '</div>'
+                '</div>'
+                + note_html +
+                '</div>',
+                unsafe_allow_html=True
+            )
 
             if st.button("Mark Done", key=f"done_{task['id']}", use_container_width=False):
                 complete_care_task(task["id"])
@@ -871,25 +854,22 @@ with tab_plans:
                 current = row.get("current_day", 1)
                 done = current - 1
                 pct = int(done / total * 100) if total > 0 else 0
-                pct_color = "#3A8F5C" if pct >= 70 else "#D4853A" if pct >= 30 else "#5B4FC4"
+                pct_color = "#3A8F5C" if pct >= 70 else "#C48A1C" if pct >= 30 else "#B85A30"
                 m_name = row.get("member_name", "Member")
 
-                st.markdown(f"""
-                <div class="entry-card">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                        <div>
-                            <span style="font-weight:600; color:#2A2438;">{m_name}</span>
-                            <span style="font-size:12px; color:#9E96AB; margin-left:8px;">{rp.get('name', '')}</span>
-                        </div>
-                        <span style="font-size:12px; color:{pct_color}; font-weight:600;">
-                            Day {done}/{total} ({pct}%)
-                        </span>
-                    </div>
-                    <div class="progress-bar-bg" style="height:6px;">
-                        <div class="progress-bar-fill" style="width:{pct}%; background:{pct_color};"></div>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
+                st.markdown(
+                    '<div class="entry-card">'
+                    '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">'
+                    '<div>'
+                    '<span style="font-weight:600; color:#1A1208;">' + m_name + '</span>'
+                    '<span style="font-size:12px; color:#A09080; margin-left:8px;">' + rp.get('name', '') + '</span>'
+                    '</div>'
+                    f'<span style="font-size:12px; color:{pct_color}; font-weight:600;">Day {done}/{total} ({pct}%)</span>'
+                    '</div>'
+                    f'<div class="progress-bar-bg" style="height:6px;"><div class="progress-bar-fill" style="width:{pct}%; background:{pct_color};"></div></div>'
+                    '</div>',
+                    unsafe_allow_html=True
+                )
 
 # ==================== GROUP REPORT TAB ====================
 with tab_digest:
@@ -1000,30 +980,31 @@ with tab_wall:
         for req in all_reqs:
             profile_info = req.pop("user_profiles", {}) or {}
             author = "Anonymous" if req.get("is_anonymous") else profile_info.get("display_name", "Member")
-            status_badge_color = {"active": "#3A8F5C", "answered": "#5B4FC4", "hidden": "#9E96AB"}.get(req.get("status"), "#9E96AB")
+            status_badge_color = {"active": "#3A8F5C", "answered": "#B85A30", "hidden": "#A09080"}.get(req.get("status"), "#A09080")
 
             _req_title = _html.escape(req['title'])
             _req_body = _html.escape(req['body']) if req.get('body') else ""
             _req_author = _html.escape(author)
-            st.markdown(f"""
-            <div class="entry-card">
-                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                    <div style="flex:1;">
-                        <span style="font-family:'DM Serif Display',Georgia,serif; font-size:15px; color:#2A2438;">
-                            {_req_title}
-                        </span>
-                        {"<div style='font-size:13px; color:#6B6580; margin-top:4px;'>" + _req_body + "</div>" if _req_body else ""}
-                    </div>
-                    <div style="text-align:right; margin-left:12px; flex-shrink:0;">
-                        <div style="font-size:11px; color:#9E96AB;">{_req_author}</div>
-                        <span style="background:{status_badge_color}20; color:{status_badge_color};
-                                     padding:2px 8px; border-radius:8px; font-size:11px; font-weight:600;">
-                            {req.get('status','active')}
-                        </span>
-                    </div>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+            _req_body_html = '<div style="font-size:13px; color:#5A4A32; margin-top:4px;">' + _req_body + '</div>' if _req_body else ''
+            req_status = req.get('status', 'active')
+            st.markdown(
+                '<div class="entry-card">'
+                '<div style="display:flex; justify-content:space-between; align-items:flex-start;">'
+                '<div style="flex:1;">'
+                '<span style="font-family:\'Cormorant\',Georgia,serif; font-size:15px; color:#1A1208;">'
+                + _req_title + '</span>'
+                + _req_body_html +
+                '</div>'
+                '<div style="text-align:right; margin-left:12px; flex-shrink:0;">'
+                '<div style="font-size:11px; color:#A09080;">' + _req_author + '</div>'
+                '<span style="background:' + status_badge_color + '20; color:' + status_badge_color + ';'
+                ' padding:2px 8px; border-radius:8px; font-size:11px; font-weight:600;">'
+                + req_status + '</span>'
+                '</div>'
+                '</div>'
+                '</div>',
+                unsafe_allow_html=True
+            )
 
             if req.get("status") == "active":
                 c1, c2 = st.columns(2)
@@ -1050,17 +1031,20 @@ with tab_wall:
             profile_info = cr.pop("user_profiles", {}) or {}
             member_name = _html.escape(profile_info.get("display_name", "Member"))
             _cr_msg = _html.escape(cr['message']) if cr.get('message') else ""
-            st.markdown(f"""
-            <div class="entry-card" style="border-left:3px solid #D4853A;">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div>
-                        <span style="font-size:13px; font-weight:600; color:#2A2438;">{member_name}</span>
-                        {"<div style='font-size:12px; color:#6B6580; margin-top:2px;'>" + _cr_msg + "</div>" if _cr_msg else ""}
-                    </div>
-                    <span style="font-size:11px; color:#9E96AB; white-space:nowrap; margin-left:8px;">{cr['created_at'][:10]}</span>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+            _cr_msg_html = '<div style="font-size:12px; color:#5A4A32; margin-top:2px;">' + _cr_msg + '</div>' if _cr_msg else ''
+            st.markdown(
+                '<div class="entry-card" style="border-left:3px solid #C48A1C;">'
+                '<div style="display:flex; justify-content:space-between; align-items:center;">'
+                '<div>'
+                '<span style="font-size:13px; font-weight:600; color:#1A1208;">' + member_name + '</span>'
+                + _cr_msg_html +
+                '</div>'
+                '<span style="font-size:11px; color:#A09080; white-space:nowrap; margin-left:8px;">'
+                + cr['created_at'][:10] + '</span>'
+                '</div>'
+                '</div>',
+                unsafe_allow_html=True
+            )
             if cr.get("status") == "pending":
                 if st.button("Acknowledge", key=f"ack_cr_{cr['id']}", use_container_width=True):
                     acknowledge_checkin_request(cr["id"])

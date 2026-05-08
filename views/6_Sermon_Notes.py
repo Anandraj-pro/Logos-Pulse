@@ -31,7 +31,7 @@ def _count_takeaways(note):
     text = note.get("key_takeaways", "") or ""
     lines = [l.strip() for l in text.strip().split("\n") if l.strip() and l.strip() != "-"]
     return len(lines)
-def _render_scripture_card(ref, color="#5B4FC4"):
+def _render_scripture_card(ref, color="#B85A30"):
     enriched = render_reference_with_text(ref)
     if enriched.get("scripture_text"):
         st.markdown(f"""
@@ -54,16 +54,16 @@ if "view_sermon_id" in st.session_state:
         # --- Full-page read-only view ---
         st.markdown(f"""
         <div style="text-align:center; padding:20px 0 10px 0;">
-            <div style="font-size:11px; color:#9E96AB; text-transform:uppercase; letter-spacing:2px;">
+            <div style="font-size:11px; color:#A09080; text-transform:uppercase; letter-spacing:2px;">
                 Sermon Notes
             </div>
-            <div style="font-family:'DM Serif Display',Georgia,serif; font-size:28px; color:#2A2438; margin:8px 0;">
+            <div style="font-family:'Cormorant',Georgia,serif; font-size:28px; color:#1A1208; margin:8px 0;">
                 {note['title']}
             </div>
-            <div style="font-size:15px; color:#5B4FC4; font-weight:500;">
+            <div style="font-size:15px; color:#B85A30; font-weight:500;">
                 {note['speaker']}
             </div>
-            <div style="font-size:13px; color:#9E96AB; margin-top:4px;">
+            <div style="font-size:13px; color:#A09080; margin-top:4px;">
                 {note['sermon_date']}
             </div>
         </div>
@@ -79,7 +79,7 @@ if "view_sermon_id" in st.session_state:
                 if note.get("notes_text"):
                     st.markdown(f"""
                     <div style="background:#FAFAF8; border-radius:10px; padding:20px;
-                                font-size:16px; line-height:1.8; color:#2A2438;">
+                                font-size:16px; line-height:1.8; color:#1A1208;">
                         {note['notes_text'].replace(chr(10), '<br/>')}
                     </div>
                     """, unsafe_allow_html=True)
@@ -90,7 +90,7 @@ if "view_sermon_id" in st.session_state:
                 ) else note.get("bible_references", [])
                 if refs and isinstance(refs, list):
                     st.markdown(f"""
-                    <div style="font-size:11px; color:#9E96AB; text-transform:uppercase;
+                    <div style="font-size:11px; color:#A09080; text-transform:uppercase;
                                 letter-spacing:1px; margin-bottom:8px;">
                         Scripture References ({len(refs)})
                     </div>
@@ -104,13 +104,13 @@ if "view_sermon_id" in st.session_state:
             st.divider()
             st.markdown(f"""
             <div style="margin:10px 0;">
-                <div style="font-size:11px; color:#5B4FC4; text-transform:uppercase;
+                <div style="font-size:11px; color:#B85A30; text-transform:uppercase;
                             letter-spacing:1.5px; font-weight:600; margin-bottom:8px;">
                     What I Learned
                 </div>
-                <div style="background:linear-gradient(135deg, #EDEBFA, #FFF9F0);
+                <div style="background:linear-gradient(135deg, #FDF6EC, #F9F5EF);
                             border-radius:10px; padding:16px 20px;
-                            font-size:16px; line-height:1.8; color:#3C2F1E;">
+                            font-size:16px; line-height:1.8; color:#1A1208;">
                     {note['learnings'].replace(chr(10), '<br/>')}
                 </div>
             </div>
@@ -119,12 +119,12 @@ if "view_sermon_id" in st.session_state:
         if note.get("key_takeaways"):
             st.markdown(f"""
             <div style="margin:10px 0;">
-                <div style="font-size:11px; color:#3A8F5C; text-transform:uppercase;
+                <div style="font-size:11px; color:#2B5A3E; text-transform:uppercase;
                             letter-spacing:1.5px; font-weight:600; margin-bottom:8px;">
                     Key Takeaways
                 </div>
-                <div style="background:#F1F8E9; border-radius:10px; padding:16px 20px;
-                            font-size:16px; line-height:1.8; color:#33691E;">
+                <div style="background:#EEF5F1; border-radius:10px; padding:16px 20px;
+                            font-size:16px; line-height:1.8; color:#1A1208;">
                     {note['key_takeaways'].replace(chr(10), '<br/>')}
                 </div>
             </div>
@@ -133,12 +133,12 @@ if "view_sermon_id" in st.session_state:
         if note.get("additional_thoughts"):
             st.markdown(f"""
             <div style="margin:10px 0;">
-                <div style="font-size:11px; color:#D4853A; text-transform:uppercase;
+                <div style="font-size:11px; color:#C48A1C; text-transform:uppercase;
                             letter-spacing:1.5px; font-weight:600; margin-bottom:8px;">
                     Additional Thoughts
                 </div>
-                <div style="background:#FFF3E0; border-radius:10px; padding:16px 20px;
-                            font-size:16px; line-height:1.8; color:#E65100;">
+                <div style="background:#FDF6EC; border-radius:10px; padding:16px 20px;
+                            font-size:16px; line-height:1.8; color:#5A4A32;">
                     {note['additional_thoughts'].replace(chr(10), '<br/>')}
                 </div>
             </div>
@@ -190,9 +190,9 @@ else:
             editing_note = db.get_sermon_note(editing_id)
             if editing_note:
                 st.markdown(f"""
-                <div style="background:#FFF3E0; border-left:4px solid #D4853A;
+                <div style="background:#FDF6EC; border-left:4px solid #C48A1C;
                             padding:10px 16px; border-radius:6px; margin-bottom:16px;">
-                    <b style="color:#E65100;">Editing:</b> {editing_note['title']}
+                    <b style="color:#C48A1C;">Editing:</b> {editing_note['title']}
                 </div>
                 """, unsafe_allow_html=True)
                 if st.button("Cancel Editing"):
@@ -437,11 +437,11 @@ else:
                 # Badges
                 badges = []
                 if ref_count > 0:
-                    badges.append(f'<span style="background:#EDEBFA; color:#5B4FC4; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600;">\U0001f4d6 {ref_count} ref{"s" if ref_count != 1 else ""}</span>')
+                    badges.append(f'<span style="background:rgba(184,90,48,0.1); color:#B85A30; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600;">\U0001f4d6 {ref_count} ref{"s" if ref_count != 1 else ""}</span>')
                 if takeaway_count > 0:
-                    badges.append(f'<span style="background:#E8F5E9; color:#2E7D32; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600;">\u2705 {takeaway_count} takeaway{"s" if takeaway_count != 1 else ""}</span>')
+                    badges.append(f'<span style="background:#EEF5F1; color:#2B5A3E; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600;">\u2705 {takeaway_count} takeaway{"s" if takeaway_count != 1 else ""}</span>')
                 if note.get("learnings"):
-                    badges.append(f'<span style="background:#FFF3E0; color:#E65100; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600;">\U0001f4a1 Reflection</span>')
+                    badges.append(f'<span style="background:#FDF6EC; color:#C48A1C; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600;">\U0001f4a1 Reflection</span>')
                 badges_html = " ".join(badges)
 
                 # Preview text
@@ -451,32 +451,28 @@ else:
                     if len(note["notes_text"]) > 120:
                         preview += "..."
 
-                st.markdown(f"""
-                <div class="sermon-card">
-                    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                        <div>
-                            <div style="font-family:'DM Serif Display',Georgia,serif; font-size:18px; color:#2A2438;">
-                                {note['title']}
-                            </div>
-                            <div style="font-size:14px; color:#5B4FC4; font-weight:500; margin-top:2px;">
-                                {note['speaker']}
-                            </div>
-                        </div>
-                        <div style="font-size:13px; color:#9E96AB; white-space:nowrap;">
-                            {note['sermon_date']}
-                        </div>
-                    </div>
-                    {"<div style='font-size:14px; color:#6B6580; margin-top:8px; line-height:1.5;'>" + preview + "</div>" if preview else ""}
-                    <div style="margin-top:10px;">
-                        {badges_html}
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
+                preview_html = ('<div style="font-size:14px;color:#5A4A32;margin-top:8px;line-height:1.5;">' + preview + '</div>') if preview else ''
+                card_html = (
+                    '<div class="sermon-card">'
+                    '<div style="display:flex;justify-content:space-between;align-items:flex-start;">'
+                    '<div>'
+                    f'<div style="font-family:\'Cormorant\',Georgia,serif;font-size:18px;color:#1A1208;">{note["title"]}</div>'
+                    f'<div style="font-size:14px;color:#B85A30;font-weight:500;margin-top:2px;">{note["speaker"]}</div>'
+                    '</div>'
+                    f'<div style="font-size:13px;color:#A09080;white-space:nowrap;">{note["sermon_date"]}</div>'
+                    '</div>'
+                    + preview_html
+                    + '<div style="margin-top:10px;">'
+                    + badges_html
+                    + '</div>'
+                    '</div>'
+                )
+                st.markdown(card_html, unsafe_allow_html=True)
 
                 # Tag badges below card
                 _note_tags = note.get("tags") or []
                 if _note_tags:
-                    _tag_html = " ".join(f'<span style="background:#F3E5F5; color:#7B1FA2; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:500;">#{t}</span>' for t in _note_tags)
+                    _tag_html = " ".join(f'<span style="background:rgba(196,138,28,0.1); color:#C48A1C; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:500;">#{t}</span>' for t in _note_tags)
                     st.markdown(_tag_html, unsafe_allow_html=True)
 
                 # Action buttons

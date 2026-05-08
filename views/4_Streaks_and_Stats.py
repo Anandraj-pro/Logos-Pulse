@@ -20,13 +20,13 @@ try:
     score = calculate_growth_score(get_current_user_id())
 
     st.markdown(f"""
-    <div class="entry-card" style="text-align:center; padding:24px; border:2px solid #D4A843;">
+    <div class="entry-card" style="text-align:center; padding:24px; border:2px solid #C48A1C;">
         <span style="font-size:48px;">{score['level_emoji']}</span>
-        <div style="font-family:'DM Serif Display',Georgia,serif; font-size:36px; color:#2A2438; margin:8px 0;">
-            {score['total']}<span style="font-size:16px; color:#9E96AB;">/100</span>
+        <div style="font-family:'Cormorant',Georgia,serif; font-size:36px; color:#1A1208; margin:8px 0;">
+            {score['total']}<span style="font-size:16px; color:#A09080;">/100</span>
         </div>
-        <div style="font-size:16px; color:#D4A843; font-weight:600;">{score['level_name']}</div>
-        <div style="font-size:13px; color:#9E96AB; margin-top:4px;">{score['level_desc']}</div>
+        <div style="font-size:16px; color:#C48A1C; font-weight:600;">{score['level_name']}</div>
+        <div style="font-size:13px; color:#A09080; margin-top:4px;">{score['level_desc']}</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -35,24 +35,24 @@ try:
     # Component breakdown
     section_label("Score Breakdown")
     components = [
-        ("Consistency", score["consistency"], "#5B4FC4", "40%"),
-        ("Quantity", score["quantity"], "#3A8F5C", "30%"),
-        ("Diversity", score["diversity"], "#9B5FA8", "20%"),
-        ("Engagement", score["engagement"], "#D4853A", "10%"),
+        ("Consistency", score["consistency"], "#B85A30", "40%"),
+        ("Quantity", score["quantity"], "#C48A1C", "30%"),
+        ("Diversity", score["diversity"], "#2B5A3E", "20%"),
+        ("Engagement", score["engagement"], "#D46A38", "10%"),
     ]
 
     for name, value, color, weight in components:
-        st.markdown(f"""
-        <div style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">
-            <div style="width:100px; font-size:13px; color:#6B6580; font-weight:500;">{name} <span style="color:#C0B8CC;">({weight})</span></div>
-            <div style="flex:1;">
-                <div class="progress-bar-bg" style="height:8px;">
-                    <div style="height:100%; width:{value}%; background:{color}; border-radius:8px;"></div>
-                </div>
-            </div>
-            <div style="width:40px; text-align:right; font-family:'DM Serif Display',Georgia,serif; font-size:16px; color:{color};">{value}</div>
-        </div>
-        """, unsafe_allow_html=True)
+        bar_html = (
+            '<div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">'
+            f'<div style="width:100px;font-size:13px;color:#5A4A32;font-weight:500;">{name} <span style="color:#A09080;">({weight})</span></div>'
+            '<div style="flex:1;">'
+            '<div class="db-prog-track">'
+            f'<div class="db-prog-fill" style="width:{value}%;background:{color};"></div>'
+            '</div></div>'
+            f'<div style="width:40px;text-align:right;font-family:Jost,sans-serif;font-size:16px;font-weight:800;color:{color};">{value}</div>'
+            '</div>'
+        )
+        st.markdown(bar_html, unsafe_allow_html=True)
 
     spacer()
 except Exception:
@@ -67,7 +67,7 @@ col1, col2 = st.columns(2)
 with col1:
     streak_emoji = "\U0001f525" if current_streak >= 7 else "\u2b50" if current_streak >= 3 else "\U0001f331"
     st.markdown(f"""
-    <div class="streak-hero" style="background:linear-gradient(135deg, #E85D3A 0%, #D4A843 100%);">
+    <div class="streak-hero" style="background:linear-gradient(135deg, #E85D3A 0%, #C48A1C 100%);">
         <div style="font-size:40px; margin-bottom:4px;">{streak_emoji}</div>
         <div class="streak-num">{current_streak}</div>
         <div class="streak-label">Day Streak</div>
@@ -76,7 +76,7 @@ with col1:
 
 with col2:
     st.markdown(f"""
-    <div class="streak-hero" style="background:linear-gradient(135deg, #5B4FC4, #9B5FA8);">
+    <div class="streak-hero" style="background:linear-gradient(135deg, #B85A30, #B85A30);">
         <div style="font-size:40px; margin-bottom:4px;">\U0001f3c6</div>
         <div class="streak-num">{longest_streak}</div>
         <div class="streak-label">Best Streak</div>
@@ -170,19 +170,19 @@ for e in entries:
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
-    pct_color = "#3A8F5C" if completion_pct >= 80 else "#D4853A" if completion_pct >= 50 else "#C44B5B"
+    pct_color = "#2B5A3E" if completion_pct >= 80 else "#C48A1C" if completion_pct >= 50 else "#B85A30"
     st.markdown(f"""
     <div class="stat-card">
         <div class="stat-value" style="color:{pct_color};">{completion_pct}%</div>
         <div class="stat-label">Completion</div>
-        <div style="font-size:11px; color:#C0B8CC; margin-top:2px;">{days_logged}/{days_passed} days</div>
+        <div style="font-size:11px; color:#A09080; margin-top:2px;">{days_logged}/{days_passed} days</div>
     </div>
     """, unsafe_allow_html=True)
 
 with col2:
     st.markdown(f"""
     <div class="stat-card">
-        <div class="stat-value" style="color:#5B4FC4;">{total_prayer_hours}</div>
+        <div class="stat-value" style="color:#B85A30;">{total_prayer_hours}</div>
         <div class="stat-label">Prayer Hours</div>
     </div>
     """, unsafe_allow_html=True)
@@ -190,7 +190,7 @@ with col2:
 with col3:
     st.markdown(f"""
     <div class="stat-card">
-        <div class="stat-value" style="color:#9B5FA8;">{total_chapters}</div>
+        <div class="stat-value" style="color:#B85A30;">{total_chapters}</div>
         <div class="stat-label">Chapters Read</div>
     </div>
     """, unsafe_allow_html=True)
@@ -199,7 +199,7 @@ with col4:
     sermons_count = sum(1 for e in entries if e.get("sermon_title"))
     st.markdown(f"""
     <div class="stat-card">
-        <div class="stat-value" style="color:#D4853A;">{sermons_count}</div>
+        <div class="stat-value" style="color:#C48A1C;">{sermons_count}</div>
         <div class="stat-label">Sermons</div>
     </div>
     """, unsafe_allow_html=True)
@@ -213,19 +213,9 @@ try:
         spacer(4)
         _bm_col, _hl_col = st.columns(2)
         with _bm_col:
-            st.markdown(f"""
-            <div class="stat-card">
-                <div class="stat-value" style="color:#2196F3;">{_bm_count}</div>
-                <div class="stat-label">Verses Bookmarked</div>
-            </div>
-            """, unsafe_allow_html=True)
+            st.markdown(f'<div class="stat-card"><div class="stat-value" style="color:#B85A30;">{_bm_count}</div><div class="stat-label">Verses Bookmarked</div></div>', unsafe_allow_html=True)
         with _hl_col:
-            st.markdown(f"""
-            <div class="stat-card">
-                <div class="stat-value" style="color:#F4C430;">{_hl_count}</div>
-                <div class="stat-label">Verses Highlighted</div>
-            </div>
-            """, unsafe_allow_html=True)
+            st.markdown(f'<div class="stat-card"><div class="stat-value" style="color:#C48A1C;">{_hl_count}</div><div class="stat-label">Verses Highlighted</div></div>', unsafe_allow_html=True)
 except Exception:
     pass
 
@@ -257,25 +247,25 @@ if chart_entries:
     fig_prayer.add_trace(go.Bar(
         x=dates_30,
         y=prayer_mins,
-        marker_color=["#5B4FC4" if m > 0 else "#EDE8F5" for m in prayer_mins],
+        marker_color=["#B85A30" if m > 0 else "#F3EFE7" for m in prayer_mins],
         marker_line_width=0,
         hovertemplate="%{x}<br>%{y} min<extra></extra>",
     ))
     # Add goal line
     prayer_goal = int(db.get_all_settings().get("default_prayer_minutes", "60"))
     fig_prayer.add_hline(
-        y=prayer_goal, line_dash="dot", line_color="#D4853A",
+        y=prayer_goal, line_dash="dot", line_color="#C48A1C",
         annotation_text=f"Goal: {prayer_goal} min",
         annotation_position="top right",
-        annotation_font_color="#D4853A",
+        annotation_font_color="#C48A1C",
     )
     fig_prayer.update_layout(
         height=250,
         margin=dict(l=0, r=0, t=10, b=0),
         plot_bgcolor="rgba(0,0,0,0)",
         paper_bgcolor="rgba(0,0,0,0)",
-        xaxis=dict(showgrid=False, tickfont=dict(size=9, color="#9E96AB"), dtick=5),
-        yaxis=dict(showgrid=True, gridcolor="#EDE8F5", tickfont=dict(size=10, color="#9E96AB"), title="Minutes"),
+        xaxis=dict(showgrid=False, tickfont=dict(size=9, color="#A09080"), dtick=5),
+        yaxis=dict(showgrid=True, gridcolor="#F3EFE7", tickfont=dict(size=10, color="#A09080"), title="Minutes"),
         bargap=0.3,
     )
     st.plotly_chart(fig_prayer, use_container_width=True)
@@ -307,11 +297,11 @@ if chart_entries:
     fig_chapters.add_trace(go.Bar(
         x=week_labels,
         y=week_chapters,
-        marker_color="#9B5FA8",
+        marker_color="#B85A30",
         marker_line_width=0,
         text=week_chapters,
         textposition="outside",
-        textfont=dict(size=12, color="#9B5FA8", family="DM Sans"),
+        textfont=dict(size=12, color="#B85A30", family="Jost, sans-serif"),
         hovertemplate="%{x}<br>%{y} chapters<extra></extra>",
     ))
     fig_chapters.update_layout(
@@ -319,8 +309,8 @@ if chart_entries:
         margin=dict(l=0, r=0, t=10, b=0),
         plot_bgcolor="rgba(0,0,0,0)",
         paper_bgcolor="rgba(0,0,0,0)",
-        xaxis=dict(showgrid=False, tickfont=dict(size=10, color="#9E96AB")),
-        yaxis=dict(showgrid=True, gridcolor="#EDE8F5", tickfont=dict(size=10, color="#9E96AB"), title="Chapters"),
+        xaxis=dict(showgrid=False, tickfont=dict(size=10, color="#A09080")),
+        yaxis=dict(showgrid=True, gridcolor="#F3EFE7", tickfont=dict(size=10, color="#A09080"), title="Chapters"),
         bargap=0.4,
     )
     st.plotly_chart(fig_chapters, use_container_width=True)
@@ -342,7 +332,7 @@ if chart_entries:
         values=[days_logged_week, days_missed],
         labels=["Logged", "Missed"],
         hole=0.65,
-        marker=dict(colors=["#5B4FC4", "#EDE8F5"]),
+        marker=dict(colors=["#B85A30", "#F3EFE7"]),
         textinfo="none",
         hovertemplate="%{label}: %{value} day(s)<extra></extra>",
     ))
@@ -354,8 +344,8 @@ if chart_entries:
         showlegend=False,
         annotations=[dict(
             text=f"<b>{days_logged_week}/{days_so_far}</b>",
-            x=0.5, y=0.5, font_size=22, font_color="#5B4FC4",
-            font_family="DM Serif Display, Georgia, serif",
+            x=0.5, y=0.5, font_size=22, font_color="#B85A30",
+            font_family="Cormorant, Georgia, serif",
             showarrow=False,
         )],
     )
@@ -365,16 +355,16 @@ if chart_entries:
         st.plotly_chart(fig_donut, use_container_width=True)
     with col_legend:
         pct_week = int(days_logged_week / days_so_far * 100) if days_so_far > 0 else 0
-        pct_color = "#3A8F5C" if pct_week >= 80 else "#D4853A" if pct_week >= 50 else "#C44B5B"
+        pct_color = "#2B5A3E" if pct_week >= 80 else "#C48A1C" if pct_week >= 50 else "#B85A30"
         st.markdown(f"""
         <div style="padding-top:24px;">
-            <div style="font-family:'DM Serif Display',Georgia,serif; font-size:32px; color:{pct_color};">
+            <div style="font-family:'Cormorant',Georgia,serif; font-size:32px; color:{pct_color};">
                 {pct_week}%
             </div>
-            <div style="font-size:13px; color:#9E96AB; margin-top:4px;">
+            <div style="font-size:13px; color:#A09080; margin-top:4px;">
                 {days_logged_week} of {days_so_far} days logged this week
             </div>
-            <div style="font-size:12px; color:#C0B8CC; margin-top:8px;">
+            <div style="font-size:12px; color:#A09080; margin-top:8px;">
                 {"Keep it up!" if pct_week >= 80 else "You can do it \u2014 stay consistent!" if pct_week >= 50 else "Don't give up \u2014 every day counts!"}
             </div>
         </div>

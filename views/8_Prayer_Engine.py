@@ -34,32 +34,36 @@ def _render_plan_card(plan, completed_plan_ids):
     # Badge
     badge_html = ""
     if plan.get("assigned_by"):
-        badge_html = '<span class="plan-badge" style="background:#EDEBFA; color:#5B4FC4;">Prescribed by Pastor</span>'
+        badge_html = '<span class="plan-badge" style="background:#FDF0E8; color:#B85A30;">Prescribed by Pastor</span>'
     if plan.get("is_new_believer_track"):
-        badge_html = '<span class="plan-badge" style="background:#E3F2FD; color:#1565C0;">New Believer Track</span>'
+        badge_html = '<span class="plan-badge" style="background:#E8F3ED; color:#2B5A3E;">New Believer Track</span>'
     if is_done_today:
-        badge_html += ' <span class="plan-badge" style="background:#E8F5E9; color:#3A8F5C;">Done Today</span>'
+        badge_html += ' <span class="plan-badge" style="background:#E8F3ED; color:#2B5A3E;">Done Today</span>'
 
     status_icon = "&#9989;" if is_done_today else "&#9203;"
+    bar_color = cat.get("color") or "#B85A30"
+    bar_pct = f"{progress_pct * 100:.0f}%"
+    note_html = ""
+    if plan.get("assignment_note"):
+        note_html = '<div style="font-size:12px; color:#A09080; margin-top:4px; font-style:italic;">Note: ' + plan.get("assignment_note", "") + '</div>'
 
-    st.markdown(f"""
-    <div class="plan-card">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-            <div>
-                <span style="font-size:20px;">{status_icon}</span>
-                <span class="plan-title">{tpl.get('name', 'Confession')}</span>
-            </div>
-            <div>{badge_html}</div>
-        </div>
-        <div style="font-size:13px; color:#6B6580; margin-top:6px;">
-            {cat.get('icon', '')} {cat.get('name', '')} &middot; {progress_text}
-        </div>
-        {f'<div style="font-size:12px; color:#9E96AB; margin-top:4px; font-style:italic;">Note: {plan.get("assignment_note", "")}</div>' if plan.get("assignment_note") else ''}
-        <div class="plan-progress-bar">
-            <div class="plan-progress-fill" style="width:{progress_pct*100:.0f}%; background:{cat.get('color', '#5B4FC4')};"></div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown(
+        '<div class="plan-card">'
+        + '<div style="display:flex; justify-content:space-between; align-items:center;">'
+        + '<div>'
+        + f'<span style="font-size:20px;">{status_icon}</span>'
+        + f'<span class="plan-title">{tpl.get("name", "Confession")}</span>'
+        + '</div>'
+        + '<div>' + badge_html + '</div>'
+        + '</div>'
+        + f'<div style="font-size:13px; color:#5A4A32; margin-top:6px;">{cat.get("icon", "")} {cat.get("name", "")} &middot; {progress_text}</div>'
+        + note_html
+        + '<div class="plan-progress-bar">'
+        + f'<div class="plan-progress-fill" style="width:{bar_pct}; background:{bar_color};"></div>'
+        + '</div>'
+        + '</div>',
+        unsafe_allow_html=True
+    )
 
     # Action buttons
     col_a, col_b = st.columns(2)
@@ -78,121 +82,116 @@ def _render_plan_card(plan, completed_plan_ids):
 
 
 # ==================== CUSTOM CSS ====================
-st.markdown("""
-<style>
-.need-chip {
-    display: inline-block;
-    padding: 10px 20px;
-    border-radius: 24px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    margin: 4px;
-    transition: all 0.2s;
-}
-.need-chip:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-
-.cotw-banner {
-    background: linear-gradient(135deg, #5B4FC4 0%, #7B6FD4 100%);
-    color: white;
-    border-radius: 16px;
-    padding: 20px 24px;
-    margin-bottom: 16px;
-}
-.cotw-banner .cotw-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.8; }
-.cotw-banner .cotw-title { font-family: 'DM Serif Display', serif; font-size: 22px; margin: 6px 0; }
-.cotw-banner .cotw-theme { font-size: 13px; opacity: 0.85; }
-
-.cat-grid-card {
-    background: white;
-    border: 1px solid #EDE8F5;
-    border-radius: 14px;
-    padding: 18px;
-    text-align: center;
-    transition: all 0.2s;
-    min-height: 140px;
-}
-.cat-grid-card:hover { border-color: #5B4FC4; box-shadow: 0 4px 16px rgba(91,79,196,0.1); }
-.cat-grid-icon { font-size: 32px; margin-bottom: 8px; }
-.cat-grid-name { font-family: 'DM Serif Display', serif; font-size: 15px; color: #2A2438; margin-bottom: 4px; }
-.cat-grid-count { font-size: 12px; color: #9E96AB; }
-
-.template-card {
-    background: white;
-    border: 1px solid #EDE8F5;
-    border-radius: 14px;
-    padding: 20px;
-    margin-bottom: 12px;
-}
-.template-name { font-family: 'DM Serif Display', serif; font-size: 18px; color: #2A2438; }
-.template-desc { font-size: 13px; color: #6B6580; margin: 6px 0 12px; }
-.template-shortform {
-    background: #FFF9F0;
-    border-left: 3px solid #D4A843;
-    padding: 12px 16px;
-    border-radius: 0 8px 8px 0;
-    font-size: 14px;
-    line-height: 1.8;
-    color: #2A2438;
-    white-space: pre-line;
-}
-
-.plan-card {
-    background: white;
-    border: 1px solid #EDE8F5;
-    border-radius: 14px;
-    padding: 18px;
-    margin-bottom: 12px;
-}
-.plan-card .plan-title { font-family: 'DM Serif Display', serif; font-size: 16px; color: #2A2438; }
-.plan-card .plan-badge {
-    display: inline-block;
-    padding: 2px 10px;
-    border-radius: 12px;
-    font-size: 11px;
-    font-weight: 600;
-}
-.plan-progress-bar {
-    height: 6px;
-    background: #EDE8F5;
-    border-radius: 3px;
-    margin-top: 10px;
-    overflow: hidden;
-}
-.plan-progress-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
-
-.confess-line {
-    font-family: 'DM Serif Display', serif;
-    font-size: 22px;
-    color: #2A2438;
-    line-height: 1.6;
-    text-align: center;
-    padding: 30px 20px;
-}
-.confess-scripture {
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
-    color: #5B4FC4;
-    text-align: center;
-    margin-top: 8px;
-}
-
-.maturity-warning {
-    background: #FFF3E0;
-    border: 1px solid #D4853A;
-    border-radius: 12px;
-    padding: 16px;
-    margin-bottom: 16px;
-    font-size: 14px;
-    color: #6B6580;
-}
-</style>
-""", unsafe_allow_html=True)
+st.markdown(
+    '<style>'
+    '.need-chip {'
+    '    display: inline-block;'
+    '    padding: 10px 20px;'
+    '    border-radius: 24px;'
+    '    font-family: "Jost", sans-serif;'
+    '    font-size: 14px;'
+    '    font-weight: 600;'
+    '    cursor: pointer;'
+    '    margin: 4px;'
+    '    transition: all 0.2s;'
+    '}'
+    '.need-chip:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(26,18,8,0.10); }'
+    '.cotw-banner {'
+    '    background: linear-gradient(135deg, #B85A30 0%, #C48A1C 100%);'
+    '    color: white;'
+    '    border-radius: 16px;'
+    '    padding: 20px 24px;'
+    '    margin-bottom: 16px;'
+    '}'
+    '.cotw-banner .cotw-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.8; }'
+    '.cotw-banner .cotw-title { font-family: "Cormorant", serif; font-size: 22px; margin: 6px 0; }'
+    '.cotw-banner .cotw-theme { font-size: 13px; opacity: 0.85; }'
+    '.cat-grid-card {'
+    '    background: #FFFFFF;'
+    '    border: 1px solid rgba(26,18,8,0.09);'
+    '    border-radius: 14px;'
+    '    padding: 18px;'
+    '    text-align: center;'
+    '    transition: all 0.2s;'
+    '    min-height: 140px;'
+    '}'
+    '.cat-grid-card:hover { border-color: #B85A30; box-shadow: 0 4px 16px rgba(184,90,48,0.10); }'
+    '.cat-grid-icon { font-size: 32px; margin-bottom: 8px; }'
+    '.cat-grid-name { font-family: "Cormorant", serif; font-size: 15px; color: #1A1208; margin-bottom: 4px; }'
+    '.cat-grid-count { font-size: 12px; color: #A09080; }'
+    '.template-card {'
+    '    background: #FFFFFF;'
+    '    border: 1px solid rgba(26,18,8,0.09);'
+    '    border-radius: 14px;'
+    '    padding: 20px;'
+    '    margin-bottom: 12px;'
+    '}'
+    '.template-name { font-family: "Cormorant", serif; font-size: 18px; color: #1A1208; }'
+    '.template-desc { font-size: 13px; color: #5A4A32; margin: 6px 0 12px; }'
+    '.template-shortform {'
+    '    background: #FFF9F0;'
+    '    border-left: 3px solid #C48A1C;'
+    '    padding: 12px 16px;'
+    '    border-radius: 0 8px 8px 0;'
+    '    font-size: 14px;'
+    '    line-height: 1.8;'
+    '    color: #1A1208;'
+    '    white-space: pre-line;'
+    '}'
+    '.plan-card {'
+    '    background: #FFFFFF;'
+    '    border: 1px solid rgba(26,18,8,0.09);'
+    '    border-radius: 14px;'
+    '    padding: 18px;'
+    '    margin-bottom: 12px;'
+    '}'
+    '.plan-card .plan-title { font-family: "Cormorant", serif; font-size: 16px; color: #1A1208; }'
+    '.plan-card .plan-badge {'
+    '    display: inline-block;'
+    '    padding: 2px 10px;'
+    '    border-radius: 12px;'
+    '    font-size: 11px;'
+    '    font-weight: 600;'
+    '}'
+    '.plan-progress-bar {'
+    '    height: 6px;'
+    '    background: rgba(26,18,8,0.06);'
+    '    border-radius: 3px;'
+    '    margin-top: 10px;'
+    '    overflow: hidden;'
+    '}'
+    '.plan-progress-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }'
+    '.confess-line {'
+    '    font-family: "Cormorant", serif;'
+    '    font-size: 22px;'
+    '    color: #1A1208;'
+    '    line-height: 1.6;'
+    '    text-align: center;'
+    '    padding: 30px 20px;'
+    '}'
+    '.confess-scripture {'
+    '    font-family: "Jost", sans-serif;'
+    '    font-size: 14px;'
+    '    color: #B85A30;'
+    '    text-align: center;'
+    '    margin-top: 8px;'
+    '}'
+    '.maturity-warning {'
+    '    background: #FDF0E8;'
+    '    border: 1px solid #C48A1C;'
+    '    border-radius: 12px;'
+    '    padding: 16px;'
+    '    margin-bottom: 16px;'
+    '    font-size: 14px;'
+    '    color: #5A4A32;'
+    '}'
+    '</style>',
+    unsafe_allow_html=True
+)
 
 
 # ==================== HEADER ====================
-page_header("✝️", "Prayer Engine", "Confessions, declarations & faith-building plans")
+page_header("✝️", "Confession Plans", "Confessions, declarations & faith-building plans")
 
 # ==================== TABS ====================
 tab_discover, tab_plan, tab_confess = st.tabs(["Discover", "My Plan", "Confess"])
@@ -205,13 +204,18 @@ with tab_discover:
     cotw = db.get_confession_of_the_week()
     if cotw:
         tpl = cotw.get("confession_templates", {})
-        st.markdown(f"""
-        <div class="cotw-banner">
-            <div class="cotw-label">Confession of the Week</div>
-            <div class="cotw-title">{tpl.get('name', '')}</div>
-            <div class="cotw-theme">{cotw.get('sermon_theme', '') or ''} {('— ' + cotw.get('sermon_reference', '')) if cotw.get('sermon_reference') else ''}</div>
-        </div>
-        """, unsafe_allow_html=True)
+        tpl_name = tpl.get('name', '')
+        sermon_theme = cotw.get('sermon_theme', '') or ''
+        sermon_ref = cotw.get('sermon_reference', '') or ''
+        ref_part = (' &mdash; ' + sermon_ref) if sermon_ref else ''
+        st.markdown(
+            '<div class="cotw-banner">'
+            + '<div class="cotw-label">Confession of the Week</div>'
+            + f'<div class="cotw-title">{tpl_name}</div>'
+            + f'<div class="cotw-theme">{sermon_theme}{ref_part}</div>'
+            + '</div>',
+            unsafe_allow_html=True
+        )
         if st.button("Add to My Plan", key="cotw_add", type="primary"):
             db.add_to_my_plan(tpl["id"], plan_type="7_days")
             st.success("Confession of the Week added to your plan!")
@@ -219,25 +223,26 @@ with tab_discover:
         spacer()
 
     # --- "What are you believing God for?" ---
-    st.markdown("""
-    <div style="text-align:center; padding: 10px 0 6px;">
-        <div style="font-family:'DM Serif Display',serif; font-size:24px; color:#2A2438;">
-            What are you believing God for?
-        </div>
-        <div style="font-size:14px; color:#6B6580; margin-top:4px;">
-            Select a need to find the right confessions
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown(
+        '<div style="text-align:center; padding: 10px 0 6px;">'
+        '<div style="font-family:\'Cormorant\',serif; font-size:24px; color:#1A1208;">'
+        'What are you believing God for?'
+        '</div>'
+        '<div style="font-size:14px; color:#5A4A32; margin-top:4px;">'
+        'Select a need to find the right confessions'
+        '</div>'
+        '</div>',
+        unsafe_allow_html=True
+    )
 
     # Need chips mapped to categories
     NEED_CHIPS = [
-        ("🏥 Healing", 1, "#3A8F5C"),
-        ("💰 Finances", 2, "#D4853A"),
-        ("✨ Faith & Favor", 3, "#5B4FC4"),
-        ("🦋 Identity", 4, "#C44B5B"),
-        ("🌍 Salvation", 5, "#2E7D32"),
-        ("🌅 Daily", 6, "#FF8F00"),
+        ("🏥 Healing", 1, "#2B5A3E"),
+        ("💰 Finances", 2, "#C48A1C"),
+        ("✨ Faith & Favor", 3, "#B85A30"),
+        ("🦋 Identity", 4, "#B85A30"),
+        ("🌍 Salvation", 5, "#2B5A3E"),
+        ("🌅 Daily", 6, "#C48A1C"),
     ]
 
     chip_cols = st.columns(len(NEED_CHIPS))
@@ -262,13 +267,16 @@ with tab_discover:
         for i, cat in enumerate(tier1_cats):
             with cols[i % 3]:
                 templates = db.get_confession_templates(category_id=cat["id"])
-                st.markdown(f"""
-                <div class="cat-grid-card">
-                    <div class="cat-grid-icon">{cat['icon']}</div>
-                    <div class="cat-grid-name">{cat['name']}</div>
-                    <div class="cat-grid-count">{len(templates)} confession{"s" if len(templates) != 1 else ""}</div>
-                </div>
-                """, unsafe_allow_html=True)
+                tcount = len(templates)
+                tplural = "s" if tcount != 1 else ""
+                st.markdown(
+                    '<div class="cat-grid-card">'
+                    + f'<div class="cat-grid-icon">{cat["icon"]}</div>'
+                    + f'<div class="cat-grid-name">{cat["name"]}</div>'
+                    + f'<div class="cat-grid-count">{tcount} confession{tplural}</div>'
+                    + '</div>',
+                    unsafe_allow_html=True
+                )
                 if st.button("Browse", key=f"browse_{cat['id']}", use_container_width=True):
                     st.session_state["pe_selected_cat"] = cat["id"]
                     st.rerun()
@@ -281,13 +289,16 @@ with tab_discover:
                 for i, cat in enumerate(tier23_cats):
                     with cols2[i % 3]:
                         templates = db.get_confession_templates(category_id=cat["id"])
-                        st.markdown(f"""
-                        <div class="cat-grid-card">
-                            <div class="cat-grid-icon">{cat['icon']}</div>
-                            <div class="cat-grid-name">{cat['name']}</div>
-                            <div class="cat-grid-count">{len(templates)} confession{"s" if len(templates) != 1 else ""}</div>
-                        </div>
-                        """, unsafe_allow_html=True)
+                        tcount = len(templates)
+                        tplural = "s" if tcount != 1 else ""
+                        st.markdown(
+                            '<div class="cat-grid-card">'
+                            + f'<div class="cat-grid-icon">{cat["icon"]}</div>'
+                            + f'<div class="cat-grid-name">{cat["name"]}</div>'
+                            + f'<div class="cat-grid-count">{tcount} confession{tplural}</div>'
+                            + '</div>',
+                            unsafe_allow_html=True
+                        )
                         if st.button("Browse", key=f"browse2_{cat['id']}", use_container_width=True):
                             st.session_state["pe_selected_cat"] = cat["id"]
                             st.rerun()
@@ -306,12 +317,13 @@ with tab_discover:
 
             # Maturity warning for Spiritual Warfare (id=13)
             if sel_cat.get("id") == 13 or sel_cat.get("name", "").startswith("Spiritual Warfare"):
-                st.markdown("""
-                <div class="maturity-warning">
-                    <strong>A note from your Bishop:</strong> These are powerful declarations of authority in Christ.
-                    We recommend engaging with these under pastoral guidance, especially if you are new in your faith walk.
-                </div>
-                """, unsafe_allow_html=True)
+                st.markdown(
+                    '<div class="maturity-warning">'
+                    '<strong>A note from your Bishop:</strong> These are powerful declarations of authority in Christ. '
+                    'We recommend engaging with these under pastoral guidance, especially if you are new in your faith walk.'
+                    '</div>',
+                    unsafe_allow_html=True
+                )
 
             templates = db.get_confession_templates(category_id=selected_cat)
             if not templates:
@@ -322,13 +334,16 @@ with tab_discover:
                     if tpl.get("sort_order", 0) >= 100:
                         continue
 
-                    st.markdown(f"""
-                    <div class="template-card">
-                        <div class="template-name">{tpl['name']}</div>
-                        <div class="template-desc">{tpl.get('description', '')}</div>
-                        <div class="template-shortform">{tpl.get('short_form_text', '')}</div>
-                    </div>
-                    """, unsafe_allow_html=True)
+                    tpl_desc = tpl.get('description', '')
+                    tpl_short = tpl.get('short_form_text', '')
+                    st.markdown(
+                        '<div class="template-card">'
+                        + f'<div class="template-name">{tpl["name"]}</div>'
+                        + f'<div class="template-desc">{tpl_desc}</div>'
+                        + f'<div class="template-shortform">{tpl_short}</div>'
+                        + '</div>',
+                        unsafe_allow_html=True
+                    )
 
                     col1, col2, col3 = st.columns([2, 2, 2])
                     with col1:
@@ -383,7 +398,7 @@ with tab_plan:
 
     if not plans:
         empty_state("📋", "No Active Confessions",
-                     "Visit the Discover tab to find confessions for your situation.")
+                    "Visit the Discover tab to find confessions for your situation.")
     else:
         # Separate pastor-assigned from self-selected
         assigned = [p for p in plans if p.get("assigned_by")]
@@ -411,20 +426,21 @@ with tab_confess:
 
     if not pending_plans:
         if plans:
-            st.markdown("""
-            <div style="text-align:center; padding:40px 20px;">
-                <div style="font-size:48px;">🎉</div>
-                <div style="font-family:'DM Serif Display',serif; font-size:22px; color:#2A2438; margin:12px 0;">
-                    All confessions complete for today!
-                </div>
-                <div style="font-size:14px; color:#6B6580;">
-                    Great job speaking God's Word over your life today.
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+            st.markdown(
+                '<div style="text-align:center; padding:40px 20px;">'
+                '<div style="font-size:48px;">&#x1F389;</div>'
+                '<div style="font-family:\'Cormorant\',serif; font-size:22px; color:#1A1208; margin:12px 0;">'
+                'All confessions complete for today!'
+                '</div>'
+                '<div style="font-size:14px; color:#5A4A32;">'
+                'Great job speaking God\'s Word over your life today.'
+                '</div>'
+                '</div>',
+                unsafe_allow_html=True
+            )
         else:
             empty_state("🎤", "No Confessions to Speak",
-                         "Add confessions from the Discover tab to start your daily confession practice.")
+                        "Add confessions from the Discover tab to start your daily confession practice.")
     else:
         # Select which plan to confess
         if "pe_confess_plan" not in st.session_state:
@@ -441,16 +457,16 @@ with tab_confess:
         current_plan = next((p for p in pending_plans if p["id"] == selected_plan_id), None)
         if current_plan:
             tpl = current_plan.get("confession_templates", {})
-            st.markdown(f"""
-            <div style="text-align:center; padding:10px 0;">
-                <div style="font-size:12px; color:#9E96AB; text-transform:uppercase; letter-spacing:1.5px;">
-                    Confess Aloud
-                </div>
-                <div style="font-family:'DM Serif Display',serif; font-size:20px; color:#2A2438; margin:6px 0;">
-                    {tpl.get('name', '')}
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+            tpl_name = tpl.get('name', '')
+            st.markdown(
+                '<div style="text-align:center; padding:10px 0;">'
+                '<div style="font-size:12px; color:#A09080; text-transform:uppercase; letter-spacing:1.5px;">'
+                'Confess Aloud'
+                '</div>'
+                f'<div style="font-family:\'Cormorant\',serif; font-size:20px; color:#1A1208; margin:6px 0;">{tpl_name}</div>'
+                '</div>',
+                unsafe_allow_html=True
+            )
 
             # Gather all lines
             all_lines = []
@@ -491,19 +507,20 @@ with tab_confess:
                 ref = line_data.get("scripture_ref", "")
 
                 type_label = {"confession": "Confess", "declaration": "Declare", "prayer": "Pray"}.get(line_type, "")
-                type_color = {"confession": "#3A8F5C", "declaration": "#D4853A", "prayer": "#5B4FC4"}.get(line_type, "#5B4FC4")
+                type_color = {"confession": "#2B5A3E", "declaration": "#C48A1C", "prayer": "#B85A30"}.get(line_type, "#B85A30")
 
-                st.markdown(f"""
-                <div style="text-align:center; padding:8px 0;">
-                    <span style="background:{type_color}15; color:{type_color}; padding:3px 12px; border-radius:12px;
-                                 font-size:11px; font-weight:600; text-transform:uppercase;">
-                        {type_label}
-                    </span>
-                </div>
-                <div class="confess-line">{text}</div>
-                """, unsafe_allow_html=True)
+                st.markdown(
+                    '<div style="text-align:center; padding:8px 0;">'
+                    f'<span style="background:{type_color}20; color:{type_color}; padding:3px 12px; border-radius:12px;'
+                    ' font-size:11px; font-weight:600; text-transform:uppercase;">'
+                    f'{type_label}'
+                    '</span>'
+                    '</div>'
+                    f'<div class="confess-line">{text}</div>',
+                    unsafe_allow_html=True
+                )
                 if ref:
-                    st.markdown(f'<div class="confess-scripture">— {ref}</div>', unsafe_allow_html=True)
+                    st.markdown(f'<div class="confess-scripture">&mdash; {ref}</div>', unsafe_allow_html=True)
 
                 spacer()
 
@@ -539,4 +556,3 @@ with tab_confess:
                         st.success("Confession complete! Well done.")
                         st.balloons()
                         st.rerun()
-

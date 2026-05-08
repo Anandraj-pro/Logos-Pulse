@@ -32,14 +32,14 @@ with tab_create:
     for i, s_name in enumerate(steps):
         s_num = i + 1
         if s_num < step:
-            dot_style = "background:#5B4FC4; color:white;"
-            label_style = "color:#5B4FC4; font-weight:600;"
+            dot_style = "background:#B85A30; color:white;"
+            label_style = "color:#B85A30; font-weight:600;"
         elif s_num == step:
-            dot_style = "background:#5B4FC4; color:white; box-shadow:0 0 0 4px rgba(91,79,196,0.2);"
-            label_style = "color:#5B4FC4; font-weight:700;"
+            dot_style = "background:#B85A30; color:white; box-shadow:0 0 0 4px rgba(184,90,48,0.2);"
+            label_style = "color:#B85A30; font-weight:700;"
         else:
-            dot_style = "background:#E0E0E0; color:#9E96AB;"
-            label_style = "color:#C0B8CC;"
+            dot_style = "background:#E0E0E0; color:#A09080;"
+            label_style = "color:#A09080;"
         progress_html += f"""
         <div style="text-align:center; flex:1;">
             <div style="width:32px; height:32px; border-radius:50%; {dot_style}
@@ -306,24 +306,24 @@ with tab_my_assignments:
                 .execute()
             target_count = targets.count or 0
 
-            st.markdown(f"""
-            <div class="entry-card">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div>
-                        <span style="font-family:'DM Serif Display',Georgia,serif; font-size:16px; color:#2A2438;">
-                            {a['title']}
-                        </span>
-                        <div style="font-size:12px; color:#9E96AB; margin-top:2px;">
-                            {a['start_date']} to {a['end_date']} | {target_count} member(s)
-                        </div>
-                    </div>
-                    <span style="background:#EDEBFA; color:#5B4FC4; padding:3px 10px;
-                                 border-radius:10px; font-size:11px; font-weight:600;">
-                        {len(components)} components
-                    </span>
-                </div>
-                <div style="margin-top:8px; font-size:13px; color:#6B6580;">
-                    {' | '.join(comp_labels)}
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+            comp_label_str = ' | '.join(comp_labels)
+            st.markdown(
+                '<div class="entry-card">'
+                '<div style="display:flex; justify-content:space-between; align-items:center;">'
+                '<div>'
+                '<span style="font-family:\'Cormorant\',Georgia,serif; font-size:16px; color:#1A1208;">'
+                + a['title'] + '</span>'
+                '<div style="font-size:12px; color:#A09080; margin-top:2px;">'
+                + a['start_date'] + ' to ' + a['end_date'] + ' | ' + str(target_count) + ' member(s)'
+                '</div>'
+                '</div>'
+                '<span style="background:#FDF0E8; color:#B85A30; padding:3px 10px;'
+                ' border-radius:10px; font-size:11px; font-weight:600;">'
+                + str(len(components)) + ' components</span>'
+                '</div>'
+                '<div style="margin-top:8px; font-size:13px; color:#5A4A32;">'
+                + comp_label_str +
+                '</div>'
+                '</div>',
+                unsafe_allow_html=True
+            )

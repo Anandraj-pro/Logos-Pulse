@@ -28,29 +28,36 @@ role_display = role.replace("_", " ").title()
 role_colors = {
     "admin": "#C44B5B",
     "bishop": "#2196F3",
-    "pastor": "#3A8F5C",
-    "prayer_warrior": "#5B4FC4",
+    "pastor": "#2B5A3E",
+    "prayer_warrior": "#B85A30",
 }
 
 page_header("\U0001f464", "My Profile", f"{role_display} Account")
 
 # ==================== PROFILE INFO ====================
-st.markdown(f"""
-<div class="entry-card" style="text-align:center; padding:28px;">
-    <div style="font-size:48px; margin-bottom:8px;">\U0001f464</div>
-    <div style="font-family:'DM Serif Display',Georgia,serif; font-size:24px; color:#2A2438;">
-        {user_meta.get('preferred_name') or user_meta.get('first_name', '')} {user_meta.get('last_name', '')}
-    </div>
-    <span style="background:{role_colors.get(role, '#5B4FC4')}; color:white; padding:3px 14px;
-                 border-radius:12px; font-size:12px; font-weight:600;">
-        {role_display}
-    </span>
-    <div style="font-size:13px; color:#9E96AB; margin-top:8px;">
-        {user_resp.user.email}
-    </div>
-    {"<div style='font-size:12px; color:#9E96AB; margin-top:4px;'>Card: " + profile_data['membership_card_id'] + "</div>" if profile_data.get('membership_card_id') else ""}
-</div>
-""", unsafe_allow_html=True)
+_display_name = (user_meta.get("preferred_name") or user_meta.get("first_name", "")) + " " + user_meta.get("last_name", "")
+_role_color = role_colors.get(role, "#B85A30")
+_email = user_resp.user.email
+_card_id = profile_data.get("membership_card_id", "")
+_card_html = ("<div style='font-size:12px; color:#A09080; margin-top:4px;'>Card: " + _html.escape(_card_id) + "</div>") if _card_id else ""
+
+st.markdown(
+    '<div class="db-card" style="text-align:center; padding:28px;">'
+    '<div style="font-size:48px; margin-bottom:8px;">\U0001f464</div>'
+    '<div style="font-family:\'Cormorant\',Georgia,serif; font-size:24px; color:#1A1208;">'
+    + _html.escape(_display_name) +
+    '</div>'
+    '<span style="background:' + _role_color + '; color:white; padding:3px 14px;'
+    ' border-radius:12px; font-size:12px; font-weight:600;">'
+    + role_display +
+    '</span>'
+    '<div style="font-size:13px; color:#A09080; margin-top:8px;">'
+    + _html.escape(_email) +
+    '</div>'
+    + _card_html +
+    '</div>',
+    unsafe_allow_html=True
+)
 
 spacer()
 
@@ -60,17 +67,18 @@ if role == "prayer_warrior" and profile_data.get("pastor_id"):
         pastor_user = admin.auth.admin.get_user_by_id(profile_data["pastor_id"]).user
         pastor_meta = pastor_user.user_metadata or {}
         pastor_name = pastor_meta.get("preferred_name") or pastor_meta.get("first_name", "")
-        st.markdown(f"""
-        <div class="entry-card">
-            <div style="font-size:11px; color:#9E96AB; text-transform:uppercase; letter-spacing:1.5px; font-weight:600;">
-                My Pastor
-            </div>
-            <div style="font-family:'DM Serif Display',Georgia,serif; font-size:16px; color:#2A2438; margin-top:4px;">
-                {pastor_name}
-            </div>
-            <div style="font-size:12px; color:#6B6580;">{pastor_user.email}</div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(
+            '<div class="entry-card">'
+            '<div style="font-size:11px; color:#A09080; text-transform:uppercase; letter-spacing:1.5px; font-weight:600;">'
+            'My Pastor'
+            '</div>'
+            '<div style="font-family:\'Cormorant\',Georgia,serif; font-size:16px; color:#1A1208; margin-top:4px;">'
+            + _html.escape(pastor_name) +
+            '</div>'
+            '<div style="font-size:12px; color:#5A4A32;">' + _html.escape(pastor_user.email) + '</div>'
+            '</div>',
+            unsafe_allow_html=True
+        )
     except Exception:
         pass
 
@@ -79,24 +87,25 @@ elif role == "pastor" and profile_data.get("bishop_id"):
         bishop_user = admin.auth.admin.get_user_by_id(profile_data["bishop_id"]).user
         bishop_meta = bishop_user.user_metadata or {}
         bishop_name = bishop_meta.get("preferred_name") or bishop_meta.get("first_name", "")
-        st.markdown(f"""
-        <div class="entry-card">
-            <div style="font-size:11px; color:#9E96AB; text-transform:uppercase; letter-spacing:1.5px; font-weight:600;">
-                My Bishop
-            </div>
-            <div style="font-family:'DM Serif Display',Georgia,serif; font-size:16px; color:#2A2438; margin-top:4px;">
-                {bishop_name}
-            </div>
-            <div style="font-size:12px; color:#6B6580;">{bishop_user.email}</div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(
+            '<div class="entry-card">'
+            '<div style="font-size:11px; color:#A09080; text-transform:uppercase; letter-spacing:1.5px; font-weight:600;">'
+            'My Bishop'
+            '</div>'
+            '<div style="font-family:\'Cormorant\',Georgia,serif; font-size:16px; color:#1A1208; margin-top:4px;">'
+            + _html.escape(bishop_name) +
+            '</div>'
+            '<div style="font-size:12px; color:#5A4A32;">' + _html.escape(bishop_user.email) + '</div>'
+            '</div>',
+            unsafe_allow_html=True
+        )
     except Exception:
         pass
 
 spacer()
 
 # ==================== EDIT PROFILE ====================
-tab_edit, tab_password, tab_care = st.tabs(["\u270f\ufe0f Edit Profile", "\U0001f510 Change Password", "\U0001f4cb My Care"])
+tab_edit, tab_password, tab_care = st.tabs(["✏️ Edit Profile", "\U0001f510 Change Password", "\U0001f4cb My Care"])
 
 with tab_edit:
     section_label("Personal Information")
@@ -218,18 +227,21 @@ with tab_care:
         st.caption("No check-in requests yet.")
     else:
         for cr in my_reqs:
-            sc = "#3A8F5C" if cr.get("status") == "acknowledged" else "#D4853A"
-            _cr_msg = _html.escape(cr['message']) if cr.get('message') else ""
-            st.markdown(f"""
-            <div class="entry-card" style="border-left:3px solid {sc};">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div>
-                        <span style="font-size:13px; color:#2A2438; font-weight:600;">
-                            {"Acknowledged ✔" if cr['status'] == 'acknowledged' else "Pending"}
-                        </span>
-                        {"<div style='font-size:12px; color:#6B6580; margin-top:2px;'>" + _cr_msg + "</div>" if _cr_msg else ""}
-                    </div>
-                    <span style="font-size:11px; color:#9E96AB; white-space:nowrap; margin-left:8px;">{cr['created_at'][:10]}</span>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+            sc = "#2B5A3E" if cr.get("status") == "acknowledged" else "#C48A1C"
+            _cr_msg = _html.escape(cr["message"]) if cr.get("message") else ""
+            _status_label = "Acknowledged ✔" if cr["status"] == "acknowledged" else "Pending"
+            _msg_html = ("<div style='font-size:12px; color:#5A4A32; margin-top:2px;'>" + _cr_msg + "</div>") if _cr_msg else ""
+            st.markdown(
+                '<div class="entry-card" style="border-left:3px solid ' + sc + ';">'
+                '<div style="display:flex; justify-content:space-between; align-items:center;">'
+                '<div>'
+                '<span style="font-size:13px; color:#1A1208; font-weight:600;">' + _status_label + '</span>'
+                + _msg_html +
+                '</div>'
+                '<span style="font-size:11px; color:#A09080; white-space:nowrap; margin-left:8px;">'
+                + cr["created_at"][:10] +
+                '</span>'
+                '</div>'
+                '</div>',
+                unsafe_allow_html=True
+            )

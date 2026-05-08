@@ -80,19 +80,23 @@ if view_mode == "Calendar":
 
     if selected_date and selected_date in entry_map:
         entry = entry_map[selected_date]
-        st.markdown(f"""
-        <div class="entry-card" style="margin-top:16px;">
-            <div style="font-family:'DM Serif Display',Georgia,serif; font-size:16px; color:#2A2438; margin-bottom:8px;">
-                {selected_date}
-            </div>
-            <div style="font-size:14px; color:#6B6580; line-height:1.8;">
-                \U0001f64f <b>Prayer:</b> {format_prayer_duration(entry['prayer_minutes'])}<br/>
-                \U0001f4d6 <b>Reading:</b> {entry.get('chapters_display', 'N/A')}<br/>
-                {"\U0001f3a7 <b>Sermon:</b> " + entry['sermon_title'] + (" - " + entry['sermon_speaker'] if entry.get('sermon_speaker') else "") + "<br/>" if entry.get('sermon_title') else ""}
-                {"\U0001f517 " + entry['youtube_link'] + "<br/>" if entry.get('youtube_link') else ""}
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        _sermon_part = ''
+        if entry.get('sermon_title'):
+            _speaker_part = (' - ' + entry['sermon_speaker']) if entry.get('sermon_speaker') else ''
+            _sermon_part = '\U0001f3a7 <b>Sermon:</b> ' + entry['sermon_title'] + _speaker_part + '<br/>'
+        _youtube_part = ('\U0001f517 ' + entry['youtube_link'] + '<br/>') if entry.get('youtube_link') else ''
+        st.markdown(
+            '<div class="entry-card" style="margin-top:16px;">'
+            '<div style="font-family:\'Cormorant\',Georgia,serif; font-size:16px; color:#1A1208; margin-bottom:8px;">'
+            + selected_date +
+            '</div>'
+            '<div style="font-size:14px; color:#5A4A32; line-height:1.8;">'
+            f'\U0001f64f <b>Prayer:</b> {format_prayer_duration(entry["prayer_minutes"])}<br/>'
+            f'\U0001f4d6 <b>Reading:</b> {entry.get("chapters_display", "N/A")}<br/>'
+            + _sermon_part + _youtube_part +
+            '</div>'
+            '</div>',
+            unsafe_allow_html=True)
 
 else:
     # List view
@@ -111,16 +115,16 @@ else:
             duration = format_prayer_duration(entry["prayer_minutes"])
             reading = entry.get("chapters_display", "N/A")
             report_icon = "\u2705" if entry.get("report_copied") else "\u23f3"
-
-            st.markdown(f"""
-            <div class="entry-card">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span style="font-family:'DM Serif Display',Georgia,serif; font-weight:400; color:#2A2438;">{entry['date']}</span>
-                    <span style="font-size:12px; color:#9E96AB;">{report_icon} Report</span>
-                </div>
-                <div style="font-size:14px; color:#6B6580; margin-top:6px; line-height:1.6;">
-                    Prayer: {duration} &bull; Reading: {reading}
-                    {"&bull; " + entry['sermon_title'] if entry.get('sermon_title') else ""}
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+            _sermon_bullet = ('&bull; ' + entry['sermon_title']) if entry.get('sermon_title') else ''
+            st.markdown(
+                '<div class="entry-card">'
+                '<div style="display:flex; justify-content:space-between; align-items:center;">'
+                f'<span style="font-family:\'Cormorant\',Georgia,serif; font-weight:400; color:#1A1208;">{entry["date"]}</span>'
+                f'<span style="font-size:12px; color:#A09080;">{report_icon} Report</span>'
+                '</div>'
+                '<div style="font-size:14px; color:#5A4A32; margin-top:6px; line-height:1.6;">'
+                f'Prayer: {duration} &bull; Reading: {reading} '
+                + _sermon_bullet +
+                '</div>'
+                '</div>',
+                unsafe_allow_html=True)

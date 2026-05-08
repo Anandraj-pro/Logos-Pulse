@@ -8,13 +8,13 @@ require_login()
 
 page_header("\U0001f510", "Change Password", "You must set a new password before continuing")
 
-st.markdown("""
-<div style="background:#FFF3E0; border-left:4px solid #D4853A;
-            padding:14px 18px; border-radius:6px; margin-bottom:20px;">
-    <b style="color:#E65100;">Action Required:</b> You are using a default password.
-    Please set a new password to secure your account.
-</div>
-""", unsafe_allow_html=True)
+st.markdown(
+    '<div class="db-card" style="border-left:4px solid #C48A1C;">'
+    '<b style="color:#B85A30;">Action Required:</b> You are using a default password. '
+    'Please set a new password to secure your account.'
+    '</div>',
+    unsafe_allow_html=True
+)
 
 with st.form("change_password_form"):
     new_password = st.text_input("New Password", type="password", placeholder="Minimum 8 characters")

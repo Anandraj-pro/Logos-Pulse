@@ -23,32 +23,33 @@ if "onboard_step" not in st.session_state:
 step = st.session_state["onboard_step"]
 TOTAL_STEPS = 4
 
-# Progress dots
+# Progress dots — build as single-line string via concatenation
 dots = ""
 for i in range(1, TOTAL_STEPS + 1):
     if i < step:
-        dots += '<span style="width:12px; height:12px; border-radius:50%; background:#5B4FC4; display:inline-block; margin:0 4px;"></span>'
+        dots += '<span style="width:12px; height:12px; border-radius:50%; background:#B85A30; display:inline-block; margin:0 4px;"></span>'
     elif i == step:
-        dots += '<span style="width:12px; height:12px; border-radius:50%; background:#5B4FC4; display:inline-block; margin:0 4px; box-shadow:0 0 0 3px rgba(91,79,196,0.2);"></span>'
+        dots += '<span style="width:12px; height:12px; border-radius:50%; background:#B85A30; display:inline-block; margin:0 4px; box-shadow:0 0 0 3px rgba(184,90,48,0.2);"></span>'
     else:
-        dots += '<span style="width:12px; height:12px; border-radius:50%; background:#EDE8F5; display:inline-block; margin:0 4px;"></span>'
+        dots += '<span style="width:12px; height:12px; border-radius:50%; background:#F3EFE7; display:inline-block; margin:0 4px;"></span>'
 
-st.markdown(f'<div style="text-align:center; margin:20px 0;">{dots}</div>', unsafe_allow_html=True)
+st.markdown('<div style="text-align:center; margin:20px 0;">' + dots + '</div>', unsafe_allow_html=True)
 
 # ── Step 1: Welcome ──────────────────────────────────────────
 if step == 1:
-    st.markdown("""
-    <div style="text-align:center; padding:40px 20px;">
-        <div style="font-size:64px; margin-bottom:16px;">\U0001f64f</div>
-        <div style="font-family:'DM Serif Display',Georgia,serif; font-size:28px; color:#2A2438; margin-bottom:8px;">
-            Welcome to Logos Pulse
-        </div>
-        <div style="font-size:16px; color:#6B6580; max-width:400px; margin:0 auto; line-height:1.6;">
-            Your spiritual growth companion. Track your prayer life, Bible reading,
-            and grow alongside your church community.
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown(
+        '<div style="text-align:center; padding:40px 20px;">'
+        '<div style="font-size:64px; margin-bottom:16px;">\U0001f64f</div>'
+        '<div style="font-family:\'Cormorant\',Georgia,serif; font-size:28px; color:#1A1208; margin-bottom:8px;">'
+        'Welcome to Logos Pulse'
+        '</div>'
+        '<div style="font-size:16px; color:#5A4A32; max-width:400px; margin:0 auto; line-height:1.6;">'
+        'Your spiritual growth companion. Track your prayer life, Bible reading, '
+        'and grow alongside your church community.'
+        '</div>'
+        '</div>',
+        unsafe_allow_html=True
+    )
 
     spacer()
     col1, col2, col3 = st.columns([1, 2, 1])
@@ -59,17 +60,18 @@ if step == 1:
 
 # ── Step 2: Daily Prayer Goal ────────────────────────────────
 elif step == 2:
-    st.markdown("""
-    <div style="text-align:center; padding:20px;">
-        <div style="font-size:48px; margin-bottom:12px;">⏰</div>
-        <div style="font-family:'DM Serif Display',Georgia,serif; font-size:24px; color:#2A2438; margin-bottom:8px;">
-            Set Your Daily Prayer Goal
-        </div>
-        <div style="font-size:14px; color:#6B6580;">
-            How many minutes do you want to pray each day?
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown(
+        '<div style="text-align:center; padding:20px;">'
+        '<div style="font-size:48px; margin-bottom:12px;">⏰</div>'
+        '<div style="font-family:\'Cormorant\',Georgia,serif; font-size:24px; color:#1A1208; margin-bottom:8px;">'
+        'Set Your Daily Prayer Goal'
+        '</div>'
+        '<div style="font-size:14px; color:#5A4A32;">'
+        'How many minutes do you want to pray each day?'
+        '</div>'
+        '</div>',
+        unsafe_allow_html=True
+    )
 
     prayer_options = list(range(15, 195, 15))
     goal = st.select_slider("Prayer goal (minutes)", options=prayer_options, value=60)
@@ -93,17 +95,18 @@ elif step == 2:
 
 # ── Step 3: Pick a Reading Plan ──────────────────────────────
 elif step == 3:
-    st.markdown("""
-    <div style="text-align:center; padding:20px;">
-        <div style="font-size:48px; margin-bottom:12px;">\U0001f4d6</div>
-        <div style="font-family:'DM Serif Display',Georgia,serif; font-size:24px; color:#2A2438; margin-bottom:8px;">
-            Start a Reading Plan
-        </div>
-        <div style="font-size:14px; color:#6B6580;">
-            Choose a guided plan to work through — or skip for now.
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown(
+        '<div style="text-align:center; padding:20px;">'
+        '<div style="font-size:48px; margin-bottom:12px;">\U0001f4d6</div>'
+        '<div style="font-family:\'Cormorant\',Georgia,serif; font-size:24px; color:#1A1208; margin-bottom:8px;">'
+        'Start a Reading Plan'
+        '</div>'
+        '<div style="font-size:14px; color:#5A4A32;">'
+        'Choose a guided plan to work through — or skip for now.'
+        '</div>'
+        '</div>',
+        unsafe_allow_html=True
+    )
 
     spacer(8)
 
@@ -116,21 +119,24 @@ elif step == 3:
         selected_plan = st.session_state.get("onboard_plan_id")
         for p in plans:
             is_sel = selected_plan == p["id"]
-            border = "border-left:4px solid #5B4FC4;" if is_sel else "border-left:4px solid #EDE8F5;"
-            bg = "background:#F5F3FF;" if is_sel else ""
-            st.markdown(f"""
-            <div class="entry-card" style="{border}{bg}">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div>
-                        <div style="font-family:'DM Serif Display',Georgia,serif; font-size:16px; color:#2A2438;">
-                            {p['name']}
-                        </div>
-                        <div style="font-size:12px; color:#6B6580; margin-top:2px;">{p.get('description','')}</div>
-                    </div>
-                    <span style="font-size:12px; color:#9E96AB; white-space:nowrap; margin-left:12px;">{p['total_days']} days</span>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+            border = "border-left:4px solid #B85A30;" if is_sel else "border-left:4px solid #F3EFE7;"
+            bg = "background:#FDF0E8;" if is_sel else ""
+            st.markdown(
+                '<div class="entry-card" style="' + border + bg + '">'
+                '<div style="display:flex; justify-content:space-between; align-items:center;">'
+                '<div>'
+                '<div style="font-family:\'Cormorant\',Georgia,serif; font-size:16px; color:#1A1208;">'
+                + p["name"] +
+                '</div>'
+                '<div style="font-size:12px; color:#5A4A32; margin-top:2px;">' + p.get("description", "") + '</div>'
+                '</div>'
+                '<span style="font-size:12px; color:#A09080; white-space:nowrap; margin-left:12px;">'
+                + str(p["total_days"]) + " days"
+                '</span>'
+                '</div>'
+                '</div>',
+                unsafe_allow_html=True
+            )
             btn_label = "Selected ✓" if is_sel else "Select"
             btn_type = "primary" if is_sel else "secondary"
             if st.button(btn_label, key=f"ob_plan_{p['id']}", type=btn_type, use_container_width=True):
@@ -158,17 +164,18 @@ elif step == 3:
 
 # ── Step 4: Set First Goal + Done ────────────────────────────
 elif step == 4:
-    st.markdown("""
-    <div style="text-align:center; padding:20px;">
-        <div style="font-size:48px; margin-bottom:12px;">\U0001f3af</div>
-        <div style="font-family:'DM Serif Display',Georgia,serif; font-size:24px; color:#2A2438; margin-bottom:8px;">
-            Set a Personal Goal
-        </div>
-        <div style="font-size:14px; color:#6B6580; max-width:360px; margin:0 auto;">
-            Give yourself something to work towards — you can add more goals later.
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown(
+        '<div style="text-align:center; padding:20px;">'
+        '<div style="font-size:48px; margin-bottom:12px;">\U0001f3af</div>'
+        '<div style="font-family:\'Cormorant\',Georgia,serif; font-size:24px; color:#1A1208; margin-bottom:8px;">'
+        'Set a Personal Goal'
+        '</div>'
+        '<div style="font-size:14px; color:#5A4A32; max-width:360px; margin:0 auto;">'
+        'Give yourself something to work towards — you can add more goals later.'
+        '</div>'
+        '</div>',
+        unsafe_allow_html=True
+    )
 
     spacer(8)
 
@@ -182,17 +189,18 @@ elif step == 4:
     preset_sel = st.session_state.get("onboard_goal_preset")
     for idx, (label, gtype, tracking, target, unit) in enumerate(GOAL_PRESETS):
         is_sel = preset_sel == idx
-        border = "border-left:4px solid #5B4FC4;" if is_sel else "border-left:4px solid #EDE8F5;"
-        bg = "background:#F5F3FF;" if is_sel else ""
+        border = "border-left:4px solid #B85A30;" if is_sel else "border-left:4px solid #F3EFE7;"
+        bg = "background:#FDF0E8;" if is_sel else ""
         icon = {"reading": "\U0001f4d6", "prayer": "\U0001f64f", "fasting": "\U0001f374"}[gtype]
-        st.markdown(f"""
-        <div class="entry-card" style="{border}{bg}">
-            <span style="font-size:18px;">{icon}</span>
-            <span style="font-family:'DM Serif Display',Georgia,serif; font-size:15px; color:#2A2438; margin-left:8px;">
-                {label}
-            </span>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(
+            '<div class="entry-card" style="' + border + bg + '">'
+            '<span style="font-size:18px;">' + icon + '</span>'
+            '<span style="font-family:\'Cormorant\',Georgia,serif; font-size:15px; color:#1A1208; margin-left:8px;">'
+            + label +
+            '</span>'
+            '</div>',
+            unsafe_allow_html=True
+        )
         btn_label = "Selected ✓" if is_sel else "Select"
         if st.button(btn_label, key=f"ob_goal_{idx}",
                      type="primary" if is_sel else "secondary",

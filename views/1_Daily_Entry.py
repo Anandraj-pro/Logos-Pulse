@@ -1,6 +1,7 @@
 import streamlit as st
 import json
-from datetime import date
+from datetime import date, timedelta
+import calendar
 from modules import db
 from modules.utils import format_chapters_display, is_valid_youtube_url, format_prayer_duration
 from modules.message import format_whatsapp_message
@@ -46,14 +47,10 @@ assignment = db.get_active_assignment()
 suggestion = get_today_suggestion(entry_date, assignment)
 
 if suggestion:
-    st.markdown(f"""
-    <div class="goal-banner">
-        \U0001f4d6 Today's reading goal: <b>{suggestion['book']} {suggestion['range']}</b>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown('<div class="goal-banner">&#128214; Today\'s reading goal: <b>' + suggestion['book'] + ' ' + suggestion['range'] + '</b></div>', unsafe_allow_html=True)
 
 # --- Tabs ---
-tab_read, tab_log, tab_report = st.tabs(["\U0001f4d6 Read Bible", "\u270f\ufe0f Log Entry", "\U0001f4cb Report"])
+tab_read, tab_log, tab_report, tab_hist = st.tabs(["\U0001f4d6 Read Bible", "\u270f\ufe0f Log Entry", "\U0001f4cb Report", "\U0001f4c5 History"])
 
 # ==================== TAB 1: Read Bible ====================
 with tab_read:
@@ -99,8 +96,8 @@ with tab_read:
     # Chapter heading
     st.markdown(f"""
     <div style="text-align:center; padding:8px 0 4px 0;">
-        <span style="font-size:11px; color:#9E96AB; text-transform:uppercase; letter-spacing:2px;">{read_book}</span><br/>
-        <span style="font-family:'DM Serif Display',Georgia,serif; font-size:26px; color:#2A2438;">Chapter {read_chapter}</span>
+        <span style="font-size:11px; color:#A09080; text-transform:uppercase; letter-spacing:2px;">{read_book}</span><br/>
+        <span style="font-family:'Cormorant',Georgia,serif; font-size:26px; color:#1A1208;">Chapter {read_chapter}</span>
     </div>
     """, unsafe_allow_html=True)
 
@@ -135,24 +132,24 @@ with tab_read:
                     v_num = verse.get("verse", "")
                     v_text = verse.get("text", "").strip()
                     verses_html += (
-                        f'<span style="color:#5B4FC4; font-weight:700; font-size:{max(font_size - 6, 10)}px; '
+                        f'<span style="color:#B85A30; font-weight:700; font-size:{max(font_size - 6, 10)}px; '
                         f'vertical-align:super; margin-right:2px;">{v_num}</span>'
                         f'<span>{v_text} </span>'
                     )
             elif chapter_data.get("text"):
                 verses_html = chapter_data["text"]
 
-            st.markdown(f"""
-            <div style="background:linear-gradient(135deg, #FFF9F0, #FFFEF8);
-                        border:1px solid #E8DCC8; border-radius:14px;
-                        padding:24px 22px; margin:8px 0;
-                        font-family:'DM Serif Display',Georgia,'Times New Roman',serif;
-                        font-size:{font_size}px; line-height:1.9; color:#3C2F1E;
-                        max-height:480px; overflow-y:auto;
-                        box-shadow:0 2px 8px rgba(0,0,0,0.03);">
-                {verses_html}
-            </div>
-            """, unsafe_allow_html=True)
+            st.markdown(
+                '<div style="background:linear-gradient(135deg, #FFF9F0, #FFFEF8);'
+                'border:1px solid #E8DCC8; border-radius:14px;'
+                'padding:24px 22px; margin:8px 0;'
+                "font-family:'Cormorant',Georgia,'Times New Roman',serif;"
+                f'font-size:{font_size}px; line-height:1.9; color:#3C2F1E;'
+                'max-height:480px; overflow-y:auto;'
+                'box-shadow:0 2px 8px rgba(0,0,0,0.03);">'
+                + verses_html +
+                '</div>',
+                unsafe_allow_html=True)
     else:
         st.warning("Could not load chapter. Check your internet connection.")
 
@@ -324,19 +321,21 @@ with tab_report:
 
         # Summary below
         duration = format_prayer_duration(entry_for_report["prayer_minutes"])
-        st.markdown(f"""
-        <div style="margin-top:16px; padding:14px 18px; background:#E8F5E9; border-radius:12px;">
-            <div style="font-size:13px; font-weight:600; color:#2E7D32; margin-bottom:6px;">
-                \u2705 Entry Summary
-            </div>
-            <div style="font-size:14px; color:#333; line-height:1.6;">
-                Prayer: {duration}<br/>
-                Reading: {entry_for_report.get('chapters_display', 'N/A')}<br/>
-                {"Sermon: " + entry_for_report['sermon_title'] + "<br/>" if entry_for_report.get('sermon_title') else ""}
-                Report: {"Copied" if entry_for_report.get('report_copied') else "Ready to copy"}
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        _sermon_line = ('Sermon: ' + entry_for_report['sermon_title'] + '<br/>') if entry_for_report.get('sermon_title') else ''
+        _report_status = 'Copied' if entry_for_report.get('report_copied') else 'Ready to copy'
+        st.markdown(
+            '<div style="margin-top:16px; padding:14px 18px; background:#E8F5E9; border-radius:12px;">'
+            '<div style="font-size:13px; font-weight:600; color:#2E7D32; margin-bottom:6px;">'
+            '\u2705 Entry Summary'
+            '</div>'
+            '<div style="font-size:14px; color:#333; line-height:1.6;">'
+            f'Prayer: {duration}<br/>'
+            f'Reading: {entry_for_report.get("chapters_display", "N/A")}<br/>'
+            + _sermon_line +
+            f'Report: {_report_status}'
+            '</div>'
+            '</div>',
+            unsafe_allow_html=True)
     else:
         st.markdown("""
         <div class="empty-state">
@@ -345,3 +344,117 @@ with tab_report:
             <div class="empty-state-sub">Fill in the "Log Entry" tab first</div>
         </div>
         """, unsafe_allow_html=True)
+
+# ==================== TAB 4: History ====================
+with tab_hist:
+    all_dates = db.get_all_entry_dates()
+    view_mode = st.segmented_control("View", ["Calendar", "List"], default="Calendar", label_visibility="collapsed")
+
+    if view_mode == "Calendar":
+        if "hist_year" not in st.session_state:
+            st.session_state.hist_year = date.today().year
+        if "hist_month" not in st.session_state:
+            st.session_state.hist_month = date.today().month
+
+        col1, col2, col3 = st.columns([1, 3, 1])
+        with col1:
+            if st.button("◀ Prev", use_container_width=True, key="hist_prev"):
+                if st.session_state.hist_month == 1:
+                    st.session_state.hist_month = 12
+                    st.session_state.hist_year -= 1
+                else:
+                    st.session_state.hist_month -= 1
+                st.rerun()
+        with col2:
+            month_name = calendar.month_name[st.session_state.hist_month]
+            st.markdown(f"<h3 style='text-align:center;'>{month_name} {st.session_state.hist_year}</h3>", unsafe_allow_html=True)
+        with col3:
+            if st.button("Next ▶", use_container_width=True, key="hist_next"):
+                if st.session_state.hist_month == 12:
+                    st.session_state.hist_month = 1
+                    st.session_state.hist_year += 1
+                else:
+                    st.session_state.hist_month += 1
+                st.rerun()
+
+        year = st.session_state.hist_year
+        month = st.session_state.hist_month
+        first_day = date(year, month, 1)
+        last_day = date(year, month, calendar.monthrange(year, month)[1])
+        month_entries = db.get_entries_in_range(first_day.isoformat(), last_day.isoformat())
+        entry_dates_set = {e["date"] for e in month_entries}
+        entry_map = {e["date"]: e for e in month_entries}
+
+        day_names = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+        header_cols = st.columns(7)
+        for i, name in enumerate(day_names):
+            header_cols[i].markdown(f"<div class='cal-header'>{name}</div>", unsafe_allow_html=True)
+
+        cal = calendar.Calendar(firstweekday=0)
+        weeks = cal.monthdayscalendar(year, month)
+        selected_date = None
+        for week in weeks:
+            cols = st.columns(7)
+            for i, day in enumerate(week):
+                with cols[i]:
+                    if day == 0:
+                        st.markdown("<div class='cal-day'>&nbsp;</div>", unsafe_allow_html=True)
+                    else:
+                        d_str = date(year, month, day).isoformat()
+                        if d_str in entry_dates_set:
+                            if st.button(f"{day}", key=f"hist_cal_{d_str}", use_container_width=True, type="primary"):
+                                selected_date = d_str
+                        else:
+                            st.markdown(f"<div class='cal-day cal-empty'>{day}</div>", unsafe_allow_html=True)
+
+        if selected_date and selected_date in entry_map:
+            from modules.utils import format_prayer_duration
+            entry = entry_map[selected_date]
+            _sermon_part = ''
+            if entry.get('sermon_title'):
+                _sp = (' - ' + entry['sermon_speaker']) if entry.get('sermon_speaker') else ''
+                _sermon_part = '\U0001f3a7 <b>Sermon:</b> ' + entry['sermon_title'] + _sp + '<br/>'
+            _yt_part = ('\U0001f517 ' + entry['youtube_link'] + '<br/>') if entry.get('youtube_link') else ''
+            st.markdown(
+                '<div class="entry-card" style="margin-top:16px;">'
+                '<div style="font-family:\'Cormorant\',Georgia,serif; font-size:16px; color:#1A1208; margin-bottom:8px;">'
+                + selected_date +
+                '</div>'
+                '<div style="font-size:14px; color:#5A4A32; line-height:1.8;">'
+                f'\U0001f64f <b>Prayer:</b> {format_prayer_duration(entry["prayer_minutes"])}<br/>'
+                f'\U0001f4d6 <b>Reading:</b> {entry.get("chapters_display", "N/A")}<br/>'
+                + _sermon_part + _yt_part +
+                '</div>'
+                '</div>',
+                unsafe_allow_html=True)
+
+    else:
+        col1, col2 = st.columns(2)
+        with col1:
+            hist_start = st.date_input("From", value=date.today() - timedelta(days=30), key="hist_from")
+        with col2:
+            hist_end = st.date_input("To", value=date.today(), key="hist_to")
+
+        range_entries = db.get_entries_in_range(hist_start.isoformat(), hist_end.isoformat())
+
+        if not range_entries:
+            st.markdown('<div class="empty-state"><div class="empty-state-icon">\U0001f4c5</div>'
+                        '<div class="empty-state-title">No entries found</div></div>', unsafe_allow_html=True)
+        else:
+            from modules.utils import format_prayer_duration
+            for entry in range_entries:
+                duration = format_prayer_duration(entry["prayer_minutes"])
+                reading = entry.get("chapters_display", "N/A")
+                report_icon = "✅" if entry.get("report_copied") else "⏳"
+                _sermon = ('&bull; ' + entry['sermon_title']) if entry.get('sermon_title') else ''
+                st.markdown(
+                    '<div class="entry-card">'
+                    '<div style="display:flex; justify-content:space-between; align-items:center;">'
+                    f'<span style="font-family:\'Cormorant\',Georgia,serif; color:#1A1208;">{entry["date"]}</span>'
+                    f'<span style="font-size:12px; color:#A09080;">{report_icon} Report</span>'
+                    '</div>'
+                    '<div style="font-size:14px; color:#5A4A32; margin-top:6px; line-height:1.6;">'
+                    f'Prayer: {duration} &bull; Reading: {reading} ' + _sermon +
+                    '</div>'
+                    '</div>',
+                    unsafe_allow_html=True)

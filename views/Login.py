@@ -14,46 +14,46 @@ st.markdown("""
 <style>
 section[data-testid="stSidebar"] { display: none !important; }
 
+/* Daybreak font classes */
 .lp-brand-name {
-    font-family: 'Cinzel', serif;
-    font-size: 20px; font-weight: 600; color: white;
-    letter-spacing: 0.06em; line-height: 1.2;
+    font-family: 'Cormorant', serif;
+    font-size: 20px; font-weight: 600; color: #1A1208;
+    letter-spacing: 0.04em; line-height: 1.2;
 }
 .lp-brand-tag {
-    font-size: 9px; color: rgba(196,144,42,0.72);
+    font-size: 9px; color: rgba(184,90,48,0.72);
     text-transform: uppercase; letter-spacing: 2.5px;
-    font-weight: 700; font-family: 'Nunito', sans-serif;
+    font-weight: 700; font-family: 'Jost', sans-serif;
 }
 .lp-brand-headline {
-    font-family: 'Cinzel', serif; font-size: 34px; font-weight: 600;
-    color: white; line-height: 1.22; letter-spacing: 0.02em;
-    text-shadow: 0 3px 22px rgba(0,0,0,0.30); margin-bottom: 14px;
+    font-family: 'Cormorant', serif; font-size: 38px; font-weight: 600;
+    color: #1A1208; line-height: 1.15; letter-spacing: -0.01em;
+    margin-bottom: 14px;
 }
-.lp-brand-headline em { font-style: italic; color: #E8C050; }
 .lp-brand-sub {
-    font-size: 14px; color: rgba(255,255,255,0.46);
-    line-height: 1.72; font-family: 'Nunito', sans-serif; margin-bottom: 36px;
+    font-size: 14px; color: #5A4A32;
+    line-height: 1.72; font-family: 'Jost', sans-serif; margin-bottom: 36px;
 }
 .lp-verse-text {
-    font-family: 'Spectral', 'EB Garamond', Georgia, serif;
+    font-family: 'Cormorant', serif;
     font-style: italic; font-size: 15px;
-    color: rgba(255,255,255,0.82); line-height: 1.82; margin-bottom: 10px;
+    color: #1A1208; line-height: 1.82; margin-bottom: 10px;
 }
 .lp-verse-ref {
-    font-size: 13px; color: #C4902A;
-    font-family: 'Cinzel', serif; font-weight: 500; letter-spacing: 0.04em;
+    font-size: 13px; color: #B85A30;
+    font-family: 'Cormorant', serif; font-weight: 600; letter-spacing: 0.04em;
 }
 .lp-form-title {
-    font-family: 'Cinzel', serif; font-size: 28px; font-weight: 600;
-    color: #140F1A; letter-spacing: 0.02em; margin-bottom: 6px;
+    font-family: 'Cormorant', serif; font-size: 28px; font-weight: 600;
+    color: #1A1208; letter-spacing: -0.01em; margin-bottom: 6px;
 }
 .lp-form-sub {
-    font-size: 14px; color: #8A85A0;
-    margin-bottom: 28px; font-family: 'Nunito', sans-serif;
+    font-size: 14px; color: #A09080;
+    margin-bottom: 28px; font-family: 'Jost', sans-serif;
 }
 .lp-gold-rule {
     width: 48px; height: 2px;
-    background: linear-gradient(90deg, #C4902A, #E8C050);
+    background: linear-gradient(90deg, #B85A30, #DFA830);
     border-radius: 2px; margin-bottom: 28px;
 }
 </style>
@@ -76,93 +76,55 @@ col_brand, col_form = st.columns([9, 11], gap="large")
 
 # ── LEFT: Brand panel — all critical styles are INLINE so the gradient always renders
 with col_brand:
-    st.markdown(f"""
-    <div style="
-        background:
-            radial-gradient(ellipse at 18% 14%, rgba(196,144,42,0.22) 0%, transparent 50%),
-            radial-gradient(ellipse at 82% 82%, rgba(107,63,168,0.20) 0%, transparent 48%),
-            linear-gradient(152deg, #170F4A 0%, #2A1D7E 40%, #3C2D90 68%, #4A2A88 100%);
-        border-radius: 20px;
-        padding: 44px 40px 36px 40px;
-        min-height: 540px;
-        position: relative;
-        overflow: hidden;
-        box-shadow: 0 24px 64px rgba(42,29,126,0.36), 0 4px 16px rgba(42,29,126,0.20);
-    ">
-
-        <!-- Diagonal hatching overlay -->
-        <div style="
-            position:absolute; inset:0; border-radius:20px; pointer-events:none;
-            background: repeating-linear-gradient(
-                -52deg,
-                rgba(255,255,255,0.013) 0px, rgba(255,255,255,0.013) 1px,
-                transparent 1px, transparent 14px
-            );
-        "></div>
-
-        <!-- Gold orb top-right -->
-        <div style="
-            position:absolute; top:-70px; right:-70px;
-            width:300px; height:300px; border-radius:50%; pointer-events:none;
-            background: radial-gradient(circle, rgba(196,144,42,0.18) 0%, transparent 66%);
-        "></div>
-
-        <!-- Logo -->
-        <div style="display:flex; align-items:center; gap:12px; margin-bottom:44px; position:relative; z-index:1;">
-            <div style="
-                width:42px; height:42px; border-radius:11px; flex-shrink:0;
-                background:rgba(196,144,42,0.14); border:1px solid rgba(196,144,42,0.40);
-                display:flex; align-items:center; justify-content:center; font-size:20px;
-            ">&#128214;</div>
-            <div>
-                <div class="lp-brand-name">Logos Pulse</div>
-                <div class="lp-brand-tag">Sanctuary</div>
-            </div>
-        </div>
-
-        <!-- Headline + sub -->
-        <div style="position:relative; z-index:1;">
-            <div class="lp-brand-headline">
-                Track your<br><em>walk with God</em>
-            </div>
-            <div class="lp-brand-sub">
-                A sanctuary for daily prayer, scripture reading,
-                and spiritual reflection &#8212; designed for the whole
-                church family.
-            </div>
-
-            <!-- Verse card -->
-            <div style="
-                background:rgba(255,255,255,0.07);
-                border:1px solid rgba(196,144,42,0.26);
-                border-radius:16px; padding:20px 22px;
-                backdrop-filter:blur(8px); position:relative;
-            ">
-                <div style="
-                    font-size:9px; text-transform:uppercase; letter-spacing:2.5px;
-                    color:rgba(196,144,42,0.78); font-weight:700;
-                    font-family:'Nunito',sans-serif; margin-bottom:12px;
-                    display:flex; align-items:center; gap:8px;
-                ">
-                    <span style="display:inline-block;width:22px;height:1px;
-                        background:rgba(196,144,42,0.5);flex-shrink:0;"></span>
-                    Verse of the Day
-                </div>
-                <div class="lp-verse-text">&#8220;{verse_text}&#8221;</div>
-                <div class="lp-verse-ref">&#8212; {verse_ref}</div>
-            </div>
-        </div>
-
-        <!-- Footer -->
-        <div style="
-            font-size:10px; color:rgba(255,255,255,0.20);
-            text-transform:uppercase; letter-spacing:2.5px;
-            font-family:'Nunito',sans-serif; margin-top:28px;
-            position:relative; z-index:1;
-        ">Prayer &bull; Scripture &bull; Reflection</div>
-
-    </div>
-    """, unsafe_allow_html=True)
+    brand_html = (
+        '<div style="background:linear-gradient(148deg,rgba(253,250,245,0.97),rgba(247,242,234,0.94));'
+        'border:1px solid rgba(184,90,48,0.18);border-radius:20px;padding:44px 40px 36px 40px;'
+        'min-height:540px;position:relative;overflow:hidden;box-shadow:0 8px 32px rgba(26,18,8,0.09);">'
+        # Gold orb top-right
+        '<div style="position:absolute;top:-60px;right:-60px;width:240px;height:240px;'
+        'border-radius:50%;pointer-events:none;'
+        'background:radial-gradient(circle,rgba(196,138,28,0.12) 0%,transparent 68%);"></div>'
+        # Terra orb bottom-left
+        '<div style="position:absolute;bottom:-40px;left:-40px;width:180px;height:180px;'
+        'border-radius:50%;pointer-events:none;'
+        'background:radial-gradient(circle,rgba(184,90,48,0.07) 0%,transparent 68%);"></div>'
+        # Logo mark
+        '<div style="display:flex;align-items:center;gap:12px;margin-bottom:44px;position:relative;z-index:1;">'
+        '<div style="width:36px;height:36px;border-radius:9px;flex-shrink:0;background:#B85A30;'
+        'display:flex;align-items:center;justify-content:center;'
+        'font-family:Cormorant,serif;font-size:16px;font-weight:700;color:white;'
+        'box-shadow:0 3px 10px rgba(184,90,48,0.32);">LP</div>'
+        '<div><div class="lp-brand-name">Logos Pulse</div>'
+        '<div class="lp-brand-tag">Sanctuary</div></div>'
+        '</div>'
+        # Headline
+        '<div style="position:relative;z-index:1;">'
+        '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:3px;'
+        'color:#B85A30;margin-bottom:14px;display:flex;align-items:center;gap:8px;'
+        'font-family:Jost,sans-serif;">'
+        '<span style="display:inline-block;width:20px;height:1.5px;background:#B85A30;"></span>'
+        'Spiritual Growth</div>'
+        '<div class="lp-brand-headline">Track your<br>walk with God</div>'
+        '<div class="lp-brand-sub">A sanctuary for daily prayer, scripture reading, '
+        'and spiritual reflection &#8212; designed for the whole church family.</div>'
+        # Verse card
+        '<div style="background:rgba(255,255,255,0.70);border:1px solid rgba(26,18,8,0.09);'
+        'border-radius:16px;padding:20px 22px;box-shadow:0 2px 12px rgba(26,18,8,0.06);position:relative;">'
+        '<div style="font-size:8.5px;text-transform:uppercase;letter-spacing:2.5px;color:#B85A30;'
+        'font-weight:700;font-family:Jost,sans-serif;margin-bottom:12px;'
+        'display:flex;align-items:center;gap:6px;">'
+        '<span style="display:inline-block;width:14px;height:1px;background:#B85A30;opacity:.45;flex-shrink:0;"></span>'
+        'Verse of the Day</div>'
+        f'<div class="lp-verse-text">&#8220;{verse_text}&#8221;</div>'
+        f'<div class="lp-verse-ref">&#8212; {verse_ref}</div>'
+        '</div></div>'
+        # Footer
+        '<div style="font-size:10px;color:#A09080;text-transform:uppercase;letter-spacing:2.5px;'
+        'font-family:Jost,sans-serif;margin-top:28px;position:relative;z-index:1;">'
+        'Prayer &bull; Scripture &bull; Reflection</div>'
+        '</div>'
+    )
+    st.markdown(brand_html, unsafe_allow_html=True)
 
 # ── RIGHT: Form panel ─────────────────────────────────────────────────────────
 with col_form:

@@ -31,48 +31,53 @@ TYPE_ICONS = {
 }
 TYPE_COLORS = {
     "care_alert":       "#C44B5B",
-    "prayer_request":   "#3A8F5C",
-    "checkin_request":  "#D4853A",
-    "general":          "#5B4FC4",
+    "prayer_request":   "#2B5A3E",
+    "checkin_request":  "#C48A1C",
+    "general":          "#B85A30",
 }
 
 spacer(4)
 
 if not notifications:
-    st.markdown("""
-    <div style="text-align:center; padding:48px 16px; color:#9E96AB;">
-        <div style="font-size:40px; margin-bottom:12px;">\U0001f514</div>
-        <div style="font-size:15px; font-family:'DM Serif Display',Georgia,serif; color:#2A2438;">All caught up!</div>
-        <div style="font-size:13px; margin-top:4px;">No notifications yet.</div>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown(
+        '<div class="empty-state">'
+        '<span class="empty-state-icon">\U0001f514</span>'
+        '<div class="empty-state-title">All caught up!</div>'
+        '<div class="empty-state-sub">No notifications yet.</div>'
+        '</div>',
+        unsafe_allow_html=True
+    )
 else:
     for n in notifications:
         is_unread = not n.get("is_read", False)
         ntype = n.get("type", "general")
         icon = TYPE_ICONS.get(ntype, "\U0001f514")
-        color = TYPE_COLORS.get(ntype, "#5B4FC4")
-        border = "3px solid " + color if is_unread else "1px solid #EDE8F5"
-        bg = "#FAFAFA" if not is_unread else "white"
+        color = TYPE_COLORS.get(ntype, "#B85A30")
+        border = "3px solid " + color if is_unread else "1px solid #F3EFE7"
+        bg = "#FFFFFF" if is_unread else "#FAFAFA"
         created = n.get("created_at", "")[:10]
 
-        _n_title = _html.escape(n['title'])
-        _n_body = _html.escape(n['body']) if n.get('body') else ""
-        st.markdown(f"""
-        <div class="entry-card" style="border-left:{border}; background:{bg}; margin-bottom:8px;">
-            <div style="display:flex; align-items:flex-start; gap:12px;">
-                <span style="font-size:20px; margin-top:2px;">{icon}</span>
-                <div style="flex:1;">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <span style="font-family:'DM Serif Display',Georgia,serif; font-size:15px; color:#2A2438;
-                                     {'font-weight:700;' if is_unread else ''}">
-                            {_n_title}
-                        </span>
-                        <span style="font-size:11px; color:#9E96AB; white-space:nowrap; margin-left:12px;">{created}</span>
-                    </div>
-                    {"<div style='font-size:13px; color:#6B6580; margin-top:3px;'>" + _n_body + "</div>" if _n_body else ""}
-                </div>
-                {"<span style='width:8px; height:8px; border-radius:50%; background:" + color + "; display:inline-block; flex-shrink:0; margin-top:6px;'></span>" if is_unread else ""}
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        _n_title = _html.escape(n["title"])
+        _n_body = _html.escape(n["body"]) if n.get("body") else ""
+        _fw = "font-weight:700;" if is_unread else ""
+        _body_html = ("<div style='font-size:13px; color:#5A4A32; margin-top:3px;'>" + _n_body + "</div>") if _n_body else ""
+        _dot_html = ("<span style='width:8px; height:8px; border-radius:50%; background:" + color + "; display:inline-block; flex-shrink:0; margin-top:6px;'></span>") if is_unread else ""
+
+        st.markdown(
+            '<div class="entry-card" style="border-left:' + border + '; background:' + bg + '; margin-bottom:8px;">'
+            '<div style="display:flex; align-items:flex-start; gap:12px;">'
+            '<span style="font-size:20px; margin-top:2px;">' + icon + '</span>'
+            '<div style="flex:1;">'
+            '<div style="display:flex; justify-content:space-between; align-items:center;">'
+            '<span style="font-family:\'Cormorant\',Georgia,serif; font-size:15px; color:#1A1208; ' + _fw + '">'
+            + _n_title +
+            '</span>'
+            '<span style="font-size:11px; color:#A09080; white-space:nowrap; margin-left:12px;">' + created + '</span>'
+            '</div>'
+            + _body_html +
+            '</div>'
+            + _dot_html +
+            '</div>'
+            '</div>',
+            unsafe_allow_html=True
+        )

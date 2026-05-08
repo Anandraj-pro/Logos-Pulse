@@ -20,19 +20,21 @@ this_month = sum(1 for d in fasting_dates if d.startswith(date.today().strftime(
 
 col1, col2 = st.columns(2)
 with col1:
-    st.markdown(f"""
-    <div class="stat-card">
-        <div class="stat-value" style="color:#5B4FC4;">{total_fasts}</div>
-        <div class="stat-label">Total Fasting Days</div>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown(
+        '<div class="stat-card">'
+        + f'<div class="stat-value" style="color:#B85A30;">{total_fasts}</div>'
+        + '<div class="stat-label">Total Fasting Days</div>'
+        + '</div>',
+        unsafe_allow_html=True
+    )
 with col2:
-    st.markdown(f"""
-    <div class="stat-card">
-        <div class="stat-value" style="color:#D4853A;">{this_month}</div>
-        <div class="stat-label">This Month</div>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown(
+        '<div class="stat-card">'
+        + f'<div class="stat-value" style="color:#C48A1C;">{this_month}</div>'
+        + '<div class="stat-label">This Month</div>'
+        + '</div>',
+        unsafe_allow_html=True
+    )
 
 spacer()
 
@@ -58,21 +60,27 @@ with tab_log:
     if not fasting_log:
         empty_state("\U0001f374", "No fasts logged yet", "Log your first fast above!")
     else:
-        type_colors = {"Full Day": "#5B4FC4", "Partial": "#D4853A", "Daniel Fast": "#3A8F5C"}
+        type_colors = {"Full Day": "#B85A30", "Partial": "#C48A1C", "Daniel Fast": "#2B5A3E"}
         for f in fasting_log[:15]:
-            fc = type_colors.get(f.get("fast_type", ""), "#5B4FC4")
-            st.markdown(f"""
-            <div class="entry-card">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span style="font-family:'DM Serif Display',Georgia,serif; color:#2A2438;">{f['date']}</span>
-                    <span style="background:{fc}20; color:{fc}; padding:2px 10px;
-                                 border-radius:10px; font-size:11px; font-weight:600;">
-                        {f.get('fast_type', 'Fast')}
-                    </span>
-                </div>
-                {"<div style='font-size:13px; color:#6B6580; margin-top:4px;'>" + f['notes'] + "</div>" if f.get('notes') else ""}
-            </div>
-            """, unsafe_allow_html=True)
+            fc = type_colors.get(f.get("fast_type", ""), "#B85A30")
+            fast_date = f['date']
+            fast_type = f.get('fast_type', 'Fast')
+            notes_html = (
+                '<div style="font-size:13px; color:#5A4A32; margin-top:4px;">' + f['notes'] + '</div>'
+                if f.get('notes') else ''
+            )
+            st.markdown(
+                '<div class="entry-card">'
+                + '<div style="display:flex; justify-content:space-between; align-items:center;">'
+                + f'<span style="font-family:\'Cormorant\',Georgia,serif; color:#1A1208;">{fast_date}</span>'
+                + f'<span style="background:{fc}20; color:{fc}; padding:2px 10px;'
+                + ' border-radius:10px; font-size:11px; font-weight:600;">'
+                + f'{fast_type}</span>'
+                + '</div>'
+                + notes_html
+                + '</div>',
+                unsafe_allow_html=True
+            )
 
 # ==================== CALENDAR ====================
 with tab_calendar:
@@ -103,7 +111,11 @@ with tab_calendar:
                     d = date(year, month, day)
                     d_str = d.isoformat()
                     if d_str in fasting_dates_set:
-                        st.markdown(f"<div class='heatmap-day' style='background:linear-gradient(135deg, #D4853A, #E85D3A); color:white; font-weight:700;'>{day}</div>", unsafe_allow_html=True)
+                        st.markdown(
+                            f"<div class='heatmap-day' style='background:linear-gradient(135deg,#C48A1C,#B85A30);"
+                            f" color:white; font-weight:700;'>{day}</div>",
+                            unsafe_allow_html=True
+                        )
                     elif d <= today:
                         st.markdown(f"<div class='heatmap-day cal-empty'>{day}</div>", unsafe_allow_html=True)
                     else:

@@ -12,7 +12,7 @@ require_login()
 require_password_changed()
 inject_styles()
 
-page_header("\U0001f4d6", "Weekly Assignment", "Bible reading goals from your pastor")
+page_header("\U0001f4d6", "My Bible Plan", "Bible reading goals from your pastor")
 
 tab1, tab2, tab3 = st.tabs(["\U0001f4ca Current", "\u2795 New Assignment", "\U0001f4c1 History"])
 
@@ -41,10 +41,10 @@ with tab1:
         # Book title
         st.markdown(f"""
         <div style="text-align:center; padding:8px 0;">
-            <span style="font-size:11px; color:#9E96AB; text-transform:uppercase; letter-spacing:2px;">
+            <span style="font-size:11px; color:#A09080; text-transform:uppercase; letter-spacing:2px;">
                 {assignment['week_start_date']} \u2014 {assignment['week_end_date']}
             </span><br/>
-            <span style="font-family:'DM Serif Display',Georgia,serif; font-size:28px; color:#2A2438;">
+            <span style="font-family:'Cormorant',Georgia,serif; font-size:28px; color:#1A1208;">
                 {assignment['book']} {assignment['start_chapter']}\u2013{assignment['end_chapter']}
             </span>
         </div>
@@ -56,7 +56,7 @@ with tab1:
             <div class="progress-bar-bg" style="height:12px;">
                 <div class="progress-bar-fill" style="width:{progress_pct}%;"></div>
             </div>
-            <div style="text-align:center; font-size:13px; color:#9E96AB; margin-top:6px;">
+            <div style="text-align:center; font-size:13px; color:#A09080; margin-top:6px;">
                 {done_count}/{total} chapters ({progress_pct}%)
             </div>
         </div>
@@ -74,14 +74,12 @@ with tab1:
             ch_range = f"Ch {chapters[0]}\u2013{chapters[-1]}" if len(chapters) > 1 else f"Ch {chapters[0]}"
             css_class = "day-done" if done else "day-pending"
             icon = "\u2705" if done else "\u23f3"
-
-            st.markdown(f"""
-            <div class="day-row {css_class}">
-                <span class="day-name">{label}</span>
-                <span class="day-chapters">{ch_range} ({len(chapters)} ch)</span>
-                <span class="day-status">{icon}</span>
-            </div>
-            """, unsafe_allow_html=True)
+            row = (f'<div class="day-row {css_class}">'
+                   f'<span class="day-name">{label}</span>'
+                   f'<span class="day-chapters">{ch_range} ({len(chapters)} ch)</span>'
+                   f'<span class="day-status">{icon}</span>'
+                   '</div>')
+            st.markdown(row, unsafe_allow_html=True)
 
         if done_count >= total:
             st.balloons()
@@ -130,12 +128,11 @@ with tab2:
             chapters = breakdown.get(key, [])
             if chapters:
                 ch_range = f"Ch {chapters[0]}\u2013{chapters[-1]}" if len(chapters) > 1 else f"Ch {chapters[0]}"
-                st.markdown(f"""
-                <div class="day-row day-pending">
-                    <span class="day-name">{label}</span>
-                    <span class="day-chapters">{ch_range} ({len(chapters)} ch)</span>
-                </div>
-                """, unsafe_allow_html=True)
+                row = (f'<div class="day-row day-pending">'
+                       f'<span class="day-name">{label}</span>'
+                       f'<span class="day-chapters">{ch_range} ({len(chapters)} ch)</span>'
+                       '</div>')
+                st.markdown(row, unsafe_allow_html=True)
 
         spacer(12)
         if st.button("Confirm Assignment", type="primary", use_container_width=True):
@@ -163,30 +160,26 @@ with tab3:
         for a in history:
             status_config = {
                 "COMPLETED": ("#3A8F5C", "#E8F5E9", "\u2705"),
-                "ACTIVE": ("#D4853A", "#FFF3E0", "\U0001f7e1"),
+                "ACTIVE": ("#C48A1C", "#FFF3E0", "\U0001f7e1"),
             }
             s_color, s_bg, s_icon = status_config.get(a["status"], ("#888", "#F5F5F5", "\u26aa"))
 
-            st.markdown(f"""
-            <div class="entry-card">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div>
-                        <span style="font-family:'DM Serif Display',Georgia,serif; font-weight:400; color:#2A2438; font-size:15px;">
-                            {s_icon} {a['book']} {a['start_chapter']}\u2013{a['end_chapter']}
-                        </span>
-                        <span style="font-size:12px; color:#9E96AB; margin-left:8px;">
-                            {a['total_chapters']} chapters
-                        </span>
-                    </div>
-                    <div>
-                        <span style="background:{s_bg}; color:{s_color}; padding:3px 10px;
-                                     border-radius:12px; font-size:11px; font-weight:600;">
-                            {a['status']}
-                        </span>
-                    </div>
-                </div>
-                <div style="font-size:12px; color:#9E96AB; margin-top:4px;">
-                    Week of {a['week_start_date']}
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+            card = (
+                '<div class="entry-card">'
+                '<div style="display:flex; justify-content:space-between; align-items:center;">'
+                '<div>'
+                f'<span style="font-family:\'Cormorant\',Georgia,serif; font-weight:400; color:#1A1208; font-size:15px;">'
+                f'{s_icon} {a["book"]} {a["start_chapter"]}\u2013{a["end_chapter"]}'
+                '</span>'
+                f'<span style="font-size:12px; color:#A09080; margin-left:8px;">{a["total_chapters"]} chapters</span>'
+                '</div>'
+                '<div>'
+                f'<span style="background:{s_bg}; color:{s_color}; padding:3px 10px; border-radius:12px; font-size:11px; font-weight:600;">'
+                f'{a["status"]}'
+                '</span>'
+                '</div>'
+                '</div>'
+                f'<div style="font-size:12px; color:#A09080; margin-top:4px;">Week of {a["week_start_date"]}</div>'
+                '</div>'
+            )
+            st.markdown(card, unsafe_allow_html=True)

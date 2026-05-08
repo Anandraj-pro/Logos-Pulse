@@ -50,36 +50,16 @@ total_entries = len(all_dates)
 
 col1, col2, col3, col4 = st.columns(4)
 with col1:
-    streak_color = "#3A8F5C" if current_streak >= 7 else "#D4853A" if current_streak >= 3 else "#5B4FC4"
-    st.markdown(f"""
-    <div class="stat-card">
-        <div class="stat-value" style="color:{streak_color};">{current_streak}</div>
-        <div class="stat-label">Streak</div>
-    </div>
-    """, unsafe_allow_html=True)
+    streak_color = "#2B5A3E" if current_streak >= 7 else "#C48A1C" if current_streak >= 3 else "#B85A30"
+    st.markdown(f'<div class="stat-card"><div class="stat-value" style="color:{streak_color};">{current_streak}</div><div class="stat-label">Streak</div></div>', unsafe_allow_html=True)
 with col2:
-    st.markdown(f"""
-    <div class="stat-card">
-        <div class="stat-value" style="color:#5B4FC4;">{longest_streak}</div>
-        <div class="stat-label">Best Streak</div>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown(f'<div class="stat-card"><div class="stat-value" style="color:#B85A30;">{longest_streak}</div><div class="stat-label">Best Streak</div></div>', unsafe_allow_html=True)
 with col3:
-    st.markdown(f"""
-    <div class="stat-card">
-        <div class="stat-value" style="color:#9B5FA8;">{total_entries}</div>
-        <div class="stat-label">Total Entries</div>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown(f'<div class="stat-card"><div class="stat-value" style="color:#B85A30;">{total_entries}</div><div class="stat-label">Total Entries</div></div>', unsafe_allow_html=True)
 with col4:
     benchmark = profile_data.get("prayer_benchmark_min", 60)
     card_id = profile_data.get("membership_card_id", "")
-    st.markdown(f"""
-    <div class="stat-card">
-        <div class="stat-value" style="color:#D4853A;">{benchmark}</div>
-        <div class="stat-label">Prayer Goal (min)</div>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown(f'<div class="stat-card"><div class="stat-value" style="color:#C48A1C;">{benchmark}</div><div class="stat-label">Prayer Goal (min)</div></div>', unsafe_allow_html=True)
 
 if card_id:
     st.caption(f"Membership Card: {card_id}")
@@ -115,7 +95,7 @@ try:
         z=_z_T,
         x=_x_labels,
         y=_y_labels,
-        colorscale=[[0, "#EDE8F5"], [1, "#5B4FC4"]],
+        colorscale=[[0, "#F3EFE7"], [1, "#B85A30"]],
         showscale=False,
         hovertemplate="Week of %{x}<br>%{y}<br>%{z}<extra></extra>",
         xgap=2, ygap=2,
@@ -125,8 +105,8 @@ try:
         margin=dict(l=40, r=0, t=4, b=0),
         plot_bgcolor="rgba(0,0,0,0)",
         paper_bgcolor="rgba(0,0,0,0)",
-        xaxis=dict(showgrid=False, tickfont=dict(size=9, color="#9E96AB"), side="top"),
-        yaxis=dict(showgrid=False, tickfont=dict(size=9, color="#9E96AB"), autorange="reversed"),
+        xaxis=dict(showgrid=False, tickfont=dict(size=9, color="#A09080"), side="top"),
+        yaxis=dict(showgrid=False, tickfont=dict(size=9, color="#A09080"), autorange="reversed"),
     )
     st.plotly_chart(_hm, use_container_width=True, config={"displayModeBar": False})
     _logged_total = sum(1 for d in all_dates_set if d >= (_week_start - timedelta(weeks=_weeks)).isoformat())
@@ -155,14 +135,14 @@ with tab_history:
             d = date.today() - timedelta(days=29 - i)
             d_str = d.isoformat()
             if d_str in entry_dates_set:
-                color = "#5B4FC4"
+                color = "#B85A30"
                 text_color = "white"
             elif d <= date.today():
-                color = "#FFEBEE"
-                text_color = "#FFAB91"
+                color = "#FDF0E8"
+                text_color = "#C48A1C"
             else:
-                color = "#F5F5F5"
-                text_color = "#D0C8DB"
+                color = "#F9F5EF"
+                text_color = "#A09080"
             heatmap_html += f'<div style="width:28px; height:28px; border-radius:6px; background:{color}; color:{text_color}; font-size:10px; display:flex; align-items:center; justify-content:center; font-weight:600;">{d.day}</div>'
         heatmap_html += "</div>"
         st.markdown(heatmap_html, unsafe_allow_html=True)
@@ -174,21 +154,21 @@ with tab_history:
             reading = entry.get("chapters_display", "N/A")
             fasted = "\U0001f374 Fasted" if entry.get("fasted") else ""
 
-            st.markdown(f"""
-            <div class="entry-card">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span style="font-family:'DM Serif Display',Georgia,serif; color:#2A2438;">{entry['date']}</span>
-                    <span style="font-size:12px; color:#9E96AB;">
-                        {"Report sent" if entry.get("report_copied") else ""}
-                    </span>
-                </div>
-                <div style="font-size:13px; color:#6B6580; margin-top:4px;">
-                    Prayer: {duration} &bull; Reading: {reading}
-                    {"&bull; " + entry['sermon_title'] if entry.get('sermon_title') else ""}
-                    {" &bull; " + fasted if fasted else ""}
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+            report_label = "Report sent" if entry.get("report_copied") else ""
+            sermon_part = " &bull; " + entry['sermon_title'] if entry.get('sermon_title') else ""
+            fasted_part = " &bull; " + fasted if fasted else ""
+            st.markdown(
+                '<div class="entry-card">'
+                '<div style="display:flex; justify-content:space-between; align-items:center;">'
+                f'<span style="font-family:\'Cormorant\',Georgia,serif; color:#1A1208;">{entry["date"]}</span>'
+                f'<span style="font-size:12px; color:#A09080;">{report_label}</span>'
+                '</div>'
+                f'<div style="font-size:13px; color:#5A4A32; margin-top:4px;">'
+                f'Prayer: {duration} &bull; Reading: {reading}{sermon_part}{fasted_part}'
+                '</div>'
+                '</div>',
+                unsafe_allow_html=True
+            )
 
 # ==================== CHARTS TAB ====================
 with tab_charts:
@@ -213,20 +193,20 @@ with tab_charts:
         fig_prayer = go.Figure()
         fig_prayer.add_trace(go.Bar(
             x=dates_30, y=prayer_mins,
-            marker_color=["#5B4FC4" if m > 0 else "#EDE8F5" for m in prayer_mins],
+            marker_color=["#B85A30" if m > 0 else "#F3EFE7" for m in prayer_mins],
             hovertemplate="%{x}<br>%{y} min<extra></extra>",
         ))
         fig_prayer.add_hline(
             y=profile_data.get("prayer_benchmark_min", 60),
-            line_dash="dot", line_color="#D4853A",
+            line_dash="dot", line_color="#C48A1C",
             annotation_text=f"Goal: {profile_data.get('prayer_benchmark_min', 60)} min",
-            annotation_position="top right", annotation_font_color="#D4853A",
+            annotation_position="top right", annotation_font_color="#C48A1C",
         )
         fig_prayer.update_layout(
             height=220, margin=dict(l=0, r=0, t=10, b=0),
             plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
-            xaxis=dict(showgrid=False, tickfont=dict(size=9, color="#9E96AB"), dtick=5),
-            yaxis=dict(showgrid=True, gridcolor="#EDE8F5", tickfont=dict(size=10, color="#9E96AB")),
+            xaxis=dict(showgrid=False, tickfont=dict(size=9, color="#A09080"), dtick=5),
+            yaxis=dict(showgrid=True, gridcolor="#F3EFE7", tickfont=dict(size=10, color="#A09080")),
             bargap=0.3,
         )
         st.plotly_chart(fig_prayer, use_container_width=True)
@@ -254,15 +234,15 @@ with tab_charts:
         fig_ch = go.Figure()
         fig_ch.add_trace(go.Bar(
             x=week_labels, y=week_chapters,
-            marker_color="#9B5FA8", text=week_chapters, textposition="outside",
-            textfont=dict(size=12, color="#9B5FA8"),
+            marker_color="#B85A30", text=week_chapters, textposition="outside",
+            textfont=dict(size=12, color="#B85A30"),
             hovertemplate="%{x}<br>%{y} chapters<extra></extra>",
         ))
         fig_ch.update_layout(
             height=200, margin=dict(l=0, r=0, t=10, b=0),
             plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
-            xaxis=dict(showgrid=False, tickfont=dict(size=10, color="#9E96AB")),
-            yaxis=dict(showgrid=True, gridcolor="#EDE8F5", tickfont=dict(size=10, color="#9E96AB")),
+            xaxis=dict(showgrid=False, tickfont=dict(size=10, color="#A09080")),
+            yaxis=dict(showgrid=True, gridcolor="#F3EFE7", tickfont=dict(size=10, color="#A09080")),
             bargap=0.4,
         )
         st.plotly_chart(fig_ch, use_container_width=True)
@@ -297,14 +277,15 @@ with tab_notes:
     else:
         for note in notes:
             created = note.get("created_at", "")[:10]
-            st.markdown(f"""
-            <div class="entry-card" style="border-left:3px solid #5B4FC4;">
-                <div style="font-size:14px; color:#2A2438; line-height:1.6;">
-                    {note['note_text']}
-                </div>
-                <div style="font-size:11px; color:#9E96AB; margin-top:6px;">{created}</div>
-            </div>
-            """, unsafe_allow_html=True)
+            st.markdown(
+                '<div class="entry-card" style="border-left:3px solid #B85A30;">'
+                '<div style="font-size:14px; color:#1A1208; line-height:1.6;">'
+                + note['note_text'] +
+                '</div>'
+                '<div style="font-size:11px; color:#A09080; margin-top:6px;">' + created + '</div>'
+                '</div>',
+                unsafe_allow_html=True
+            )
 
             if st.button("Delete", key=f"del_note_{note['id']}"):
                 db.delete_pastor_note(note["id"])

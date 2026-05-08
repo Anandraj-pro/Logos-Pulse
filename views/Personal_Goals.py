@@ -9,7 +9,7 @@ inject_styles()
 
 page_header("\U0001f3af", "Personal Goals", "Set and track your spiritual growth goals")
 
-tab_active, tab_create, tab_completed = st.tabs(["\U0001f3af Active", "\u2795 New Goal", "\u2705 Completed"])
+tab_active, tab_create, tab_completed = st.tabs(["\U0001f3af Active", "➕ New Goal", "✅ Completed"])
 
 # ==================== ACTIVE GOALS ====================
 with tab_active:
@@ -23,42 +23,52 @@ with tab_active:
             current = g.get("current_value", 0)
             pct = int(current / target * 100) if target > 0 else 0
             pct = min(pct, 100)
-            pct_color = "#3A8F5C" if pct >= 80 else "#D4853A" if pct >= 40 else "#5B4FC4"
+            pct_color = "#2B5A3E" if pct >= 80 else "#C48A1C" if pct >= 40 else "#B85A30"
+            fill_class = "fill-terra" if pct < 40 else ("fill-gold" if pct < 80 else "fill-terra")
 
             type_icons = {"reading": "\U0001f4d6", "prayer": "\U0001f64f", "fasting": "\U0001f374", "custom": "\U0001f3af"}
             icon = type_icons.get(g.get("goal_type", "custom"), "\U0001f3af")
 
             tracking = g.get("tracking_mode", "manual")
-            auto_badge = ""
+            auto_badge_html = ""
             if tracking != "manual":
-                auto_label = {"auto_prayer": "⚡ Auto: prayer", "auto_reading": "⚡ Auto: reading", "auto_fasting": "⚡ Auto: fasting"}.get(tracking, "")
-                auto_badge = f'<span style="background:#E3F2FD; color:#1565C0; padding:2px 8px; border-radius:8px; font-size:11px; font-weight:600; margin-left:8px;">{auto_label}</span>'
+                auto_label = {
+                    "auto_prayer": "&#9889; Auto: prayer",
+                    "auto_reading": "&#9889; Auto: reading",
+                    "auto_fasting": "&#9889; Auto: fasting"
+                }.get(tracking, "")
+                auto_badge_html = (
+                    '<span style="background:#E8F3ED; color:#2B5A3E; padding:2px 8px;'
+                    ' border-radius:8px; font-size:11px; font-weight:600; margin-left:8px;">'
+                    + auto_label + '</span>'
+                )
             unit = g.get("unit") or ""
+            due_html = (' | Due: ' + g['target_date']) if g.get('target_date') else ''
+            desc_html = (
+                '<div style="font-size:13px; color:#5A4A32; margin:6px 0;">' + g['description'] + '</div>'
+                if g.get('description') else ''
+            )
 
-            st.markdown(f"""
-            <div class="entry-card">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div>
-                        <span style="font-size:20px;">{icon}</span>
-                        <span style="font-family:'DM Serif Display',Georgia,serif; font-size:16px; color:#2A2438; margin-left:8px;">
-                            {g['title']}
-                        </span>{auto_badge}
-                    </div>
-                    <span style="font-family:'DM Serif Display',Georgia,serif; font-size:20px; color:{pct_color};">
-                        {pct}%
-                    </span>
-                </div>
-                {"<div style='font-size:13px; color:#6B6580; margin:6px 0;'>" + g['description'] + "</div>" if g.get('description') else ""}
-                <div style="margin-top:8px;">
-                    <div class="progress-bar-bg" style="height:8px;">
-                        <div class="progress-bar-fill" style="width:{pct}%;"></div>
-                    </div>
-                    <div style="font-size:11px; color:#9E96AB; margin-top:4px;">
-                        {current}/{target} {unit} {"| Due: " + g['target_date'] if g.get('target_date') else ""}
-                    </div>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+            st.markdown(
+                '<div class="entry-card">'
+                + '<div style="display:flex; justify-content:space-between; align-items:center;">'
+                + '<div>'
+                + f'<span style="font-size:20px;">{icon}</span>'
+                + f'<span style="font-family:\'Cormorant\',Georgia,serif; font-size:16px; color:#1A1208; margin-left:8px;">{g["title"]}</span>'
+                + auto_badge_html
+                + '</div>'
+                + f'<span style="font-family:\'Cormorant\',Georgia,serif; font-size:20px; color:{pct_color};">{pct}%</span>'
+                + '</div>'
+                + desc_html
+                + '<div style="margin-top:8px;">'
+                + '<div class="db-prog-track">'
+                + f'<div class="db-prog-fill {fill_class}" style="width:{pct}%;"></div>'
+                + '</div>'
+                + f'<div style="font-size:11px; color:#A09080; margin-top:4px;">{current}/{target} {unit}{due_html}</div>'
+                + '</div>'
+                + '</div>',
+                unsafe_allow_html=True
+            )
 
             col1, col2, col3 = st.columns([2, 1, 1])
             with col1:
@@ -125,7 +135,8 @@ with tab_create:
                 tracking_mode=g_tracking,
                 unit=unit,
             )
-            st.success("Goal created!" + (" Progress will update automatically from your daily entries." if g_tracking != "manual" else ""))
+            auto_msg = " Progress will update automatically from your daily entries." if g_tracking != "manual" else ""
+            st.success("Goal created!" + auto_msg)
             st.rerun()
 
 # ==================== COMPLETED ====================
@@ -134,22 +145,27 @@ with tab_completed:
     abandoned = db.get_personal_goals(status="abandoned")
 
     if not completed and not abandoned:
-        empty_state("\u2705", "No completed goals yet", "Keep working on your active goals!")
+        empty_state("✅", "No completed goals yet", "Keep working on your active goals!")
     else:
         if completed:
             section_label(f"Completed ({len(completed)})")
             for g in completed:
-                st.markdown(f"""
-                <div class="entry-card" style="border-left:3px solid #3A8F5C;">
-                    \u2705 **{g['title']}** \u2014 {g.get('target_value', 0)} achieved
-                </div>
-                """, unsafe_allow_html=True)
+                achieved = g.get('target_value', 0)
+                st.markdown(
+                    '<div class="entry-card" style="border-left:3px solid #2B5A3E;">'
+                    + f'&#x2705; <strong>{g["title"]}</strong> &mdash; {achieved} achieved'
+                    + '</div>',
+                    unsafe_allow_html=True
+                )
 
         if abandoned:
             section_label(f"Abandoned ({len(abandoned)})")
             for g in abandoned:
-                st.markdown(f"""
-                <div class="entry-card" style="border-left:3px solid #C0B8CC; opacity:0.7;">
-                    \u26aa {g['title']} \u2014 {g.get('current_value', 0)}/{g.get('target_value', 0)}
-                </div>
-                """, unsafe_allow_html=True)
+                cur = g.get('current_value', 0)
+                tgt = g.get('target_value', 0)
+                st.markdown(
+                    '<div class="entry-card" style="border-left:3px solid #A09080; opacity:0.7;">'
+                    + f'&#x26AA; {g["title"]} &mdash; {cur}/{tgt}'
+                    + '</div>',
+                    unsafe_allow_html=True
+                )
