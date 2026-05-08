@@ -20,132 +20,148 @@ VERSES = [
 ]
 verse_text, verse_ref = random.choice(VERSES)
 
-# ── Layout + typography overrides ─────────────────────────────────────────────
-# inject_styles() adds padding-top:72px for the authenticated nav bar.
-# Login has no nav bar, so we reset the block-container and go edge-to-edge.
 st.markdown("""
 <style>
 section[data-testid="stSidebar"] { display: none !important; }
 
+/* ── Reset block container: no nav-bar compensation on login ── */
 [data-testid="stMainBlockContainer"],
-.main .block-container,
-.block-container {
-    padding-top:    0 !important;
-    padding-left:   0 !important;
-    padding-right:  0 !important;
-    padding-bottom: 0 !important;
-    max-width:      100% !important;
-    margin:         0 !important;
+.main .block-container, .block-container {
+    padding-top: 0 !important; padding-left: 0 !important;
+    padding-right: 0 !important; padding-bottom: 0 !important;
+    max-width: 100% !important; margin: 0 !important;
 }
 
+/* ── Column layout ── */
 [data-testid="stHorizontalBlock"] { gap: 0 !important; }
-[data-testid="column"] {
-    padding-left:  0 !important;
-    padding-right: 0 !important;
-}
+[data-testid="column"] { padding: 0 !important; }
 
-/* Right column: white form panel with terra accent bar */
+/* Right (form) column — white panel, consistent 52px padding */
 [data-testid="column"]:nth-child(2) {
     background: #FFFFFF !important;
     border-left: 1px solid rgba(26,18,8,0.07) !important;
-    padding: 52px 56px 52px 52px !important;
-    position: relative !important;
-}
-[data-testid="column"]:nth-child(2)::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0; height: 3px;
-    background: linear-gradient(90deg, #B85A30, #DFA830 48%, #B85A30);
-    pointer-events: none;
+    padding: 52px 52px 52px 52px !important;
 }
 
-/* Left panel overline label */
+/* ── MOBILE: < 640px ──
+   Columns don't auto-stack in Streamlit. Force it:
+   - Hide brand panel entirely
+   - Make form column full-width
+   - Reduce padding to 24px sides, 0 top (terra bar handles top)           */
+@media (max-width: 639px) {
+    [data-testid="stHorizontalBlock"] { flex-direction: column !important; }
+    [data-testid="column"]:nth-child(1) {
+        display: none !important; max-width: 0 !important;
+        min-width: 0 !important; overflow: hidden !important;
+    }
+    [data-testid="column"]:nth-child(2) {
+        width: 100% !important; max-width: 100% !important;
+        min-width: 100% !important; flex: 1 1 100% !important;
+        border-left: none !important;
+        padding: 0 24px 48px !important;
+    }
+    /* Terra bar: only bleed sides on mobile (no top padding to overcome) */
+    .lp-terra-bar { margin: 0 -24px 0 -24px !important; }
+    /* Mobile header: bleed to edges, add bottom space */
+    .lp-mobile-hdr { display: block !important; margin: 0 -24px 32px -24px !important; }
+    .lp-headline { font-size: 30px !important; }
+}
+
+/* ── Terra bar: bleeds through column padding to touch column edges ── */
+/* Desktop margin: -52px top, -52px left, -52px right; 40px space below */
+.lp-terra-bar {
+    height: 3px;
+    background: linear-gradient(90deg, #B85A30, #DFA830 48%, #B85A30);
+    margin: -52px -52px 40px -52px;
+}
+
+/* ── Mobile compact header (hidden on desktop) ── */
+.lp-mobile-hdr { display: none; }
+
+/* ── Brand panel ── */
 .lp-overline {
     font-size: 10px; font-weight: 700; letter-spacing: 3px;
     text-transform: uppercase; color: #B85A30;
     font-family: 'Jost', sans-serif;
-    display: flex; align-items: center; gap: 10px;
-    margin-bottom: 16px;
+    display: flex; align-items: center; gap: 10px; margin-bottom: 16px;
 }
 .lp-overline::before {
-    content: ''; display: inline-block;
-    width: 24px; height: 1.5px; background: #B85A30;
+    content: ''; display: inline-block; width: 24px; height: 1.5px; background: #B85A30;
 }
-
 .lp-headline {
-    font-family: 'Cormorant', serif;
-    font-size: 44px; font-weight: 600;
-    color: #1A1208; line-height: 1.08;
-    letter-spacing: -0.01em; margin-bottom: 18px;
+    font-family: 'Cormorant', serif; font-size: 42px; font-weight: 600;
+    color: #1A1208; line-height: 1.08; letter-spacing: -0.01em; margin-bottom: 16px;
 }
-
 .lp-body {
-    font-size: 15px; color: #5A4A32;
-    line-height: 1.78; font-family: 'Jost', sans-serif;
-    margin-bottom: 38px; max-width: 320px;
+    font-size: 15px; color: #5A4A32; line-height: 1.78;
+    font-family: 'Jost', sans-serif; margin-bottom: 36px; max-width: 300px;
 }
-
-/* Verse card */
 .lp-verse-card {
-    background: rgba(255,255,255,0.72);
-    border: 1px solid rgba(196,144,42,0.22);
+    background: rgba(255,255,255,0.72); border: 1px solid rgba(196,144,42,0.22);
     border-radius: 18px; padding: 22px 24px;
-    box-shadow: 0 4px 20px rgba(26,18,8,0.07),
-                inset 0 1px 0 rgba(255,255,255,0.90);
+    box-shadow: 0 4px 20px rgba(26,18,8,0.07), inset 0 1px 0 rgba(255,255,255,0.90);
     backdrop-filter: blur(8px);
 }
 .lp-vlabel {
-    font-size: 8.5px; text-transform: uppercase;
-    letter-spacing: 2.5px; color: #B85A30;
+    font-size: 8.5px; text-transform: uppercase; letter-spacing: 2.5px; color: #B85A30;
     font-weight: 700; font-family: 'Jost', sans-serif;
-    display: flex; align-items: center; gap: 7px;
-    margin-bottom: 12px;
+    display: flex; align-items: center; gap: 7px; margin-bottom: 12px;
 }
 .lp-vlabel::before {
-    content: ''; display: inline-block;
-    width: 14px; height: 1px; background: rgba(184,90,48,0.45);
+    content: ''; display: inline-block; width: 14px; height: 1px; background: rgba(184,90,48,0.45);
 }
 .lp-vtext {
     font-family: 'Cormorant', serif; font-style: italic;
-    font-size: 16px; color: #1A1208; line-height: 1.85; margin-bottom: 10px;
+    font-size: 17px; color: #1A1208; line-height: 1.85; margin-bottom: 10px;
 }
-.lp-vref {
-    font-size: 13px; color: #B85A30;
-    font-family: 'Cormorant', serif; font-weight: 600; letter-spacing: 0.04em;
-}
-
+.lp-vref { font-size: 13px; color: #B85A30; font-family: 'Cormorant', serif; font-weight: 600; letter-spacing: 0.04em; }
 .lp-tagline {
-    font-size: 10px; color: #A09080;
-    text-transform: uppercase; letter-spacing: 2.5px;
+    font-size: 10px; color: #A09080; text-transform: uppercase; letter-spacing: 2.5px;
     font-family: 'Jost', sans-serif; margin-top: 32px;
     display: flex; align-items: center; gap: 10px;
 }
-.lp-tagline::before {
-    content: ''; width: 24px; height: 1px;
-    background: rgba(160,144,128,0.40); flex-shrink: 0;
-}
+.lp-tagline::before { content: ''; width: 24px; height: 1px; background: rgba(160,144,128,0.40); flex-shrink: 0; }
 
-/* Form panel typography */
+/* ── Form panel typography ── */
 .lp-form-title {
-    font-family: 'Cormorant', serif; font-size: 32px; font-weight: 600;
+    font-family: 'Cormorant', serif; font-size: 30px; font-weight: 600;
     color: #1A1208; letter-spacing: -0.01em; margin-bottom: 5px;
 }
-.lp-form-sub {
-    font-size: 14px; color: #A09080;
-    font-family: 'Jost', sans-serif; margin-bottom: 14px;
-}
+.lp-form-sub { font-size: 14px; color: #A09080; font-family: 'Jost', sans-serif; margin-bottom: 14px; }
 .lp-gold-rule {
     width: 48px; height: 2px;
     background: linear-gradient(90deg, #B85A30, #DFA830);
-    border-radius: 2px; margin-bottom: 28px;
+    border-radius: 2px; margin-bottom: 24px;
 }
 .lp-copyright {
-    font-size: 11px; color: #C0B5A5;
-    font-family: 'Jost', sans-serif;
-    margin-top: 40px; letter-spacing: 0.3px; text-align: center;
+    font-size: 11px; color: #C0B5A5; font-family: 'Jost', sans-serif;
+    margin-top: 36px; letter-spacing: 0.3px; text-align: center;
 }
 
-/* Entrance animations */
+/* ── Form field refinements ──
+   Larger touch targets for tabs, uppercase labels, taller submit button  */
+.stTabs [data-baseweb="tab-list"] button {
+    min-height: 46px !important;
+    padding: 10px 20px !important;
+}
+
+.stTextInput label, .stNumberInput label, .stSelectbox label {
+    font-family: 'Jost', sans-serif !important;
+    font-size: 11px !important; font-weight: 700 !important;
+    color: #A09080 !important; letter-spacing: 1.8px !important;
+    text-transform: uppercase !important;
+}
+
+.stTextInput, .stNumberInput, .stSelectbox { margin-bottom: 4px !important; }
+
+[data-testid="stFormSubmitButton"] > button {
+    min-height: 50px !important;
+    font-size: 15px !important;
+    letter-spacing: 0.5px !important;
+    margin-top: 8px !important;
+}
+
+/* ── Entrance animations ── */
 @keyframes lp-rise {
     from { opacity: 0; transform: translateY(18px); }
     to   { opacity: 1; transform: translateY(0); }
@@ -155,23 +171,13 @@ section[data-testid="stSidebar"] { display: none !important; }
 .lp-a3 { animation: lp-rise 0.65s 0.22s cubic-bezier(0.22,1,0.36,1) both; }
 .lp-a4 { animation: lp-rise 0.65s 0.32s cubic-bezier(0.22,1,0.36,1) both; }
 .lp-a5 { animation: lp-rise 0.65s 0.10s cubic-bezier(0.22,1,0.36,1) both; }
-
-@media (max-width: 768px) {
-    .lp-headline { font-size: 30px; }
-    .lp-body     { font-size: 14px; margin-bottom: 28px; }
-    [data-testid="column"]:nth-child(2) {
-        padding: 36px 28px !important;
-        border-left: none !important;
-        border-top: 3px solid #B85A30 !important;
-    }
-}
 </style>
 """, unsafe_allow_html=True)
 
 # ── Two-column layout ─────────────────────────────────────────────────────────
 col_brand, col_form = st.columns([9, 11], gap="small")
 
-# ── LEFT: Brand panel ─────────────────────────────────────────────────────────
+# ── LEFT: Brand panel (desktop only — hidden via CSS on mobile) ───────────────
 with col_brand:
     brand_html = (
         '<div style="background:linear-gradient(150deg,#F9F5EF 0%,#F2E8D9 55%,#EBE0CC 100%);'
@@ -221,13 +227,49 @@ with col_brand:
 
         '<div class="lp-tagline" style="position:relative;z-index:1;">'
         'Prayer &bull; Scripture &bull; Reflection</div>'
-
         '</div>'
     )
     st.markdown(brand_html, unsafe_allow_html=True)
 
 # ── RIGHT: Form panel ─────────────────────────────────────────────────────────
 with col_form:
+
+    # Terra accent bar — bleeds through column padding via negative margins
+    # (more reliable than ::before pseudo-element on Streamlit column divs)
+    st.markdown('<div class="lp-terra-bar"></div>', unsafe_allow_html=True)
+
+    # Compact header shown only on mobile (CSS display:none on desktop)
+    # Gives mobile users brand context + verse without scrolling past the full brand panel
+    mobile_hdr = (
+        '<div class="lp-mobile-hdr" style="'
+        'background:linear-gradient(150deg,#F9F5EF 0%,#F2E8D9 100%);'
+        'padding:24px 24px 20px;'
+        'border-bottom:1px solid rgba(196,144,42,0.18);'
+        'position:relative;overflow:hidden;">'
+        '<div style="position:absolute;top:-30px;right:-30px;width:140px;height:140px;'
+        'border-radius:50%;pointer-events:none;'
+        'background:radial-gradient(circle,rgba(196,144,42,0.10) 0%,transparent 65%);"></div>'
+        '<div style="display:flex;align-items:center;gap:12px;position:relative;">'
+        '<div style="width:36px;height:36px;border-radius:9px;background:#B85A30;'
+        'display:flex;align-items:center;justify-content:center;'
+        'font-family:Cormorant,serif;font-size:15px;font-weight:700;color:white;'
+        'box-shadow:0 3px 10px rgba(184,90,48,0.32);flex-shrink:0;">LP</div>'
+        '<div>'
+        '<div style="font-family:Cormorant,serif;font-size:18px;font-weight:600;'
+        'color:#1A1208;letter-spacing:0.04em;line-height:1.2;">Logos Pulse</div>'
+        '<div style="font-size:9px;color:rgba(184,90,48,0.72);text-transform:uppercase;'
+        'letter-spacing:2.5px;font-weight:700;font-family:Jost,sans-serif;">Sanctuary</div>'
+        '</div></div>'
+        f'<div style="font-family:Cormorant,serif;font-style:italic;font-size:14px;'
+        f'color:#5A4A32;line-height:1.65;margin-top:14px;">'
+        f'&#8220;{verse_text}&#8221;'
+        f' <span style="color:#B85A30;font-weight:600;font-style:normal;">&#8212; {verse_ref}</span>'
+        f'</div>'
+        '</div>'
+    )
+    st.markdown(mobile_hdr, unsafe_allow_html=True)
+
+    # ── Tabs ─────────────────────────────────────────────────────────────────
     tab_login, tab_register, tab_forgot = st.tabs(["🔑 Sign In", "✏️ Register", "🔄 Forgot Password"])
 
     # ── SIGN IN ───────────────────────────────────────────────────────────────
