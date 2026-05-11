@@ -1,5 +1,5 @@
-import Demo from "@/components/demo";
+import AuthSwitch from "@/components/ui/auth-switch";
 
 export default function Home() {
-  return <Demo />;
+  return <AuthSwitch />;
 }

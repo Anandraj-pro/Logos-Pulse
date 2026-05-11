@@ -6,6 +6,7 @@ const config: Config = {
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
+  darkMode: ["class", '[data-theme="dark"]'],
   theme: {
     extend: {
       fontFamily: {
@@ -15,6 +16,11 @@ const config: Config = {
         spectral: ["Spectral", "Georgia", "serif"],
       },
       colors: {
+        /* CSS-variable-driven primary — changes per theme */
+        primary: {
+          DEFAULT: "rgb(var(--primary) / <alpha-value>)",
+          foreground: "rgb(var(--primary-fg) / <alpha-value>)",
+        },
         indigo: {
           DEFAULT: "#2A1D7E",
           light:   "#4B3DC0",

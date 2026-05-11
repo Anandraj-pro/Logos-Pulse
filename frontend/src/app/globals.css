@@ -3,10 +3,11 @@
 @tailwind utilities;
 
 /* ── Google Fonts ───────────────────────────────────────────────────────── */
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Spectral:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Nunito:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Spectral:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Nunito:wght@300;400;500;600;700;800&display=swap');
 
 /* ── CSS Tokens ─────────────────────────────────────────────────────────── */
-:root {
+:root,
+[data-theme="light"] {
   --lp-primary:        #2A1D7E;
   --lp-primary-light:  #4B3DC0;
   --lp-gold:           #C4902A;
@@ -21,6 +22,69 @@
   --shadow-md:         0 6px 24px rgba(42,29,126,0.09), 0 2px 8px rgba(20,15,26,0.05);
   --shadow-indigo:     0 6px 28px rgba(42,29,126,0.22);
   --shadow-gold:       0 6px 28px rgba(196,144,42,0.20);
+
+  /* Tailwind primary token — light mode: indigo */
+  --primary: 42 29 126;
+  --primary-fg: 255 255 255;
+
+  /* Theme toggle chrome */
+  --toggle-bg:          rgba(254,252,248,0.85);
+  --toggle-border:      rgba(165,135,65,0.2);
+  --toggle-text:        #8A85A0;
+  --toggle-active-bg:   #2A1D7E;
+  --toggle-active-text: #ffffff;
+}
+
+[data-theme="dark"] {
+  --lp-primary:        #C4902A;
+  --lp-primary-light:  #E8C050;
+  --lp-gold:           #C4902A;
+  --lp-gold-light:     #E8C050;
+  --lp-bg:             #0D0B14;
+  --lp-surface:        #17141F;
+  --lp-text:           #EDE8F5;
+  --lp-text-2:         #B5AECC;
+  --lp-text-muted:     #6B6585;
+  --lp-border:         rgba(196,144,42,0.15);
+  --shadow-sm:         0 2px 10px rgba(0,0,0,0.3), 0 1px 4px rgba(0,0,0,0.2);
+  --shadow-md:         0 6px 24px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.25);
+  --shadow-indigo:     0 6px 28px rgba(196,144,42,0.22);
+  --shadow-gold:       0 6px 28px rgba(196,144,42,0.30);
+
+  --primary: 196 144 42;
+  --primary-fg: 20 15 26;
+
+  --toggle-bg:          rgba(23,20,31,0.88);
+  --toggle-border:      rgba(196,144,42,0.2);
+  --toggle-text:        #6B6585;
+  --toggle-active-bg:   #C4902A;
+  --toggle-active-text: #0D0B14;
+}
+
+[data-theme="prisma"] {
+  --lp-primary:        #E1E0CC;
+  --lp-primary-light:  #ffffff;
+  --lp-gold:           #E1E0CC;
+  --lp-gold-light:     #ffffff;
+  --lp-bg:             #000000;
+  --lp-surface:        #0A0A0A;
+  --lp-text:           #E1E0CC;
+  --lp-text-2:         rgba(225,224,204,0.7);
+  --lp-text-muted:     rgba(225,224,204,0.4);
+  --lp-border:         rgba(225,224,204,0.12);
+  --shadow-sm:         0 2px 10px rgba(0,0,0,0.5);
+  --shadow-md:         0 6px 24px rgba(0,0,0,0.7);
+  --shadow-indigo:     0 6px 28px rgba(225,224,204,0.1);
+  --shadow-gold:       0 6px 28px rgba(225,224,204,0.15);
+
+  --primary: 225 224 204;
+  --primary-fg: 0 0 0;
+
+  --toggle-bg:          rgba(10,10,10,0.88);
+  --toggle-border:      rgba(225,224,204,0.15);
+  --toggle-text:        rgba(225,224,204,0.4);
+  --toggle-active-bg:   #E1E0CC;
+  --toggle-active-text: #000000;
 }
 
 /* ── Base Reset ─────────────────────────────────────────────────────────── */
@@ -30,10 +94,18 @@ html { scroll-behavior: smooth; }
 
 body {
   font-family: 'Nunito', system-ui, sans-serif;
-  background: #F3F0E8;
-  color: #140F1A;
+  background: var(--lp-bg, #F3F0E8);
+  color: var(--lp-text, #140F1A);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+/* ── Noise texture overlay (used by PrismaHero) ──────────────────────── */
+.noise-overlay {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 300px 300px;
 }
 
 /* Display headings use Cinzel */
@@ -152,3 +224,41 @@ input[type="range"]::-moz-range-thumb {
   0%, 100% { opacity: 0.5; }
   50%       { opacity: 1; }
 }
+
+/* ── Bible reader page-turn animations ─────────────────────────── */
+@keyframes pageExitForward {
+  0%   { transform: perspective(1200px) rotateY(0deg)   translateZ(0);     opacity: 1; }
+  40%  { transform: perspective(1200px) rotateY(-25deg) translateZ(-10px); opacity: 0.85; }
+  100% { transform: perspective(1200px) rotateY(-90deg) translateZ(-30px); opacity: 0; }
+}
+@keyframes pageEnterForward {
+  0%   { transform: perspective(1200px) rotateY(90deg) translateZ(-30px); opacity: 0; }
+  60%  { transform: perspective(1200px) rotateY(8deg)  translateZ(-5px);  opacity: 0.9; }
+  100% { transform: perspective(1200px) rotateY(0deg)  translateZ(0);     opacity: 1; }
+}
+@keyframes pageExitBackward {
+  0%   { transform: perspective(1200px) rotateY(0deg)  translateZ(0);     opacity: 1; }
+  40%  { transform: perspective(1200px) rotateY(25deg) translateZ(-10px); opacity: 0.85; }
+  100% { transform: perspective(1200px) rotateY(90deg) translateZ(-30px); opacity: 0; }
+}
+@keyframes pageEnterBackward {
+  0%   { transform: perspective(1200px) rotateY(-90deg) translateZ(-30px); opacity: 0; }
+  60%  { transform: perspective(1200px) rotateY(-8deg)  translateZ(-5px);  opacity: 0.9; }
+  100% { transform: perspective(1200px) rotateY(0deg)   translateZ(0);     opacity: 1; }
+}
+@keyframes ornamentDrop {
+  0%   { opacity: 0; transform: translateY(-12px) scaleX(0.85); }
+  100% { opacity: 1; transform: translateY(0)     scaleX(1); }
+}
+@keyframes shadowSweep {
+  0%   { opacity: 0; }
+  50%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.animate-page-exit-forward   { animation: pageExitForward   350ms cubic-bezier(0.4,0,0.8,0.5) forwards; transform-origin: left center; }
+.animate-page-exit-backward  { animation: pageExitBackward  350ms cubic-bezier(0.4,0,0.8,0.5) forwards; transform-origin: right center; }
+.animate-page-enter-forward  { animation: pageEnterForward  400ms cubic-bezier(0.2,0.8,0.4,1) forwards; transform-origin: left center; }
+.animate-page-enter-backward { animation: pageEnterBackward 400ms cubic-bezier(0.2,0.8,0.4,1) forwards; transform-origin: right center; }
+.ornament-animate            { animation: ornamentDrop      600ms cubic-bezier(0.22,1,0.36,1) both; }
+.shadow-sweep                { animation: shadowSweep       700ms ease-in-out; }
