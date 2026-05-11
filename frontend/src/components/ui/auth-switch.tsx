@@ -1,80 +1,10 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { useState, useRef, useEffect } from "react";
-import { Eye, EyeOff, Mail, Lock, User, Users, ChevronRight, BookOpen } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Eye, EyeOff, Mail, Lock, User, Users, ArrowRight, BookOpen } from "lucide-react";
 
 type AuthMode = "login" | "register";
-
-interface FormField {
-  id: string;
-  label: string;
-  type: string;
-  placeholder: string;
-  icon: React.ReactNode;
-  autoComplete?: string;
-}
-
-const LOGIN_FIELDS: FormField[] = [
-  {
-    id: "email",
-    label: "Email Address",
-    type: "email",
-    placeholder: "you@church.org",
-    icon: <Mail size={16} />,
-    autoComplete: "email",
-  },
-  {
-    id: "password",
-    label: "Password",
-    type: "password",
-    placeholder: "••••••••",
-    icon: <Lock size={16} />,
-    autoComplete: "current-password",
-  },
-];
-
-const REGISTER_FIELDS: FormField[] = [
-  {
-    id: "firstName",
-    label: "First Name",
-    type: "text",
-    placeholder: "Ananda",
-    icon: <User size={16} />,
-    autoComplete: "given-name",
-  },
-  {
-    id: "lastName",
-    label: "Last Name",
-    type: "text",
-    placeholder: "Raj",
-    icon: <User size={16} />,
-    autoComplete: "family-name",
-  },
-  {
-    id: "email",
-    label: "Email Address",
-    type: "email",
-    placeholder: "you@church.org",
-    icon: <Mail size={16} />,
-    autoComplete: "email",
-  },
-  {
-    id: "pastor",
-    label: "Your Pastor",
-    type: "select",
-    placeholder: "Select your pastor",
-    icon: <Users size={16} />,
-  },
-  {
-    id: "password",
-    label: "Password",
-    type: "password",
-    placeholder: "Create a strong password",
-    icon: <Lock size={16} />,
-    autoComplete: "new-password",
-  },
-];
 
 const DAILY_VERSES = [
   { text: "Your word is a lamp to my feet and a light to my path.", ref: "Psalm 119:105" },
@@ -83,88 +13,69 @@ const DAILY_VERSES = [
   { text: "I can do all things through Christ who strengthens me.", ref: "Philippians 4:13" },
 ];
 
-// ── Vine / botanical SVG decoration ──────────────────────────────────────────
-function VineDecoration() {
+// ── Left-panel ambient decorations ──────────────────────────────────────────
+function PanelDecor() {
   return (
-    <svg
-      className="absolute inset-0 w-full h-full pointer-events-none"
-      viewBox="0 0 440 700"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden
-    >
-      {/* Main stem */}
-      <path
-        d="M220 700 C220 700 180 550 170 400 C160 250 200 120 220 0"
-        stroke="url(#vineGold)"
-        strokeWidth="1.2"
-        fill="none"
-        opacity="0.5"
+    <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden>
+      {/* Soft radial glow behind cross */}
+      <div
+        className="absolute left-1/2 top-[42%] -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full"
+        style={{ background: "radial-gradient(circle, rgba(196,144,42,0.10) 0%, transparent 68%)" }}
       />
-      {/* Branch left */}
-      <path
-        d="M200 500 C160 470 120 480 80 450"
-        stroke="url(#vineGold)"
-        strokeWidth="0.8"
-        fill="none"
-        opacity="0.35"
+      {/* Cross silhouette */}
+      <div className="absolute left-1/2 top-[42%] -translate-x-1/2 -translate-y-1/2">
+        <svg width="110" height="150" viewBox="0 0 110 150" fill="none">
+          <defs>
+            <linearGradient id="cg" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="#C4902A" stopOpacity="0.2" />
+              <stop offset="50%" stopColor="#E8C050" stopOpacity="0.55" />
+              <stop offset="100%" stopColor="#C4902A" stopOpacity="0.15" />
+            </linearGradient>
+          </defs>
+          <rect x="48" y="0" width="14" height="150" rx="7" fill="url(#cg)" />
+          <rect x="0" y="48" width="110" height="14" rx="7" fill="url(#cg)" />
+        </svg>
+      </div>
+      {/* Fine dot grid */}
+      <div
+        className="absolute inset-0"
+        style={{
+          backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.08) 1px, transparent 1px)",
+          backgroundSize: "36px 36px",
+          opacity: 0.5,
+        }}
       />
-      <path
-        d="M190 350 C140 320 110 340 70 310"
-        stroke="url(#vineGold)"
-        strokeWidth="0.8"
-        fill="none"
-        opacity="0.3"
+      {/* Thin border-glow top */}
+      <div
+        className="absolute top-0 left-8 right-8 h-px"
+        style={{ background: "linear-gradient(90deg, transparent, rgba(201,152,42,0.35), transparent)" }}
       />
-      {/* Branch right */}
-      <path
-        d="M235 450 C275 420 320 435 360 405"
-        stroke="url(#vineGold)"
-        strokeWidth="0.8"
-        fill="none"
-        opacity="0.35"
+      {/* Bottom glow */}
+      <div
+        className="absolute bottom-0 left-8 right-8 h-px"
+        style={{ background: "linear-gradient(90deg, transparent, rgba(201,152,42,0.2), transparent)" }}
       />
-      <path
-        d="M230 280 C280 250 330 265 380 235"
-        stroke="url(#vineGold)"
-        strokeWidth="0.8"
-        fill="none"
-        opacity="0.3"
-      />
-      {/* Leaf shapes */}
-      <ellipse cx="80" cy="450" rx="14" ry="8" fill="#c9982a" opacity="0.15" transform="rotate(-25 80 450)" />
-      <ellipse cx="70" cy="310" rx="12" ry="7" fill="#c9982a" opacity="0.12" transform="rotate(-35 70 310)" />
-      <ellipse cx="360" cy="405" rx="14" ry="8" fill="#c9982a" opacity="0.15" transform="rotate(20 360 405)" />
-      <ellipse cx="380" cy="235" rx="12" ry="7" fill="#c9982a" opacity="0.12" transform="rotate(30 380 235)" />
-      {/* Corner cross ornament */}
-      <g opacity="0.18" transform="translate(30,30)">
-        <rect x="18" y="8" width="4" height="24" rx="2" fill="#c9982a" />
-        <rect x="10" y="16" width="20" height="4" rx="2" fill="#c9982a" />
-      </g>
-      <g opacity="0.12" transform="translate(390,640)">
-        <rect x="8" y="0" width="3" height="18" rx="1.5" fill="#c9982a" />
-        <rect x="2" y="6" width="15" height="3" rx="1.5" fill="#c9982a" />
-      </g>
-      {/* Small dot accents */}
-      <circle cx="80" cy="450" r="2.5" fill="#c9982a" opacity="0.3" />
-      <circle cx="70" cy="310" r="2" fill="#c9982a" opacity="0.25" />
-      <circle cx="360" cy="405" r="2.5" fill="#c9982a" opacity="0.3" />
-      <circle cx="380" cy="235" r="2" fill="#c9982a" opacity="0.25" />
-      <defs>
-        <linearGradient id="vineGold" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#c9982a" stopOpacity="0.6" />
-          <stop offset="50%" stopColor="#f0d98a" stopOpacity="0.8" />
-          <stop offset="100%" stopColor="#c9982a" stopOpacity="0.4" />
-        </linearGradient>
-      </defs>
-    </svg>
+      {/* Corner accents */}
+      <svg className="absolute top-6 left-6" width="24" height="24" viewBox="0 0 24 24" fill="none" opacity="0.2">
+        <path d="M2 14 L2 2 L14 2" stroke="#C4902A" strokeWidth="1.5" strokeLinecap="round" />
+      </svg>
+      <svg className="absolute bottom-6 right-6" width="24" height="24" viewBox="0 0 24 24" fill="none" opacity="0.2">
+        <path d="M22 10 L22 22 L10 22" stroke="#C4902A" strokeWidth="1.5" strokeLinecap="round" />
+      </svg>
+    </div>
   );
 }
 
-// ── Single input field ────────────────────────────────────────────────────────
-interface FieldProps extends FormField {
+// ── Input field ───────────────────────────────────────────────────────────────
+interface FieldProps {
+  id: string;
+  label: string;
+  type: string;
+  placeholder: string;
+  icon: React.ReactNode;
+  autoComplete?: string;
   value: string;
-  onChange: (val: string) => void;
+  onChange: (v: string) => void;
 }
 
 function AuthField({ id, label, type, placeholder, icon, autoComplete, value, onChange }: FieldProps) {
@@ -174,25 +85,33 @@ function AuthField({ id, label, type, placeholder, icon, autoComplete, value, on
   const isSelect = type === "select";
 
   return (
-    <div className="relative group">
+    <div>
       <label
         htmlFor={id}
-        className={cn(
-          "block text-[10px] font-semibold uppercase tracking-[0.12em] mb-1.5 transition-colors duration-200",
-          focused ? "text-[#2A1D7E]" : "text-[#6B7280]"
-        )}
+        className="block text-[10.5px] font-bold uppercase tracking-[0.11em] mb-2 transition-colors duration-200"
+        style={{ color: focused ? "#2A1D7E" : "#8A85A0" }}
       >
         {label}
       </label>
-      <div className="relative flex items-center">
+      <div
+        className="relative flex items-center rounded-[13px] transition-all duration-200"
+        style={{
+          background: focused ? "rgba(42,29,126,0.03)" : "#FDFAF5",
+          border: focused
+            ? "1.5px solid rgba(42,29,126,0.38)"
+            : "1.5px solid rgba(180,170,145,0.35)",
+          boxShadow: focused
+            ? "0 0 0 3.5px rgba(42,29,126,0.07)"
+            : "0 1px 3px rgba(0,0,0,0.04)",
+        }}
+      >
         <span
-          className={cn(
-            "absolute left-0 transition-colors duration-200",
-            focused ? "text-[#2A1D7E]" : "text-[#6B7280]"
-          )}
+          className="absolute left-4 flex-shrink-0 transition-colors duration-200"
+          style={{ color: focused ? "#2A1D7E" : "#B0ADB8" }}
         >
           {icon}
         </span>
+
         {isSelect ? (
           <select
             id={id}
@@ -200,10 +119,7 @@ function AuthField({ id, label, type, placeholder, icon, autoComplete, value, on
             onChange={(e) => onChange(e.target.value)}
             onFocus={() => setFocused(true)}
             onBlur={() => setFocused(false)}
-            className={cn(
-              "w-full pl-6 pr-0 pb-2.5 pt-0.5 bg-transparent border-0 border-b text-sm text-[#1A1A2E] outline-none transition-all duration-200 appearance-none cursor-pointer",
-              focused ? "border-[#2A1D7E]" : "border-[#e5e7eb]"
-            )}
+            className="w-full pl-11 pr-4 py-3.5 bg-transparent text-[14px] text-[#1A1A2E] outline-none appearance-none cursor-pointer rounded-[13px]"
           >
             <option value="">Select your pastor</option>
             <option value="ps-samuel">Ps. Samuel Patta</option>
@@ -220,30 +136,22 @@ function AuthField({ id, label, type, placeholder, icon, autoComplete, value, on
             onChange={(e) => onChange(e.target.value)}
             onFocus={() => setFocused(true)}
             onBlur={() => setFocused(false)}
-            className={cn(
-              "w-full pl-6 pr-8 pb-2.5 pt-0.5 bg-transparent border-0 border-b text-sm text-[#1A1A2E] placeholder:text-[#9ca3af] outline-none transition-all duration-200",
-              focused ? "border-[#2A1D7E]" : "border-[#e5e7eb]"
-            )}
+            className="w-full pl-11 pr-11 py-3.5 bg-transparent text-[14px] text-[#1A1A2E] placeholder:text-[#C8C4D0] outline-none rounded-[13px]"
           />
         )}
+
         {isPassword && (
           <button
             type="button"
             tabIndex={-1}
             onClick={() => setShow((s) => !s)}
-            className="absolute right-0 text-[#6B7280] hover:text-[#2A1D7E] transition-colors"
+            className="absolute right-4 flex-shrink-0 transition-colors duration-200"
+            style={{ color: show ? "#2A1D7E" : "#B0ADB8" }}
           >
-            {show ? <EyeOff size={15} /> : <Eye size={15} />}
+            {show ? <EyeOff size={16} /> : <Eye size={16} />}
           </button>
         )}
       </div>
-      {/* animated underline focus indicator */}
-      <div
-        className={cn(
-          "absolute bottom-0 left-0 h-px bg-[#2A1D7E] transition-all duration-300 ease-out",
-          focused ? "w-full opacity-100" : "w-0 opacity-0"
-        )}
-      />
     </div>
   );
 }
@@ -254,23 +162,22 @@ export const Component = () => {
   const [values, setValues] = useState<Record<string, string>>({});
   const [prayerGoal, setPrayerGoal] = useState(60);
   const [verseIdx] = useState(() => Math.floor(Math.random() * DAILY_VERSES.length));
-  const [visible, setVisible] = useState(false);
-  const formRef = useRef<HTMLDivElement>(null);
-
-  const verse = DAILY_VERSES[verseIdx];
-  const fields = mode === "login" ? LOGIN_FIELDS : REGISTER_FIELDS;
+  const [phase, setPhase] = useState(0);
 
   useEffect(() => {
-    const t = setTimeout(() => setVisible(true), 80);
-    return () => clearTimeout(t);
+    const t0 = setTimeout(() => setPhase(1), 60);
+    const t1 = setTimeout(() => setPhase(2), 220);
+    const t2 = setTimeout(() => setPhase(3), 420);
+    return () => { clearTimeout(t0); clearTimeout(t1); clearTimeout(t2); };
   }, []);
+
+  const verse = DAILY_VERSES[verseIdx];
 
   const handleField = (id: string, val: string) =>
     setValues((prev) => ({ ...prev, [id]: val }));
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // wire to actual auth
     console.log("Submit", mode, values, prayerGoal);
   };
 
@@ -279,188 +186,259 @@ export const Component = () => {
     setMode(m);
   };
 
+  const loginFields: FieldProps[] = [
+    { id: "email",    label: "Email Address", type: "email",    placeholder: "you@church.org",  icon: <Mail size={15} />, autoComplete: "email",            value: values.email    ?? "", onChange: (v) => handleField("email",    v) },
+    { id: "password", label: "Password",      type: "password", placeholder: "••••••••",        icon: <Lock size={15} />, autoComplete: "current-password", value: values.password ?? "", onChange: (v) => handleField("password", v) },
+  ];
+
+  const registerFields: FieldProps[] = [
+    { id: "email",    label: "Email Address", type: "email",    placeholder: "you@church.org",       icon: <Mail  size={15} />, autoComplete: "email",        value: values.email    ?? "", onChange: (v) => handleField("email",    v) },
+    { id: "pastor",   label: "Your Pastor",   type: "select",   placeholder: "Select your pastor",    icon: <Users size={15} />,                               value: values.pastor   ?? "", onChange: (v) => handleField("pastor",   v) },
+    { id: "password", label: "Password",      type: "password", placeholder: "Create a strong password", icon: <Lock size={15} />, autoComplete: "new-password", value: values.password ?? "", onChange: (v) => handleField("password", v) },
+  ];
+
+  const firstNameField: FieldProps = {
+    id: "firstName", label: "First Name", type: "text", placeholder: "Ananda",
+    icon: <User size={15} />, autoComplete: "given-name",
+    value: values.firstName ?? "", onChange: (v) => handleField("firstName", v),
+  };
+  const lastNameField: FieldProps = {
+    id: "lastName", label: "Last Name", type: "text", placeholder: "Raj",
+    icon: <User size={15} />, autoComplete: "family-name",
+    value: values.lastName ?? "", onChange: (v) => handleField("lastName", v),
+  };
+
+  const fields = mode === "login" ? loginFields : registerFields;
+
+  // Shared entrance transition
+  const enter = (minPhase: number, delay = 0) => ({
+    opacity:    phase >= minPhase ? 1 : 0,
+    transform:  phase >= minPhase ? "translateY(0px)" : "translateY(16px)",
+    transition: `opacity 0.55s ease ${delay}s, transform 0.55s cubic-bezier(0.22,1,0.36,1) ${delay}s`,
+  });
+
   return (
     <div
-      className={cn(
-        "min-h-screen flex font-sans transition-opacity duration-700",
-        visible ? "opacity-100" : "opacity-0"
-      )}
+      className="h-screen overflow-hidden flex"
       style={{ fontFamily: "'Nunito', system-ui, sans-serif" }}
     >
-      {/* ── Left: brand panel ── */}
+      {/* ══════════════════════════════ LEFT PANEL ══════════════════════════════ */}
       <div
-        className="hidden lg:flex flex-col justify-between w-[420px] xl:w-[480px] flex-shrink-0 relative overflow-hidden px-12 py-10"
+        className="hidden lg:flex flex-col justify-between flex-shrink-0 relative overflow-hidden"
         style={{
-          background: "linear-gradient(152deg, #170F4A 0%, #2A1D7E 40%, #3C2D90 70%, #4A2A88 100%)",
+          width: "44%",
+          maxWidth: "500px",
+          padding: "52px 56px",
+          background: "linear-gradient(148deg, #0F0930 0%, #1A1060 30%, #221574 60%, #2E1E88 100%)",
         }}
       >
-        <VineDecoration />
+        <PanelDecor />
 
-        {/* Glowing circle behind cross */}
-        <div
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full pointer-events-none"
-          style={{
-            background:
-              "radial-gradient(circle, rgba(201,152,42,0.07) 0%, transparent 70%)",
-          }}
-        />
-
-        {/* Top: logo */}
-        <div
-          className="relative z-10 transition-all duration-700"
-          style={{ transitionDelay: "0.1s" }}
-        >
-          <div className="flex items-center gap-3 mb-14">
+        {/* Brand */}
+        <div className="relative z-10" style={enter(1)}>
+          <div className="flex items-center gap-3 mb-16">
             <div
-              className="w-10 h-10 rounded-full border flex items-center justify-center flex-shrink-0"
-              style={{ borderColor: "rgba(201,152,42,0.5)" }}
+              className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+              style={{
+                background: "rgba(201,152,42,0.1)",
+                border: "1px solid rgba(201,152,42,0.3)",
+              }}
             >
-              <BookOpen size={18} color="#c9982a" />
+              <BookOpen size={17} color="#c9982a" />
             </div>
             <div>
               <p
-                className="text-white text-lg leading-none"
-                style={{ fontFamily: "'Cinzel', Georgia, serif" }}
+                className="text-white leading-none"
+                style={{ fontFamily: "'Cinzel', serif", fontSize: "15px", letterSpacing: "0.05em" }}
               >
                 Logos Pulse
               </p>
-              <p className="text-[10px] uppercase tracking-[0.18em] mt-0.5" style={{ color: "rgba(201,152,42,0.6)" }}>
+              <p
+                className="text-[9px] uppercase mt-0.5"
+                style={{ letterSpacing: "0.24em", color: "rgba(201,152,42,0.5)" }}
+              >
                 Sanctuary
               </p>
             </div>
           </div>
 
           <h1
-            className="text-white leading-tight mb-5"
+            className="text-white mb-5 leading-[1.15]"
             style={{
-              fontFamily: "'Cinzel', Georgia, serif",
+              fontFamily: "'Cinzel', serif",
               fontWeight: 300,
-              fontSize: "clamp(28px, 3vw, 40px)",
+              fontSize: "clamp(28px, 2.6vw, 42px)",
             }}
           >
             Track your<br />
-            <em style={{ color: "#f0d98a" }}>walk with God</em>
+            <span style={{ color: "#E8C050" }}>walk with God</span>
           </h1>
 
-          <p className="text-sm leading-relaxed" style={{ color: "rgba(255,255,255,0.45)" }}>
+          <p
+            className="text-sm leading-[1.85]"
+            style={{ color: "rgba(255,255,255,0.38)", maxWidth: "280px" }}
+          >
             A sanctuary for daily prayer, scripture reading, and spiritual
-            reflection — designed for the whole church family.
+            reflection — built for the whole church family.
           </p>
         </div>
 
-        {/* Middle: verse card */}
-        <div
-          className="relative z-10 transition-all duration-700"
-          style={{ transitionDelay: "0.2s" }}
-        >
+        {/* Verse card */}
+        <div className="relative z-10" style={enter(2, 0.08)}>
           <div
-            className="rounded-2xl p-6 border"
+            className="rounded-2xl p-6"
             style={{
-              background: "rgba(255,255,255,0.04)",
-              borderColor: "rgba(201,152,42,0.2)",
-              backdropFilter: "blur(8px)",
+              background: "rgba(255,255,255,0.03)",
+              border: "1px solid rgba(201,152,42,0.16)",
+              backdropFilter: "blur(16px)",
             }}
           >
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-px h-8 self-stretch" style={{ background: "#c9982a", opacity: 0.6 }} />
-              <p className="text-[10px] uppercase tracking-[0.16em]" style={{ color: "rgba(201,152,42,0.7)" }}>
+            <div className="flex items-center gap-2.5 mb-4">
+              <div
+                className="h-5 rounded-full"
+                style={{ width: "1.5px", background: "rgba(201,152,42,0.65)" }}
+              />
+              <p
+                className="text-[9px] font-bold uppercase"
+                style={{ letterSpacing: "0.2em", color: "rgba(201,152,42,0.6)" }}
+              >
                 Verse of the Day
               </p>
             </div>
+
             <p
-              className="text-white/75 leading-relaxed mb-3"
+              className="leading-[1.85] mb-4"
               style={{
-                fontFamily: "'Spectral', 'EB Garamond', Georgia, serif",
+                fontFamily: "'Spectral', Georgia, serif",
                 fontStyle: "italic",
-                fontSize: "17px",
-                lineHeight: "1.75",
+                fontSize: "16px",
+                color: "rgba(255,255,255,0.68)",
               }}
             >
               "{verse.text}"
             </p>
+
             <p
-              className="text-sm font-medium"
-              style={{ color: "#c9982a", fontFamily: "'Cinzel', serif" }}
+              className="font-medium"
+              style={{
+                fontFamily: "'Cinzel', serif",
+                fontSize: "11.5px",
+                color: "#c9982a",
+                letterSpacing: "0.04em",
+              }}
             >
               — {verse.ref}
             </p>
           </div>
         </div>
 
-        {/* Bottom: tagline */}
-        <p
-          className="relative z-10 text-[10px] uppercase tracking-[0.2em]"
-          style={{ color: "rgba(255,255,255,0.2)" }}
-        >
-          Prayer · Scripture · Reflection
-        </p>
+        {/* Footer tagline */}
+        <div className="relative z-10 flex items-center gap-5" style={enter(3, 0.1)}>
+          {["Prayer", "Scripture", "Reflection"].map((word, i) => (
+            <div key={word} className="flex items-center gap-5">
+              {i > 0 && (
+                <div
+                  className="h-3 rounded-full"
+                  style={{ width: "1px", background: "rgba(255,255,255,0.12)" }}
+                />
+              )}
+              <span
+                className="text-[9px] font-bold uppercase"
+                style={{ letterSpacing: "0.22em", color: "rgba(255,255,255,0.18)" }}
+              >
+                {word}
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* ── Right: form panel ── */}
+      {/* ══════════════════════════════ RIGHT PANEL ══════════════════════════════ */}
       <div
-        className="flex-1 flex items-center justify-center px-6 py-10 overflow-y-auto"
-        style={{ background: "#F3F0E8" }}
+        className="flex-1 flex items-center justify-center overflow-y-auto relative"
+        style={{ background: "#F5F1E9", padding: "48px 24px" }}
       >
-        {/* Breathing cross watermark */}
-        <div
-          className="absolute right-12 top-1/2 -translate-y-1/2 pointer-events-none select-none hidden lg:block"
-          style={{ opacity: 0.025 }}
-          aria-hidden
-        >
-          <svg width="280" height="280" viewBox="0 0 280 280">
-            <rect x="120" y="20" width="40" height="240" rx="20" fill="#2A1D7E" />
-            <rect x="20" y="100" width="240" height="40" rx="20" fill="#2A1D7E" />
-          </svg>
+        {/* Parchment texture */}
+        <div className="absolute inset-0 pointer-events-none" aria-hidden>
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E\")",
+              backgroundRepeat: "repeat",
+              backgroundSize: "300px 300px",
+              opacity: 0.022,
+            }}
+          />
+          {/* Cross watermark — right side */}
+          <div className="absolute right-14 top-1/2 -translate-y-1/2 opacity-[0.022]">
+            <svg width="200" height="280" viewBox="0 0 200 280">
+              <rect x="88"  y="0"   width="24" height="280" rx="12" fill="#2A1D7E" />
+              <rect x="0"   y="92"  width="200" height="24" rx="12" fill="#2A1D7E" />
+            </svg>
+          </div>
         </div>
 
+        {/* Form container */}
         <div
-          className="w-full max-w-md relative z-10 transition-all duration-700"
-          style={{ transitionDelay: "0.15s" }}
-          ref={formRef}
+          className="w-full relative z-10"
+          style={{ maxWidth: "400px", ...enter(1, 0.12) }}
         >
           {/* Mobile logo */}
-          <div className="lg:hidden flex items-center gap-2 mb-10">
-            <BookOpen size={20} color="#2A1D7E" />
+          <div className="lg:hidden flex items-center gap-3 mb-10">
+            <div
+              className="w-9 h-9 rounded-full flex items-center justify-center"
+              style={{
+                background: "rgba(42,29,126,0.07)",
+                border: "1px solid rgba(42,29,126,0.15)",
+              }}
+            >
+              <BookOpen size={15} color="#2A1D7E" />
+            </div>
             <span
-              className="text-lg text-[#1A1A2E]"
-              style={{ fontFamily: "'Cinzel', serif" }}
+              className="text-[15px] text-[#1A1A2E]"
+              style={{ fontFamily: "'Cinzel', serif", letterSpacing: "0.04em" }}
             >
               Logos Pulse
             </span>
           </div>
 
           {/* Heading */}
-          <div className="mb-8">
+          <div className="mb-7">
             <h2
               className="text-[#1A1A2E] mb-1.5"
               style={{
-                fontFamily: "'Cinzel', Georgia, serif",
+                fontFamily: "'Cinzel', serif",
                 fontWeight: 400,
-                fontSize: "28px",
+                fontSize: "26px",
+                letterSpacing: "0.01em",
+                lineHeight: 1.3,
               }}
             >
               {mode === "login" ? "Welcome back" : "Join the sanctuary"}
             </h2>
-            <p className="text-sm" style={{ color: "#6B7280" }}>
+            <p className="text-[14px] leading-relaxed" style={{ color: "#8A85A0" }}>
               {mode === "login"
                 ? "Sign in to continue your spiritual journey"
                 : "Create your account to get started"}
             </p>
           </div>
 
-          {/* Mode toggle pill */}
+          {/* Segmented mode toggle */}
           <div
-            className="relative flex p-1 rounded-full mb-8 self-start w-fit"
-            style={{ background: "rgba(42,29,126,0.08)" }}
+            className="relative flex rounded-xl p-1 mb-7"
+            style={{
+              background: "rgba(42,29,126,0.07)",
+              border: "1px solid rgba(42,29,126,0.09)",
+            }}
           >
-            {/* Sliding indicator */}
+            {/* Sliding active pill — pixel-perfect alignment */}
             <div
-              className="absolute top-1 bottom-1 rounded-full transition-all duration-300 ease-out"
+              className="absolute top-1 bottom-1 rounded-[9px] transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]"
               style={{
-                left: mode === "login" ? "4px" : "50%",
-                width: "calc(50% - 4px)",
-                background: "#2A1D7E",
-                boxShadow: "0 2px 12px rgba(59,47,142,0.35)",
+                left:     mode === "login" ? "4px" : "calc(50% + 2px)",
+                width:    "calc(50% - 6px)",
+                background: "linear-gradient(135deg, #2A1D7E 0%, #3D2DA0 100%)",
+                boxShadow: "0 2px 10px rgba(42,29,126,0.30), inset 0 1px 0 rgba(255,255,255,0.12)",
               }}
             />
             {(["login", "register"] as const).map((m) => (
@@ -469,8 +447,8 @@ export const Component = () => {
                 type="button"
                 onClick={() => switchMode(m)}
                 className={cn(
-                  "relative z-10 px-5 py-2 text-sm font-semibold rounded-full transition-colors duration-300 capitalize",
-                  mode === m ? "text-white" : "text-[#6B7280] hover:text-[#2A1D7E]"
+                  "relative z-10 flex-1 py-2.5 text-[13px] font-bold rounded-[9px] transition-colors duration-250",
+                  mode === m ? "text-white" : "text-[#8A85A0] hover:text-[#3A3255]"
                 )}
               >
                 {m === "login" ? "Sign In" : "Register"}
@@ -479,45 +457,36 @@ export const Component = () => {
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit}>
-            <div
-              className={cn(
-                "space-y-5 transition-all duration-500",
-                mode === "register" ? "opacity-100" : "opacity-100"
-              )}
-            >
-              {mode === "register" ? (
-                <div className="grid grid-cols-2 gap-5">
-                  {REGISTER_FIELDS.filter((f) => ["firstName", "lastName"].includes(f.id)).map(
-                    (field) => (
-                      <AuthField
-                        key={field.id}
-                        {...field}
-                        value={values[field.id] ?? ""}
-                        onChange={(v) => handleField(field.id, v)}
-                      />
-                    )
-                  )}
-                </div>
-              ) : null}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Name row — register only */}
+            {mode === "register" && (
+              <div className="grid grid-cols-2 gap-3">
+                <AuthField {...firstNameField} />
+                <AuthField {...lastNameField}  />
+              </div>
+            )}
 
-              {fields
-                .filter((f) => !["firstName", "lastName"].includes(f.id))
-                .map((field) => (
-                  <AuthField
-                    key={field.id}
-                    {...field}
-                    value={values[field.id] ?? ""}
-                    onChange={(v) => handleField(field.id, v)}
-                  />
-                ))}
+            {fields.map((field) => (
+              <AuthField key={field.id} {...field} />
+            ))}
 
-              {/* Prayer goal slider — register only */}
-              {mode === "register" && (
-                <div className="pt-1">
-                  <label className="block text-[10px] font-semibold uppercase tracking-[0.12em] text-[#6B7280] mb-3">
-                    Daily Prayer Goal
-                  </label>
+            {/* Prayer goal slider — register only */}
+            {mode === "register" && (
+              <div>
+                <label
+                  className="block text-[10.5px] font-bold uppercase tracking-[0.11em] mb-2"
+                  style={{ color: "#8A85A0" }}
+                >
+                  Daily Prayer Goal
+                </label>
+                <div
+                  className="rounded-[13px] px-4 py-3.5"
+                  style={{
+                    background: "#FDFAF5",
+                    border: "1.5px solid rgba(180,170,145,0.35)",
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+                  }}
+                >
                   <div className="flex items-center gap-4">
                     <input
                       type="range"
@@ -526,69 +495,72 @@ export const Component = () => {
                       step={15}
                       value={prayerGoal}
                       onChange={(e) => setPrayerGoal(Number(e.target.value))}
-                      className="flex-1 accent-[#2A1D7E] h-1.5 cursor-pointer"
+                      className="flex-1 cursor-pointer accent-[#2A1D7E]"
+                      style={{ height: "5px" }}
                     />
                     <span
-                      className="text-base font-bold w-20 text-right flex-shrink-0"
+                      className="text-sm font-bold w-14 text-right flex-shrink-0"
                       style={{ color: "#2A1D7E", fontFamily: "'Cinzel', serif" }}
                     >
-                      {prayerGoal} min
+                      {prayerGoal}m
                     </span>
                   </div>
-                  <div className="flex justify-between mt-1">
-                    <span className="text-[10px] text-[#9ca3af]">15 min</span>
-                    <span className="text-[10px] text-[#9ca3af]">195 min</span>
+                  <div className="flex justify-between mt-2">
+                    <span className="text-[10px]" style={{ color: "#C8C4D0" }}>15 min</span>
+                    <span className="text-[10px]" style={{ color: "#C8C4D0" }}>195 min</span>
                   </div>
                 </div>
-              )}
+              </div>
+            )}
 
-              {/* Forgot password */}
-              {mode === "login" && (
-                <div className="text-right -mt-1">
-                  <button
-                    type="button"
-                    className="text-xs text-[#6B7280] hover:text-[#2A1D7E] transition-colors underline-offset-2 hover:underline"
-                  >
-                    Forgot password?
-                  </button>
-                </div>
-              )}
+            {/* Forgot password */}
+            {mode === "login" && (
+              <div className="flex justify-end" style={{ marginTop: "-4px" }}>
+                <button
+                  type="button"
+                  className="text-[12.5px] font-semibold transition-colors hover:underline underline-offset-2"
+                  style={{ color: "#2A1D7E" }}
+                >
+                  Forgot password?
+                </button>
+              </div>
+            )}
 
-              {/* Submit button */}
-              <button
-                type="submit"
-                className={cn(
-                  "w-full py-3.5 rounded-xl text-white text-sm font-semibold",
-                  "flex items-center justify-center gap-2",
-                  "transition-all duration-200 hover:opacity-90 active:scale-[0.985]",
-                  "mt-2"
-                )}
-                style={{
-                  background:
-                    "linear-gradient(135deg, #2A1D7E 0%, #4B3DC0 100%)",
-                  boxShadow: "0 4px 20px rgba(59,47,142,0.35), inset 0 1px 0 rgba(255,255,255,0.15)",
-                }}
-              >
-                {mode === "login" ? "Sign In" : "Create Account"}
-                <ChevronRight size={16} />
-              </button>
-            </div>
+            {/* Submit button */}
+            <button
+              type="submit"
+              className="w-full flex items-center justify-center gap-2 rounded-[13px] text-white text-[14px] font-bold transition-all duration-200 hover:opacity-90 active:scale-[0.984]"
+              style={{
+                marginTop: "8px",
+                padding: "14px 20px",
+                background: "linear-gradient(135deg, #2A1D7E 0%, #4B3DC0 100%)",
+                boxShadow: "0 4px 20px rgba(42,29,126,0.32), inset 0 1px 0 rgba(255,255,255,0.14)",
+              }}
+            >
+              {mode === "login" ? "Sign In" : "Create Account"}
+              <ArrowRight size={15} strokeWidth={2.5} />
+            </button>
           </form>
 
           {/* Divider */}
-          <div className="flex items-center gap-3 my-6">
-            <div className="flex-1 h-px" style={{ background: "#e5e7eb" }} />
-            <span className="text-[11px] text-[#9ca3af] uppercase tracking-widest">or</span>
-            <div className="flex-1 h-px" style={{ background: "#e5e7eb" }} />
+          <div className="flex items-center gap-4 my-5">
+            <div className="flex-1 h-px" style={{ background: "rgba(0,0,0,0.08)" }} />
+            <span
+              className="text-[11px] font-bold uppercase tracking-widest"
+              style={{ color: "#C8C4D0" }}
+            >
+              or
+            </span>
+            <div className="flex-1 h-px" style={{ background: "rgba(0,0,0,0.08)" }} />
           </div>
 
-          {/* Secondary CTA */}
-          <p className="text-center text-sm" style={{ color: "#6B7280" }}>
+          {/* Switch mode link */}
+          <p className="text-center text-[13.5px]" style={{ color: "#8A85A0" }}>
             {mode === "login" ? "New to Logos Pulse? " : "Already have an account? "}
             <button
               type="button"
               onClick={() => switchMode(mode === "login" ? "register" : "login")}
-              className="font-semibold transition-colors hover:underline underline-offset-2"
+              className="font-bold transition-colors hover:underline underline-offset-2"
               style={{ color: "#2A1D7E" }}
             >
               {mode === "login" ? "Register here" : "Sign in"}
@@ -596,7 +568,10 @@ export const Component = () => {
           </p>
 
           {/* Footer note */}
-          <p className="text-center text-[11px] mt-6" style={{ color: "#9ca3af" }}>
+          <p
+            className="text-center leading-relaxed mt-5"
+            style={{ fontSize: "11px", color: "#C8C4D0" }}
+          >
             Accounts are created by your pastor or admin.
             <br />
             Contact your pastor if you need access.
