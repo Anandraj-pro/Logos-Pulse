@@ -9,6 +9,9 @@ inject_styles()
 if is_authenticated():
     st.rerun()
 
+if "lp_forgot" not in st.session_state:
+    st.session_state["lp_forgot"] = False
+
 VERSES = [
     ("Your word is a lamp to my feet and a light to my path.",  "Psalm 119:105"),
     ("The Lord is my shepherd; I shall not want.",               "Psalm 23:1"),
@@ -22,84 +25,98 @@ verse_text, verse_ref = random.choice(VERSES)
 
 st.markdown("""
 <style>
+[data-testid="stHeader"] { display: none !important; }
+footer { display: none !important; }
+#MainMenu { display: none !important; }
 section[data-testid="stSidebar"] { display: none !important; }
 
 [data-testid="stMainBlockContainer"],
 .main .block-container, .block-container {
-    padding-top: 0 !important; padding-left: 0 !important;
-    padding-right: 0 !important; padding-bottom: 0 !important;
-    max-width: 100% !important; margin: 0 !important;
+    padding: 0 !important; max-width: 100% !important; margin: 0 !important;
 }
 
-[data-testid="stHorizontalBlock"] { gap: 0 !important; }
+[data-testid="stHorizontalBlock"] {
+    gap: 0 !important; min-height: 100vh !important; align-items: stretch !important;
+}
 [data-testid="column"] { padding: 0 !important; }
 
 [data-testid="column"]:nth-child(2) {
     background: #F5F1E9 !important;
     border-left: 1px solid rgba(42,29,126,0.10) !important;
-    padding: 52px 52px 52px 52px !important;
+}
+[data-testid="column"]:nth-child(2) > div:first-child {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    min-height: 100vh !important;
+    padding: 48px 56px !important;
+    box-sizing: border-box !important;
 }
 
-@media (max-width: 639px) {
-    [data-testid="stHorizontalBlock"] { flex-direction: column !important; }
-    [data-testid="column"]:nth-child(1) {
-        display: none !important; max-width: 0 !important;
-        min-width: 0 !important; overflow: hidden !important;
-    }
-    [data-testid="column"]:nth-child(2) {
-        width: 100% !important; max-width: 100% !important;
-        min-width: 100% !important; flex: 1 1 100% !important;
-        border-left: none !important;
-        padding: 0 24px 48px !important;
-    }
-    .lp-terra-bar { margin: 0 -24px 0 -24px !important; }
-    .lp-mobile-hdr { display: block !important; margin: 0 -24px 32px -24px !important; }
-    .lp-headline { font-size: 30px !important; }
+.stTabs [data-baseweb="tab-list"] {
+    background: rgba(42,29,126,0.07) !important;
+    border: 1px solid rgba(42,29,126,0.09) !important;
+    border-radius: 12px !important;
+    padding: 4px !important;
+    gap: 0 !important;
+    margin-bottom: 4px !important;
+}
+.stTabs [data-baseweb="tab"] {
+    background: transparent !important;
+    border-radius: 9px !important;
+    padding: 10px 0 !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    color: #8A85A0 !important;
+    border: none !important;
+    flex: 1 !important;
+    justify-content: center !important;
+    font-family: 'Jost', sans-serif !important;
+    transition: all 0.25s !important;
+    min-height: 44px !important;
+}
+.stTabs [aria-selected="true"][data-baseweb="tab"] {
+    background: linear-gradient(135deg, #2A1D7E 0%, #3D2DA0 100%) !important;
+    color: white !important;
+    box-shadow: 0 2px 10px rgba(42,29,126,0.30) !important;
+}
+.stTabs [data-baseweb="tab-highlight"],
+.stTabs [data-baseweb="tab-border"] { display: none !important; }
+
+.stTextInput label, .stNumberInput label, .stSelectbox label {
+    font-family: 'Jost', sans-serif !important;
+    font-size: 11px !important; font-weight: 700 !important;
+    color: #8A85A0 !important; letter-spacing: 1.8px !important;
+    text-transform: uppercase !important;
+}
+.stTextInput, .stNumberInput, .stSelectbox { margin-bottom: 4px !important; }
+
+[data-testid="stFormSubmitButton"] > button {
+    min-height: 50px !important; font-size: 15px !important;
+    letter-spacing: 0.5px !important; margin-top: 8px !important;
+    background: linear-gradient(135deg, #2A1D7E 0%, #4B3DC0 100%) !important;
+    border: none !important;
 }
 
-.lp-terra-bar {
-    height: 3px;
-    background: linear-gradient(90deg, #2A1D7E, #C4902A 48%, #2A1D7E);
-    margin: -52px -52px 40px -52px;
+.lp-forgot-wrap button {
+    background: transparent !important; border: none !important;
+    color: #2A1D7E !important; font-weight: 600 !important;
+    font-size: 12.5px !important; box-shadow: none !important;
+    padding: 2px 0 !important; text-align: right !important;
+    justify-content: flex-end !important;
 }
-
-.lp-mobile-hdr { display: none; }
-
-.lp-headline {
-    font-family: 'Cinzel', 'Cormorant', serif; font-size: 38px; font-weight: 300;
-    color: #FFFFFF; line-height: 1.15; letter-spacing: 0.01em; margin-bottom: 16px;
+.lp-forgot-wrap button:hover {
+    text-decoration: underline !important;
+    background: transparent !important; box-shadow: none !important;
 }
-.lp-headline span { color: #E8C050; }
-.lp-body {
-    font-size: 14px; color: rgba(255,255,255,0.38); line-height: 1.85;
-    font-family: 'Jost', sans-serif; margin-bottom: 36px; max-width: 280px;
+.lp-back-wrap button {
+    background: transparent !important; border: none !important;
+    color: #8A85A0 !important; font-weight: 600 !important;
+    font-size: 13px !important; box-shadow: none !important; padding: 0 !important;
 }
-.lp-verse-card {
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(201,152,42,0.16);
-    border-radius: 16px; padding: 22px 24px;
-    backdrop-filter: blur(16px);
-}
-.lp-vlabel {
-    font-size: 9px; text-transform: uppercase; letter-spacing: 3px; color: rgba(201,152,42,0.6);
-    font-weight: 700; font-family: 'Jost', sans-serif;
-    display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
-}
-.lp-vlabel::before {
-    content: ''; display: inline-block; width: 14px; height: 1.5px; background: rgba(201,152,42,0.65);
-}
-.lp-vtext {
-    font-family: 'Cinzel', 'Cormorant', serif; font-style: italic;
-    font-size: 16px; color: rgba(255,255,255,0.68); line-height: 1.85; margin-bottom: 10px;
-}
-.lp-vref {
-    font-size: 11.5px; color: #c9982a;
-    font-family: 'Cinzel', serif; font-weight: 500; letter-spacing: 0.04em;
-}
-.lp-tagline {
-    font-size: 9px; color: rgba(255,255,255,0.18); text-transform: uppercase; letter-spacing: 3.5px;
-    font-family: 'Jost', sans-serif; margin-top: 32px;
-    display: flex; align-items: center; gap: 14px;
+.lp-back-wrap button:hover {
+    color: #2A1D7E !important; background: transparent !important;
+    box-shadow: none !important;
 }
 
 .lp-form-title {
@@ -114,27 +131,59 @@ section[data-testid="stSidebar"] { display: none !important; }
 }
 .lp-copyright {
     font-size: 11px; color: #C8C4D0; font-family: 'Jost', sans-serif;
-    margin-top: 36px; letter-spacing: 0.3px; text-align: center;
+    margin-top: 32px; letter-spacing: 0.3px; text-align: center;
 }
 
-.stTabs [data-baseweb="tab-list"] button {
-    min-height: 46px !important;
-    padding: 10px 20px !important;
+.lp-headline {
+    font-family: 'Cinzel', 'Cormorant', serif; font-size: 38px; font-weight: 300;
+    color: #FFFFFF; line-height: 1.15; letter-spacing: 0.01em; margin-bottom: 16px;
 }
-.stTextInput label, .stNumberInput label, .stSelectbox label {
-    font-family: 'Jost', sans-serif !important;
-    font-size: 11px !important; font-weight: 700 !important;
-    color: #8A85A0 !important; letter-spacing: 1.8px !important;
-    text-transform: uppercase !important;
+.lp-headline span { color: #E8C050; }
+.lp-body {
+    font-size: 14px; color: rgba(255,255,255,0.38); line-height: 1.85;
+    font-family: 'Jost', sans-serif; margin-bottom: 36px; max-width: 280px;
 }
-.stTextInput, .stNumberInput, .stSelectbox { margin-bottom: 4px !important; }
-[data-testid="stFormSubmitButton"] > button {
-    min-height: 50px !important;
-    font-size: 15px !important;
-    letter-spacing: 0.5px !important;
-    margin-top: 8px !important;
-    background: linear-gradient(135deg, #2A1D7E 0%, #4B3DC0 100%) !important;
-    border: none !important;
+.lp-verse-card {
+    background: rgba(255,255,255,0.03); border: 1px solid rgba(201,152,42,0.16);
+    border-radius: 16px; padding: 22px 24px; backdrop-filter: blur(16px);
+}
+.lp-vlabel {
+    font-size: 9px; text-transform: uppercase; letter-spacing: 3px; color: rgba(201,152,42,0.6);
+    font-weight: 700; font-family: 'Jost', sans-serif;
+    display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
+}
+.lp-vlabel::before {
+    content: ''; display: inline-block; width: 14px; height: 1.5px; background: rgba(201,152,42,0.65);
+}
+.lp-vtext {
+    font-family: 'Cinzel', 'Cormorant', serif; font-style: italic;
+    font-size: 16px; color: rgba(255,255,255,0.68); line-height: 1.85; margin-bottom: 10px;
+}
+.lp-vref { font-size: 11.5px; color: #c9982a; font-family: 'Cinzel', serif; font-weight: 500; letter-spacing: 0.04em; }
+.lp-tagline {
+    font-size: 9px; color: rgba(255,255,255,0.18); text-transform: uppercase; letter-spacing: 3.5px;
+    font-family: 'Jost', sans-serif; margin-top: 32px;
+    display: flex; align-items: center; gap: 14px;
+}
+.lp-mobile-hdr { display: none; }
+
+@media (max-width: 639px) {
+    [data-testid="stHorizontalBlock"] { flex-direction: column !important; }
+    [data-testid="column"]:nth-child(1) {
+        display: none !important; max-width: 0 !important;
+        min-width: 0 !important; overflow: hidden !important;
+    }
+    [data-testid="column"]:nth-child(2) {
+        width: 100% !important; max-width: 100% !important;
+        min-width: 100% !important; flex: 1 1 100% !important;
+        border-left: none !important;
+    }
+    [data-testid="column"]:nth-child(2) > div:first-child {
+        justify-content: flex-start !important;
+        padding: 0 24px 48px !important;
+    }
+    .lp-mobile-hdr { display: block !important; margin: 0 -24px 32px -24px !important; }
+    .lp-headline { font-size: 30px !important; }
 }
 
 @keyframes lp-rise {
@@ -185,7 +234,8 @@ with col_brand:
         '<div style="width:40px;height:40px;border-radius:50%;flex-shrink:0;'
         'background:rgba(201,152,42,0.1);border:1px solid rgba(201,152,42,0.3);'
         'display:flex;align-items:center;justify-content:center;">'
-        '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#c9982a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
+        '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#c9982a" '
+        'stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
         '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>'
         '<path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>'
         '</svg></div>'
@@ -210,27 +260,25 @@ with col_brand:
         '</div>'
 
         '<div class="lp-tagline lp-a4" style="position:relative;z-index:1;">'
-        'Prayer <span style="opacity:0.3;">|</span> Scripture <span style="opacity:0.3;">|</span> Reflection'
+        'Prayer <span style="opacity:0.3;margin:0 2px;">|</span> '
+        'Scripture <span style="opacity:0.3;margin:0 2px;">|</span> Reflection'
         '</div>'
         '</div>'
     )
     st.markdown(brand_html, unsafe_allow_html=True)
 
 with col_form:
-
-    st.markdown('<div class="lp-terra-bar"></div>', unsafe_allow_html=True)
-
     mobile_hdr = (
         '<div class="lp-mobile-hdr" style="'
         'background:linear-gradient(148deg,#0F0930 0%,#1A1060 60%,#221574 100%);'
-        'padding:24px 24px 20px;'
-        'border-bottom:1px solid rgba(201,152,42,0.18);'
+        'padding:24px 24px 20px;border-bottom:1px solid rgba(201,152,42,0.18);'
         'position:relative;overflow:hidden;">'
         '<div style="display:flex;align-items:center;gap:12px;position:relative;">'
         '<div style="width:36px;height:36px;border-radius:50%;flex-shrink:0;'
         'background:rgba(201,152,42,0.1);border:1px solid rgba(201,152,42,0.3);'
         'display:flex;align-items:center;justify-content:center;">'
-        '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#c9982a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
+        '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#c9982a" '
+        'stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
         '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>'
         '<path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>'
         '</svg></div>'
@@ -249,105 +297,15 @@ with col_form:
     )
     st.markdown(mobile_hdr, unsafe_allow_html=True)
 
-    tab_login, tab_register, tab_forgot = st.tabs(["🔑 Sign In", "✏️ Register", "🔄 Forgot Password"])
-
-    with tab_login:
+    if st.session_state["lp_forgot"]:
         st.markdown(
-            '<div class="lp-form-title lp-a5">Welcome back</div>'
-            '<div class="lp-form-sub">Sign in to continue your spiritual journey</div>'
-            '<div class="lp-gold-rule"></div>',
-            unsafe_allow_html=True
-        )
-        with st.form("login_form"):
-            email    = st.text_input("Email",    placeholder="you@church.org")
-            password = st.text_input("Password", type="password", placeholder="Your password")
-            submitted = st.form_submit_button("Sign In →", type="primary", use_container_width=True)
-
-        if submitted:
-            if not email or not password:
-                st.error("Please enter both email and password.")
-            else:
-                with st.spinner("Signing in..."):
-                    result = sign_in(email.strip().lower(), password)
-                if result["success"]:
-                    st.rerun()
-                else:
-                    st.error(result["error"])
-
-    with tab_register:
-        st.markdown(
-            '<div class="lp-form-title">Join the sanctuary</div>'
-            '<div class="lp-form-sub">Create a Prayer Warrior account to begin your journey.</div>'
-            '<div class="lp-gold-rule"></div>',
-            unsafe_allow_html=True
-        )
-
-        try:
-            from modules.rbac import get_pastors_list
-            pastors = get_pastors_list()
-        except Exception:
-            pastors = []
-
-        with st.form("register_form"):
-            reg_email = st.text_input("Email", placeholder="you@church.org", key="reg_email")
-            col1, col2 = st.columns(2)
-            with col1:
-                first_name = st.text_input("First Name", placeholder="John")
-            with col2:
-                last_name = st.text_input("Last Name", placeholder="Doe")
-            preferred_name = st.text_input("Preferred Name", placeholder="What should we call you?")
-
-            if pastors:
-                pastor_options = {p["display_name"] + f" ({p['email']})": p["user_id"] for p in pastors}
-                selected_pastor = st.selectbox("Your Pastor", options=list(pastor_options.keys()))
-                pastor_id = pastor_options[selected_pastor] if selected_pastor else None
-            else:
-                st.warning("No pastors available. Ensure Supabase secrets are configured.")
-                pastor_id = None
-                selected_pastor = None
-
-            membership_card  = st.text_input("Membership Card ID (optional)", placeholder="e.g. TKT1694")
-            prayer_benchmark = st.number_input("Daily Prayer Goal (minutes)", min_value=15, max_value=480, value=60, step=15)
-            reg_submitted    = st.form_submit_button("Create Account →", type="primary", use_container_width=True)
-
-        if reg_submitted:
-            if not reg_email or not first_name or not last_name:
-                st.error("Please fill in all required fields.")
-            elif not pastor_id:
-                st.error("Please select your pastor.")
-            else:
-                with st.spinner("Creating your account..."):
-                    result = sign_up(
-                        email=reg_email.strip().lower(),
-                        password=DEFAULT_PASSWORDS["prayer_warrior"],
-                        first_name=first_name.strip(),
-                        last_name=last_name.strip(),
-                        preferred_name=(preferred_name.strip() or first_name.strip()),
-                        pastor_id=pastor_id,
-                        prayer_benchmark=prayer_benchmark,
-                        membership_card_id=membership_card.strip() if membership_card else None,
-                    )
-                if result["success"]:
-                    with st.spinner("Setting up your account..."):
-                        seed_user_data(
-                            user_id=result["user_id"],
-                            preferred_name=(preferred_name.strip() or first_name.strip()),
-                            prayer_benchmark=prayer_benchmark,
-                        )
-                    st.success("Account created! You can now sign in.")
-                    st.info(f"Your temporary password is: **{DEFAULT_PASSWORDS['prayer_warrior']}** — you'll be asked to change it on first login.")
-                else:
-                    st.error(result["error"])
-
-    with tab_forgot:
-        st.markdown(
-            '<div class="lp-form-title">Reset Password</div>'
-            '<div class="lp-form-sub">Enter your email to receive a password reset link.</div>'
+            '<div class="lp-form-title lp-a5">Reset Password</div>'
+            '<div class="lp-form-sub">Enter your email and we\'ll send a reset link.</div>'
             '<div class="lp-gold-rule"></div>',
             unsafe_allow_html=True
         )
         with st.form("forgot_form"):
-            forgot_email     = st.text_input("Email", placeholder="you@church.org", key="forgot_email")
+            forgot_email = st.text_input("Email", placeholder="you@church.org", key="forgot_email")
             forgot_submitted = st.form_submit_button("Send Reset Link →", type="primary", use_container_width=True)
 
         if forgot_submitted:
@@ -361,6 +319,111 @@ with col_form:
                 except Exception:
                     pass
                 st.success("If an account exists with that email, you'll receive a password reset link.")
+
+        st.markdown('<div class="lp-back-wrap">', unsafe_allow_html=True)
+        if st.button("← Back to Sign In", key="btn_back"):
+            st.session_state["lp_forgot"] = False
+            st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    else:
+        tab_login, tab_register = st.tabs(["Sign In", "Register"])
+
+        with tab_login:
+            st.markdown(
+                '<div class="lp-form-title lp-a5">Welcome back</div>'
+                '<div class="lp-form-sub">Sign in to continue your spiritual journey</div>'
+                '<div class="lp-gold-rule"></div>',
+                unsafe_allow_html=True
+            )
+            with st.form("login_form"):
+                email    = st.text_input("Email",    placeholder="you@church.org")
+                password = st.text_input("Password", type="password", placeholder="Your password")
+                submitted = st.form_submit_button("Sign In →", type="primary", use_container_width=True)
+
+            if submitted:
+                if not email or not password:
+                    st.error("Please enter both email and password.")
+                else:
+                    with st.spinner("Signing in..."):
+                        result = sign_in(email.strip().lower(), password)
+                    if result["success"]:
+                        st.rerun()
+                    else:
+                        st.error(result["error"])
+
+            _, fp_col = st.columns([3, 2])
+            with fp_col:
+                st.markdown('<div class="lp-forgot-wrap">', unsafe_allow_html=True)
+                if st.button("Forgot password?", key="btn_forgot", use_container_width=True):
+                    st.session_state["lp_forgot"] = True
+                    st.rerun()
+                st.markdown('</div>', unsafe_allow_html=True)
+
+        with tab_register:
+            st.markdown(
+                '<div class="lp-form-title">Join the sanctuary</div>'
+                '<div class="lp-form-sub">Create a Prayer Warrior account to begin your journey.</div>'
+                '<div class="lp-gold-rule"></div>',
+                unsafe_allow_html=True
+            )
+
+            try:
+                from modules.rbac import get_pastors_list
+                pastors = get_pastors_list()
+            except Exception:
+                pastors = []
+
+            with st.form("register_form"):
+                reg_email = st.text_input("Email", placeholder="you@church.org", key="reg_email")
+                col1, col2 = st.columns(2)
+                with col1:
+                    first_name = st.text_input("First Name", placeholder="John")
+                with col2:
+                    last_name = st.text_input("Last Name", placeholder="Doe")
+                preferred_name = st.text_input("Preferred Name", placeholder="What should we call you?")
+
+                if pastors:
+                    pastor_options = {p["display_name"] + f" ({p['email']})": p["user_id"] for p in pastors}
+                    selected_pastor = st.selectbox("Your Pastor", options=list(pastor_options.keys()))
+                    pastor_id = pastor_options[selected_pastor] if selected_pastor else None
+                else:
+                    st.warning("No pastors available. Contact your administrator.")
+                    pastor_id = None
+                    selected_pastor = None
+
+                membership_card  = st.text_input("Membership Card ID (optional)", placeholder="e.g. TKT1694")
+                prayer_benchmark = st.number_input("Daily Prayer Goal (minutes)", min_value=15, max_value=480, value=60, step=15)
+                reg_submitted    = st.form_submit_button("Create Account →", type="primary", use_container_width=True)
+
+            if reg_submitted:
+                if not reg_email or not first_name or not last_name:
+                    st.error("Please fill in all required fields.")
+                elif not pastor_id:
+                    st.error("Please select your pastor.")
+                else:
+                    with st.spinner("Creating your account..."):
+                        result = sign_up(
+                            email=reg_email.strip().lower(),
+                            password=DEFAULT_PASSWORDS["prayer_warrior"],
+                            first_name=first_name.strip(),
+                            last_name=last_name.strip(),
+                            preferred_name=(preferred_name.strip() or first_name.strip()),
+                            pastor_id=pastor_id,
+                            prayer_benchmark=prayer_benchmark,
+                            membership_card_id=membership_card.strip() if membership_card else None,
+                        )
+                    if result["success"]:
+                        with st.spinner("Setting up your account..."):
+                            seed_user_data(
+                                user_id=result["user_id"],
+                                preferred_name=(preferred_name.strip() or first_name.strip()),
+                                prayer_benchmark=prayer_benchmark,
+                            )
+                        st.success("Account created! You can now sign in.")
+                        st.info(f"Your temporary password is: **{DEFAULT_PASSWORDS['prayer_warrior']}** — you'll be asked to change it on first login.")
+                    else:
+                        st.error(result["error"])
 
     st.markdown(
         '<div class="lp-copyright">&#169; Logos Pulse &bull; Your daily spiritual companion</div>',
