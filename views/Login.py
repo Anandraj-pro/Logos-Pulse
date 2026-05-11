@@ -24,7 +24,6 @@ st.markdown("""
 <style>
 section[data-testid="stSidebar"] { display: none !important; }
 
-/* ── Reset block container: no nav-bar compensation on login ── */
 [data-testid="stMainBlockContainer"],
 .main .block-container, .block-container {
     padding-top: 0 !important; padding-left: 0 !important;
@@ -32,22 +31,15 @@ section[data-testid="stSidebar"] { display: none !important; }
     max-width: 100% !important; margin: 0 !important;
 }
 
-/* ── Column layout ── */
 [data-testid="stHorizontalBlock"] { gap: 0 !important; }
 [data-testid="column"] { padding: 0 !important; }
 
-/* Right (form) column — white panel, consistent 52px padding */
 [data-testid="column"]:nth-child(2) {
-    background: #FFFFFF !important;
-    border-left: 1px solid rgba(26,18,8,0.07) !important;
+    background: #F5F1E9 !important;
+    border-left: 1px solid rgba(42,29,126,0.10) !important;
     padding: 52px 52px 52px 52px !important;
 }
 
-/* ── MOBILE: < 640px ──
-   Columns don't auto-stack in Streamlit. Force it:
-   - Hide brand panel entirely
-   - Make form column full-width
-   - Reduce padding to 24px sides, 0 top (terra bar handles top)           */
 @media (max-width: 639px) {
     [data-testid="stHorizontalBlock"] { flex-direction: column !important; }
     [data-testid="column"]:nth-child(1) {
@@ -60,108 +52,91 @@ section[data-testid="stSidebar"] { display: none !important; }
         border-left: none !important;
         padding: 0 24px 48px !important;
     }
-    /* Terra bar: only bleed sides on mobile (no top padding to overcome) */
     .lp-terra-bar { margin: 0 -24px 0 -24px !important; }
-    /* Mobile header: bleed to edges, add bottom space */
     .lp-mobile-hdr { display: block !important; margin: 0 -24px 32px -24px !important; }
     .lp-headline { font-size: 30px !important; }
 }
 
-/* ── Terra bar: bleeds through column padding to touch column edges ── */
-/* Desktop margin: -52px top, -52px left, -52px right; 40px space below */
 .lp-terra-bar {
     height: 3px;
-    background: linear-gradient(90deg, #B85A30, #DFA830 48%, #B85A30);
+    background: linear-gradient(90deg, #2A1D7E, #C4902A 48%, #2A1D7E);
     margin: -52px -52px 40px -52px;
 }
 
-/* ── Mobile compact header (hidden on desktop) ── */
 .lp-mobile-hdr { display: none; }
 
-/* ── Brand panel ── */
-.lp-overline {
-    font-size: 10px; font-weight: 700; letter-spacing: 3px;
-    text-transform: uppercase; color: #B85A30;
-    font-family: 'Jost', sans-serif;
-    display: flex; align-items: center; gap: 10px; margin-bottom: 16px;
-}
-.lp-overline::before {
-    content: ''; display: inline-block; width: 24px; height: 1.5px; background: #B85A30;
-}
 .lp-headline {
-    font-family: 'Cormorant', serif; font-size: 42px; font-weight: 600;
-    color: #1A1208; line-height: 1.08; letter-spacing: -0.01em; margin-bottom: 16px;
+    font-family: 'Cinzel', 'Cormorant', serif; font-size: 38px; font-weight: 300;
+    color: #FFFFFF; line-height: 1.15; letter-spacing: 0.01em; margin-bottom: 16px;
 }
+.lp-headline span { color: #E8C050; }
 .lp-body {
-    font-size: 15px; color: #5A4A32; line-height: 1.78;
-    font-family: 'Jost', sans-serif; margin-bottom: 36px; max-width: 300px;
+    font-size: 14px; color: rgba(255,255,255,0.38); line-height: 1.85;
+    font-family: 'Jost', sans-serif; margin-bottom: 36px; max-width: 280px;
 }
 .lp-verse-card {
-    background: rgba(255,255,255,0.72); border: 1px solid rgba(196,144,42,0.22);
-    border-radius: 18px; padding: 22px 24px;
-    box-shadow: 0 4px 20px rgba(26,18,8,0.07), inset 0 1px 0 rgba(255,255,255,0.90);
-    backdrop-filter: blur(8px);
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(201,152,42,0.16);
+    border-radius: 16px; padding: 22px 24px;
+    backdrop-filter: blur(16px);
 }
 .lp-vlabel {
-    font-size: 8.5px; text-transform: uppercase; letter-spacing: 2.5px; color: #B85A30;
+    font-size: 9px; text-transform: uppercase; letter-spacing: 3px; color: rgba(201,152,42,0.6);
     font-weight: 700; font-family: 'Jost', sans-serif;
-    display: flex; align-items: center; gap: 7px; margin-bottom: 12px;
+    display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
 }
 .lp-vlabel::before {
-    content: ''; display: inline-block; width: 14px; height: 1px; background: rgba(184,90,48,0.45);
+    content: ''; display: inline-block; width: 14px; height: 1.5px; background: rgba(201,152,42,0.65);
 }
 .lp-vtext {
-    font-family: 'Cormorant', serif; font-style: italic;
-    font-size: 17px; color: #1A1208; line-height: 1.85; margin-bottom: 10px;
+    font-family: 'Cinzel', 'Cormorant', serif; font-style: italic;
+    font-size: 16px; color: rgba(255,255,255,0.68); line-height: 1.85; margin-bottom: 10px;
 }
-.lp-vref { font-size: 13px; color: #B85A30; font-family: 'Cormorant', serif; font-weight: 600; letter-spacing: 0.04em; }
+.lp-vref {
+    font-size: 11.5px; color: #c9982a;
+    font-family: 'Cinzel', serif; font-weight: 500; letter-spacing: 0.04em;
+}
 .lp-tagline {
-    font-size: 10px; color: #A09080; text-transform: uppercase; letter-spacing: 2.5px;
+    font-size: 9px; color: rgba(255,255,255,0.18); text-transform: uppercase; letter-spacing: 3.5px;
     font-family: 'Jost', sans-serif; margin-top: 32px;
-    display: flex; align-items: center; gap: 10px;
+    display: flex; align-items: center; gap: 14px;
 }
-.lp-tagline::before { content: ''; width: 24px; height: 1px; background: rgba(160,144,128,0.40); flex-shrink: 0; }
 
-/* ── Form panel typography ── */
 .lp-form-title {
-    font-family: 'Cormorant', serif; font-size: 30px; font-weight: 600;
-    color: #1A1208; letter-spacing: -0.01em; margin-bottom: 5px;
+    font-family: 'Cinzel', 'Cormorant', serif; font-size: 28px; font-weight: 400;
+    color: #1A1A2E; letter-spacing: 0.01em; margin-bottom: 5px; line-height: 1.3;
 }
-.lp-form-sub { font-size: 14px; color: #A09080; font-family: 'Jost', sans-serif; margin-bottom: 14px; }
+.lp-form-sub { font-size: 14px; color: #8A85A0; font-family: 'Jost', sans-serif; margin-bottom: 20px; }
 .lp-gold-rule {
     width: 48px; height: 2px;
-    background: linear-gradient(90deg, #B85A30, #DFA830);
+    background: linear-gradient(90deg, #2A1D7E, #C4902A);
     border-radius: 2px; margin-bottom: 24px;
 }
 .lp-copyright {
-    font-size: 11px; color: #C0B5A5; font-family: 'Jost', sans-serif;
+    font-size: 11px; color: #C8C4D0; font-family: 'Jost', sans-serif;
     margin-top: 36px; letter-spacing: 0.3px; text-align: center;
 }
 
-/* ── Form field refinements ──
-   Larger touch targets for tabs, uppercase labels, taller submit button  */
 .stTabs [data-baseweb="tab-list"] button {
     min-height: 46px !important;
     padding: 10px 20px !important;
 }
-
 .stTextInput label, .stNumberInput label, .stSelectbox label {
     font-family: 'Jost', sans-serif !important;
     font-size: 11px !important; font-weight: 700 !important;
-    color: #A09080 !important; letter-spacing: 1.8px !important;
+    color: #8A85A0 !important; letter-spacing: 1.8px !important;
     text-transform: uppercase !important;
 }
-
 .stTextInput, .stNumberInput, .stSelectbox { margin-bottom: 4px !important; }
-
 [data-testid="stFormSubmitButton"] > button {
     min-height: 50px !important;
     font-size: 15px !important;
     letter-spacing: 0.5px !important;
     margin-top: 8px !important;
+    background: linear-gradient(135deg, #2A1D7E 0%, #4B3DC0 100%) !important;
+    border: none !important;
 }
 
-/* ── Entrance animations ── */
 @keyframes lp-rise {
     from { opacity: 0; transform: translateY(18px); }
     to   { opacity: 1; transform: translateY(0); }
@@ -174,50 +149,59 @@ section[data-testid="stSidebar"] { display: none !important; }
 </style>
 """, unsafe_allow_html=True)
 
-# ── Two-column layout ─────────────────────────────────────────────────────────
 col_brand, col_form = st.columns([9, 11], gap="small")
 
-# ── LEFT: Brand panel (desktop only — hidden via CSS on mobile) ───────────────
 with col_brand:
     brand_html = (
-        '<div style="background:linear-gradient(150deg,#F9F5EF 0%,#F2E8D9 55%,#EBE0CC 100%);'
-        'min-height:100vh;padding:48px 44px 44px;'
-        'display:flex;flex-direction:column;position:relative;overflow:hidden;">'
+        '<div style="background:linear-gradient(148deg,#0F0930 0%,#1A1060 30%,#221574 60%,#2E1E88 100%);'
+        'min-height:100vh;padding:52px 48px 44px;'
+        'display:flex;flex-direction:column;justify-content:space-between;'
+        'position:relative;overflow:hidden;">'
 
-        '<div style="position:absolute;top:-80px;right:-80px;width:360px;height:360px;'
-        'border-radius:50%;pointer-events:none;'
-        'background:radial-gradient(circle,rgba(196,144,42,0.13) 0%,transparent 65%);"></div>'
+        '<div style="position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);'
+        'width:320px;height:320px;border-radius:50%;pointer-events:none;'
+        'background:radial-gradient(circle,rgba(196,144,42,0.10) 0%,transparent 68%);"></div>'
 
-        '<div style="position:absolute;bottom:-60px;left:-60px;width:280px;height:280px;'
-        'border-radius:50%;pointer-events:none;'
-        'background:radial-gradient(circle,rgba(184,90,48,0.07) 0%,transparent 65%);"></div>'
+        '<svg style="position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);" '
+        'width="110" height="150" viewBox="0 0 110 150" fill="none">'
+        '<defs><linearGradient id="cg" x1="0" y1="0" x2="1" y2="1">'
+        '<stop offset="0%" stop-color="#C4902A" stop-opacity="0.2"/>'
+        '<stop offset="50%" stop-color="#E8C050" stop-opacity="0.55"/>'
+        '<stop offset="100%" stop-color="#C4902A" stop-opacity="0.15"/>'
+        '</linearGradient></defs>'
+        '<rect x="48" y="0" width="14" height="150" rx="7" fill="url(#cg)"/>'
+        '<rect x="0" y="48" width="110" height="14" rx="7" fill="url(#cg)"/>'
+        '</svg>'
 
         '<div style="position:absolute;inset:0;pointer-events:none;'
-        'background:repeating-linear-gradient(-45deg,'
-        'rgba(196,144,42,0.018) 0px,rgba(196,144,42,0.018) 1px,'
-        'transparent 1px,transparent 18px);"></div>'
+        'background-image:radial-gradient(circle,rgba(255,255,255,0.08) 1px,transparent 1px);'
+        'background-size:36px 36px;opacity:0.5;"></div>'
 
-        '<div class="lp-a1" style="display:flex;align-items:center;gap:14px;'
+        '<div style="position:absolute;top:0;left:32px;right:32px;height:1px;'
+        'background:linear-gradient(90deg,transparent,rgba(201,152,42,0.35),transparent);"></div>'
+
+        '<div class="lp-a1" style="display:flex;align-items:center;gap:12px;'
         'margin-bottom:60px;position:relative;z-index:1;">'
-        '<div style="width:42px;height:42px;border-radius:11px;background:#B85A30;'
-        'display:flex;align-items:center;justify-content:center;'
-        'font-family:Cormorant,serif;font-size:18px;font-weight:700;color:white;'
-        'box-shadow:0 4px 14px rgba(184,90,48,0.36);flex-shrink:0;">LP</div>'
+        '<div style="width:40px;height:40px;border-radius:50%;flex-shrink:0;'
+        'background:rgba(201,152,42,0.1);border:1px solid rgba(201,152,42,0.3);'
+        'display:flex;align-items:center;justify-content:center;">'
+        '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#c9982a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
+        '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>'
+        '<path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>'
+        '</svg></div>'
         '<div>'
-        '<div style="font-family:Cormorant,serif;font-size:21px;font-weight:600;'
-        'color:#1A1208;letter-spacing:0.04em;line-height:1.2;">Logos Pulse</div>'
-        '<div style="font-size:9px;color:rgba(184,90,48,0.72);text-transform:uppercase;'
-        'letter-spacing:2.5px;font-weight:700;font-family:Jost,sans-serif;">Sanctuary</div>'
+        '<div style="font-family:Cinzel,Cormorant,serif;font-size:15px;font-weight:400;'
+        'color:#FFFFFF;letter-spacing:0.05em;line-height:1.2;">Logos Pulse</div>'
+        '<div style="font-size:9px;color:rgba(201,152,42,0.5);text-transform:uppercase;'
+        'letter-spacing:3.5px;font-weight:700;font-family:Jost,sans-serif;">Sanctuary</div>'
         '</div></div>'
 
-        '<div class="lp-overline lp-a2" style="position:relative;z-index:1;">Spiritual Growth</div>'
-
         '<div class="lp-headline lp-a2" style="position:relative;z-index:1;">'
-        'Track your<br>walk with God</div>'
+        'Track your<br><span>walk with God</span></div>'
 
         '<div class="lp-body lp-a3" style="position:relative;z-index:1;">'
-        'A sanctuary for daily prayer, scripture reading, and spiritual reflection '
-        '&#8212; designed for the whole church family.</div>'
+        'A sanctuary for daily prayer, scripture reading, and spiritual '
+        'reflection &#8212; built for the whole church family.</div>'
 
         '<div class="lp-verse-card lp-a4" style="position:relative;z-index:1;">'
         '<div class="lp-vlabel">Verse of the Day</div>'
@@ -225,54 +209,48 @@ with col_brand:
         f'<div class="lp-vref">&#8212; {verse_ref}</div>'
         '</div>'
 
-        '<div class="lp-tagline" style="position:relative;z-index:1;">'
-        'Prayer &bull; Scripture &bull; Reflection</div>'
+        '<div class="lp-tagline lp-a4" style="position:relative;z-index:1;">'
+        'Prayer <span style="opacity:0.3;">|</span> Scripture <span style="opacity:0.3;">|</span> Reflection'
+        '</div>'
         '</div>'
     )
     st.markdown(brand_html, unsafe_allow_html=True)
 
-# ── RIGHT: Form panel ─────────────────────────────────────────────────────────
 with col_form:
 
-    # Terra accent bar — bleeds through column padding via negative margins
-    # (more reliable than ::before pseudo-element on Streamlit column divs)
     st.markdown('<div class="lp-terra-bar"></div>', unsafe_allow_html=True)
 
-    # Compact header shown only on mobile (CSS display:none on desktop)
-    # Gives mobile users brand context + verse without scrolling past the full brand panel
     mobile_hdr = (
         '<div class="lp-mobile-hdr" style="'
-        'background:linear-gradient(150deg,#F9F5EF 0%,#F2E8D9 100%);'
+        'background:linear-gradient(148deg,#0F0930 0%,#1A1060 60%,#221574 100%);'
         'padding:24px 24px 20px;'
-        'border-bottom:1px solid rgba(196,144,42,0.18);'
+        'border-bottom:1px solid rgba(201,152,42,0.18);'
         'position:relative;overflow:hidden;">'
-        '<div style="position:absolute;top:-30px;right:-30px;width:140px;height:140px;'
-        'border-radius:50%;pointer-events:none;'
-        'background:radial-gradient(circle,rgba(196,144,42,0.10) 0%,transparent 65%);"></div>'
         '<div style="display:flex;align-items:center;gap:12px;position:relative;">'
-        '<div style="width:36px;height:36px;border-radius:9px;background:#B85A30;'
-        'display:flex;align-items:center;justify-content:center;'
-        'font-family:Cormorant,serif;font-size:15px;font-weight:700;color:white;'
-        'box-shadow:0 3px 10px rgba(184,90,48,0.32);flex-shrink:0;">LP</div>'
+        '<div style="width:36px;height:36px;border-radius:50%;flex-shrink:0;'
+        'background:rgba(201,152,42,0.1);border:1px solid rgba(201,152,42,0.3);'
+        'display:flex;align-items:center;justify-content:center;">'
+        '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#c9982a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
+        '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>'
+        '<path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>'
+        '</svg></div>'
         '<div>'
-        '<div style="font-family:Cormorant,serif;font-size:18px;font-weight:600;'
-        'color:#1A1208;letter-spacing:0.04em;line-height:1.2;">Logos Pulse</div>'
-        '<div style="font-size:9px;color:rgba(184,90,48,0.72);text-transform:uppercase;'
+        '<div style="font-family:Cinzel,Cormorant,serif;font-size:17px;font-weight:400;'
+        'color:#FFFFFF;letter-spacing:0.04em;line-height:1.2;">Logos Pulse</div>'
+        '<div style="font-size:9px;color:rgba(201,152,42,0.5);text-transform:uppercase;'
         'letter-spacing:2.5px;font-weight:700;font-family:Jost,sans-serif;">Sanctuary</div>'
         '</div></div>'
-        f'<div style="font-family:Cormorant,serif;font-style:italic;font-size:14px;'
-        f'color:#5A4A32;line-height:1.65;margin-top:14px;">'
+        f'<div style="font-family:Cinzel,Cormorant,serif;font-style:italic;font-size:13px;'
+        f'color:rgba(255,255,255,0.55);line-height:1.65;margin-top:14px;">'
         f'&#8220;{verse_text}&#8221;'
-        f' <span style="color:#B85A30;font-weight:600;font-style:normal;">&#8212; {verse_ref}</span>'
+        f' <span style="color:#c9982a;font-weight:600;font-style:normal;">&#8212; {verse_ref}</span>'
         f'</div>'
         '</div>'
     )
     st.markdown(mobile_hdr, unsafe_allow_html=True)
 
-    # ── Tabs ─────────────────────────────────────────────────────────────────
     tab_login, tab_register, tab_forgot = st.tabs(["🔑 Sign In", "✏️ Register", "🔄 Forgot Password"])
 
-    # ── SIGN IN ───────────────────────────────────────────────────────────────
     with tab_login:
         st.markdown(
             '<div class="lp-form-title lp-a5">Welcome back</div>'
@@ -296,7 +274,6 @@ with col_form:
                 else:
                     st.error(result["error"])
 
-    # ── REGISTER ──────────────────────────────────────────────────────────────
     with tab_register:
         st.markdown(
             '<div class="lp-form-title">Join the sanctuary</div>'
@@ -362,7 +339,6 @@ with col_form:
                 else:
                     st.error(result["error"])
 
-    # ── FORGOT PASSWORD ───────────────────────────────────────────────────────
     with tab_forgot:
         st.markdown(
             '<div class="lp-form-title">Reset Password</div>'
