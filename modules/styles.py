@@ -75,52 +75,16 @@ SHARED_CSS = """
 }
 
 /* ================================================================
-   HIDE ALL STREAMLIT NATIVE CHROME
+   HIDE STREAMLIT NATIVE CHROME (keep sidebar visible)
    ================================================================ */
 [data-testid="stHeader"],
 [data-testid="stToolbar"],
 [data-testid="stDecoration"],
 [data-testid="stStatusWidget"],
-[data-testid="stSidebar"],
-[data-testid="stSidebarCollapsedControl"],
-[data-testid="stSidebarNavItems"],
 #MainMenu, .stAppToolbar, .stDeployButton,
 button[kind="header"], header { display: none !important; }
 
 #MainMenu { visibility: hidden !important; }
-
-/* ================================================================
-   LAYOUT RESET — strip Streamlit's default header spacing
-   ================================================================ */
-
-/* The AppViewContainer wraps everything — remove any top offset */
-[data-testid="stAppViewContainer"] {
-    padding-top: 0 !important;
-    margin-top:  0 !important;
-}
-
-/* stMain is the scrollable content area — remove Streamlit's
-   built-in header-compensation padding */
-[data-testid="stMain"],
-.stMain,
-.main {
-    padding-top: 0 !important;
-    overflow-x: hidden !important;
-}
-
-/* The actual content block — our fixed nav is 56px, so push
-   content down just enough, then cap width and center it */
-[data-testid="stMainBlockContainer"],
-.main .block-container,
-.block-container {
-    padding-top:    72px !important;   /* 56px nav + 16px breathing room */
-    padding-left:   24px !important;
-    padding-right:  24px !important;
-    padding-bottom: 80px !important;
-    max-width:      1180px !important;
-    margin-left:    auto !important;
-    margin-right:   auto !important;
-}
 
 /* Streamlit sometimes wraps in an extra div — handle it */
 [data-testid="stVerticalBlock"] { width: 100% !important; }
