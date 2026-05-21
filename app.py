@@ -106,37 +106,54 @@ else:
             layout="wide",
             initial_sidebar_state="expanded",
         )
+        # Ensure sidebar expand arrow is always visible so users can open a collapsed sidebar
+        st.markdown(
+            '<style>'
+            '[data-testid="stSidebarCollapsedControl"]{display:flex!important;visibility:visible!important;}'
+            '</style>',
+            unsafe_allow_html=True,
+        )
         role = get_current_role()
 
-        # Build page list with explicit url_paths
-        all_pages = [
-            st.Page("views/0_Dashboard.py",        title="Dashboard",         icon="\U0001f3e0", default=True, url_path="dashboard"),
-            st.Page("views/1_Daily_Entry.py",       title="Daily Entry",       icon="✏️",                       url_path="daily-entry"),
-            st.Page("views/2_Daily_Log.py",         title="Daily Log",         icon="\U0001f4c5",               url_path="daily-log"),
-            st.Page("views/3_Weekly_Assignment.py", title="My Bible Plan",     icon="\U0001f4d6",               url_path="bible-plan"),
-            st.Page("views/4_Streaks_and_Stats.py", title="Streaks & Stats",   icon="\U0001f525",               url_path="streaks"),
-            st.Page("views/6_Sermon_Notes.py",      title="Sermon Notes",      icon="\U0001f4dd",               url_path="sermon-notes"),
-            st.Page("views/7_Prayer_Journal.py",    title="Prayer Journal",    icon="\U0001f64f",               url_path="prayer-journal"),
-            st.Page("views/8_Prayer_Engine.py",     title="Confession Plans",  icon="\U0001f64f",               url_path="confession-plans"),
-            st.Page("views/Fasting_Tracker.py",     title="Fasting Tracker",   icon="\U0001f374",               url_path="fasting"),
-            st.Page("views/Personal_Goals.py",      title="My Goals",          icon="\U0001f3af",               url_path="goals"),
-            st.Page("views/Testimonies.py",         title="Testimonies",       icon="\U0001f31f",               url_path="testimonies"),
-            st.Page("views/Bible_Reading_Plan.py",  title="Bible Library",     icon="\U0001f4d6",               url_path="reading-plan"),
-            st.Page("views/Notifications.py",       title="Notifications",     icon="\U0001f514",               url_path="notifications"),
-            st.Page("views/5_Settings.py",          title="Settings",          icon="⚙️",                       url_path="settings"),
-            st.Page("views/Profile.py",             title="My Profile",        icon="\U0001f464",               url_path="profile"),
+        # Core pages — visible to all authenticated users
+        core_pages = [
+            st.Page("views/0_Dashboard.py",        title="Dashboard",        icon="\U0001f3e0", default=True, url_path="dashboard"),
+            st.Page("views/1_Daily_Entry.py",       title="Daily Entry",      icon="✏️",                       url_path="daily-entry"),
+            st.Page("views/2_Daily_Log.py",         title="Daily Log",        icon="\U0001f4c5",               url_path="daily-log"),
+            st.Page("views/3_Weekly_Assignment.py", title="My Bible Plan",    icon="\U0001f4d6",               url_path="bible-plan"),
+            st.Page("views/4_Streaks_and_Stats.py", title="Streaks & Stats",  icon="\U0001f525",               url_path="streaks"),
+            st.Page("views/6_Sermon_Notes.py",      title="Sermon Notes",     icon="\U0001f4dd",               url_path="sermon-notes"),
+            st.Page("views/7_Prayer_Journal.py",    title="Prayer Journal",   icon="\U0001f64f",               url_path="prayer-journal"),
+            st.Page("views/8_Prayer_Engine.py",     title="Confession Plans", icon="\U0001f64f",               url_path="confession-plans"),
+            st.Page("views/Fasting_Tracker.py",     title="Fasting Tracker",  icon="\U0001f374",               url_path="fasting"),
+            st.Page("views/Personal_Goals.py",      title="My Goals",         icon="\U0001f3af",               url_path="goals"),
+            st.Page("views/Testimonies.py",         title="Testimonies",      icon="\U0001f31f",               url_path="testimonies"),
+            st.Page("views/Bible_Reading_Plan.py",  title="Bible Library",    icon="\U0001f4d6",               url_path="reading-plan"),
+            st.Page("views/Notifications.py",       title="Notifications",    icon="\U0001f514",               url_path="notifications"),
+            st.Page("views/5_Settings.py",          title="Settings",         icon="⚙️",                       url_path="settings"),
+            st.Page("views/Profile.py",             title="My Profile",       icon="\U0001f464",               url_path="profile"),
         ]
 
+        # Scriptorium — clergy tools, role-gated
+        scriptorium_pages = []
         if role == "admin":
-            all_pages.append(st.Page("views/Admin_Panel.py",       title="Admin Panel",        icon="\U0001f6e1️", url_path="admin"))
+            scriptorium_pages.append(st.Page("views/Admin_Panel.py",       title="Admin Panel",        icon="\U0001f6e1️", url_path="admin"))
         if role in ("admin", "bishop"):
-            all_pages.append(st.Page("views/Bishop_Dashboard.py",  title="Bishop Dashboard",   icon="⚖️",          url_path="bishop"))
+            scriptorium_pages.append(st.Page("views/Bishop_Dashboard.py",  title="Bishop Dashboard",   icon="⚖️",     url_path="bishop"))
         if role in ("admin", "bishop", "pastor"):
-            all_pages.append(st.Page("views/Pastor_Dashboard.py",  title="Pastor Dashboard",   icon="\U0001f465",  url_path="pastor"))
-            all_pages.append(st.Page("views/Wizard_Assignment.py", title="Custom Assignments", icon="\U0001f9d9",  url_path="assignments"))
-            all_pages.append(st.Page("views/Member_Detail.py",     title="Member Detail",      icon="\U0001f464",  url_path="member"))
+            scriptorium_pages.append(st.Page("views/Pastor_Dashboard.py",  title="Pastor Dashboard",   icon="\U0001f465",       url_path="pastor"))
+            scriptorium_pages.append(st.Page("views/Wizard_Assignment.py", title="Custom Assignments", icon="\U0001f9d9",       url_path="assignments"))
+            scriptorium_pages.append(st.Page("views/Member_Detail.py",     title="Member Detail",      icon="\U0001f464",       url_path="member"))
 
-        pg = st.navigation(all_pages)
+        if scriptorium_pages:
+            nav_sections = {
+                "Chronicle": core_pages,
+                "⚙ Scriptorium": scriptorium_pages,
+            }
+        else:
+            nav_sections = {"Chronicle": core_pages}
+
+        pg = st.navigation(nav_sections)
 
         # Sidebar branding + user info
         with st.sidebar:
@@ -146,12 +163,12 @@ else:
             name = st.session_state.get("preferred_name", "User")
             role_display = role.replace("_", " ").title() if role else "User"
             role_colors = {
-                "admin":          "#B5383C",
-                "bishop":         "#1565C0",
-                "pastor":         "#2D6A4F",
-                "prayer_warrior": "#3B2F8E",
+                "admin":          "rgba(196,138,28,0.60)",
+                "bishop":         "rgba(100,160,220,0.50)",
+                "pastor":         "rgba(74,168,112,0.50)",
+                "prayer_warrior": "rgba(196,138,28,0.35)",
             }
-            badge_color = role_colors.get(role, "#3B2F8E")
+            badge_color = role_colors.get(role, "rgba(196,138,28,0.35)")
 
             try:
                 from modules.db import get_unread_notification_count as _notif_count
@@ -159,36 +176,37 @@ else:
             except Exception:
                 _unread = 0
             _bell = (
-                f' <span style="background:#B5383C; color:white; padding:1px 7px; border-radius:10px; font-size:10px; font-weight:800; vertical-align:middle;">{_unread}</span>'
+                f' <span style="background:rgba(196,138,28,0.55);color:#1a1108;padding:1px 7px;border-radius:10px;font-size:9px;font-weight:700;font-family:\'Cinzel\',serif;letter-spacing:1px;vertical-align:middle;">{_unread}</span>'
                 if _unread > 0 else ""
             )
             st.markdown(f"""
-            <div style="padding:12px 0 16px 0; border-bottom:1px solid rgba(59,47,142,0.08); margin-bottom:12px;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                    <div style="font-family:'Playfair Display','DM Serif Display',Georgia,serif; font-size:18px; font-weight:700; color:#1A1628; letter-spacing:-0.2px;">
+            <div style="padding:12px 0 16px 0; border-bottom:1px solid rgba(196,138,28,0.12); margin-bottom:12px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <div style="font-family:'IM Fell English','Cormorant',Georgia,serif; font-size:17px; font-weight:400; font-style:italic; color:#F5E8C0; letter-spacing:0.02em;">
                         {name}
                     </div>
-                    <span style="font-size:16px;">\U0001f514{_bell}</span>
+                    <span style="font-size:14px; opacity:0.6;">\U0001f514{_bell}</span>
                 </div>
-                <span style="background:{badge_color}; color:white; padding:3px 11px;
-                             border-radius:100px; font-size:10px; font-weight:800;
-                             letter-spacing:0.5px; text-transform:uppercase;
-                             font-family:'Nunito',sans-serif;">
+                <span style="background:{badge_color}; color:#F5E8C0; padding:3px 11px;
+                             border-radius:100px; font-size:9px; font-weight:400;
+                             letter-spacing:2px; text-transform:uppercase;
+                             font-family:'Cinzel',serif;
+                             border:1px solid rgba(196,138,28,0.30);">
                     {role_display}
                 </span>
             </div>
             """, unsafe_allow_html=True)
 
             if role == "admin":
-                st.markdown("<div style='border-top:1px solid rgba(59,47,142,0.08); margin:12px 0; padding-top:12px;'></div>", unsafe_allow_html=True)
-                st.markdown("<span style='font-size:10px; color:#9E96AB; text-transform:uppercase; letter-spacing:2px; font-weight:800; font-family:Nunito,sans-serif;'>Impersonate</span>", unsafe_allow_html=True)
+                st.markdown("<div style='border-top:1px solid rgba(196,138,28,0.10); margin:12px 0; padding-top:12px;'></div>", unsafe_allow_html=True)
+                st.markdown("<span style='font-size:9px; color:rgba(196,138,28,0.40); text-transform:uppercase; letter-spacing:2.5px; font-weight:400; font-family:Cinzel,serif;'>Impersonate</span>", unsafe_allow_html=True)
 
                 if st.session_state.get("impersonating"):
                     imp = st.session_state["impersonating"]
                     st.markdown(f"""
-                    <div style="background:linear-gradient(135deg,#FFF4E6,#FFFDF7); border:1px solid rgba(194,107,44,0.2); border-radius:10px; padding:10px 14px; margin:4px 0; font-size:12px; color:#C26B2C; font-weight:700; font-family:Nunito,sans-serif;">
-                        \U0001f441️ Viewing as <b>{imp['name']}</b><br/>
-                        <span style="font-weight:600; opacity:0.8;">{imp['role'].replace('_',' ').title()}</span>
+                    <div style="background:rgba(196,138,28,0.08); border:1px solid rgba(196,138,28,0.22); border-radius:8px; padding:10px 14px; margin:4px 0; font-size:12px; color:#C4A870; font-family:'Cardo',Georgia,serif;">
+                        \U0001f441️ <em>Viewing as <b style="color:#F5E8C0;">{imp['name']}</b></em><br/>
+                        <span style="font-family:'Cinzel',serif; font-size:9px; letter-spacing:1.5px; text-transform:uppercase; color:rgba(196,138,28,0.55);">{imp['role'].replace('_',' ').title()}</span>
                     </div>
                     """, unsafe_allow_html=True)
                     if st.button("Stop Impersonating", use_container_width=True):
@@ -227,7 +245,7 @@ else:
                                 st.rerun()
 
             st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
-            if st.button("\U0001f6aa Logout", use_container_width=True):
+            if st.button("⬡  Exit Chronicle", use_container_width=True):
                 if st.session_state.get("impersonating"):
                     st.session_state.pop("impersonating", None)
                 sign_out()
@@ -237,11 +255,12 @@ else:
         if st.session_state.get("impersonating"):
             imp = st.session_state["impersonating"]
             st.markdown(f"""
-            <div style="background:linear-gradient(135deg,#FFF4E6,#FFFDF7); border:1px solid rgba(194,107,44,0.25);
-                        border-radius:12px; padding:10px 18px; margin-bottom:16px; font-size:13px;
-                        color:#C26B2C; font-weight:700; font-family:'Nunito',sans-serif;
-                        box-shadow:0 2px 8px rgba(194,107,44,0.08);">
-                \U0001f441️ <b>Admin View Active</b> — as {imp['name']} ({imp['role'].replace('_',' ').title()})
+            <div style="background:rgba(196,138,28,0.07); border:1px solid rgba(196,138,28,0.22);
+                        border-radius:10px; padding:10px 18px; margin-bottom:16px; font-size:13px;
+                        color:#C4A870; font-family:'Cardo',Georgia,serif;
+                        box-shadow:0 2px 8px rgba(0,0,0,0.2);">
+                \U0001f441️ <em><b style="color:#F5E8C0;">Scribe Mode</b> — viewing as {imp['name']}</em>
+                <span style="display:block;font-family:'Cinzel',serif;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(196,138,28,0.45);margin-top:3px;">{imp['role'].replace('_',' ').title()}</span>
             </div>
             """, unsafe_allow_html=True)
 
