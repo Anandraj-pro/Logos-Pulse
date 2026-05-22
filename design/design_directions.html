@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Logos Pulse — Design Directions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Cinzel:wght@400;600;700&family=Cormorant:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Cardo:ital,wght@0,400;0,700;1,400&family=Jost:wght@300;400;500;600&family=DM+Sans:wght@300;400;500&family=Spectral:ital,wght@0,300;0,400;1,400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #0e0c0a;
+  color: #f0ead8;
+  font-family: 'Jost', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── INTRO ── */
+.intro {
+  text-align: center;
+  padding: 72px 32px 48px;
+  position: relative;
+}
+.intro::after {
+  content: '';
+  display: block;
+  width: 280px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #c48a1c88, transparent);
+  margin: 36px auto 0;
+}
+.intro-tag {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 4px;
+  color: #c48a1c;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+.intro h1 {
+  font-family: 'Cormorant', serif;
+  font-size: clamp(2.6rem, 5vw, 4rem);
+  font-weight: 300;
+  line-height: 1.15;
+  color: #f5ead0;
+  margin-bottom: 16px;
+}
+.intro p {
+  color: #a09080;
+  font-size: 0.95rem;
+  font-weight: 300;
+  max-width: 520px;
+  margin: 0 auto;
+  line-height: 1.7;
+}
+
+/* ── GRID ── */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 32px;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 24px 40px 80px;
+}
+@media (max-width: 900px) { .grid { grid-template-columns: 1fr; padding: 24px 20px 60px; } }
+
+/* ── CARD ── */
+.card {
+  border-radius: 20px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.35s cubic-bezier(0.16,1,0.3,1), box-shadow 0.35s;
+  position: relative;
+}
+.card:hover { transform: translateY(-6px) scale(1.01); }
+.card-label {
+  padding: 20px 24px 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+.card-num {
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  letter-spacing: 3px;
+  padding-top: 4px;
+  min-width: 24px;
+}
+.card-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 4px; }
+.card-desc { font-size: 0.78rem; font-weight: 300; line-height: 1.55; opacity: 0.75; }
+.card-badge {
+  font-family: 'Cinzel', serif;
+  font-size: 8px;
+  letter-spacing: 2px;
+  padding: 3px 9px;
+  border-radius: 20px;
+  display: inline-block;
+  margin-top: 8px;
+}
+
+/* ── MOCKUP CONTAINER ── */
+.mockup-wrap {
+  padding: 0 16px 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.mockup-wrap.three { grid-template-columns: 1fr 1fr 1fr; }
+.screen {
+  border-radius: 12px;
+  overflow: hidden;
+  aspect-ratio: 9/16;
+  position: relative;
+}
+.screen.wide { aspect-ratio: 16/10; }
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   DIRECTION A — ILLUMINATED CODEX
+   Dark parchment night. Medieval manuscript. Gold leaf.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.a-card {
+  background: #1a1108;
+  border: 1px solid rgba(196,138,28,0.2);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6), inset 0 1px 0 rgba(196,138,28,0.1);
+}
+.a-card:hover { box-shadow: 0 32px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(196,138,28,0.35), inset 0 1px 0 rgba(196,138,28,0.15); }
+.a-num { color: #c48a1c; }
+.a-title { color: #f5e8c0; font-family: 'IM Fell English', serif; }
+.a-desc { color: #8a7860; }
+.a-badge { background: rgba(196,138,28,0.12); color: #c48a1c; border: 1px solid rgba(196,138,28,0.25); }
+
+/* Login screen A */
+.a-login {
+  background: radial-gradient(ellipse at 50% 0%, rgba(196,138,28,0.08) 0%, transparent 60%), #130e06;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 12px; gap: 8px;
+}
+.a-login .logo-drop {
+  font-family: 'Cinzel', serif; font-size: 24px; color: #c48a1c;
+  text-shadow: 0 0 20px rgba(196,138,28,0.5);
+  border: 1px solid rgba(196,138,28,0.3); border-radius: 50%;
+  width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
+}
+.a-login h3 { font-family: 'IM Fell English', serif; font-size: 13px; color: #f5e8c0; letter-spacing: 1px; }
+.a-login .sub { font-family: 'Cinzel', serif; font-size: 6px; letter-spacing: 3px; color: #c48a1c; text-transform: uppercase; margin-top: -4px; }
+.a-field {
+  width: 100%; background: rgba(196,138,28,0.06);
+  border: 1px solid rgba(196,138,28,0.2); border-radius: 6px;
+  padding: 5px 8px; font-size: 7px; color: #a09060;
+  font-family: 'Cardo', serif;
+}
+.a-btn {
+  width: 100%; background: linear-gradient(135deg, #c48a1c, #e0a030);
+  border: none; border-radius: 6px; padding: 6px; color: #1a1108;
+  font-family: 'Cinzel', serif; font-size: 7px; letter-spacing: 2px; cursor: pointer;
+  box-shadow: 0 4px 16px rgba(196,138,28,0.3);
+}
+.a-ornament { color: rgba(196,138,28,0.3); font-size: 10px; letter-spacing: 4px; }
+
+/* Sidebar A */
+.a-sidebar {
+  background: #0e0a04;
+  border-right: 1px solid rgba(196,138,28,0.15);
+  display: flex; flex-direction: column; padding: 10px 0;
+}
+.a-sidebar-logo {
+  padding: 8px 10px 10px;
+  border-bottom: 1px solid rgba(196,138,28,0.12);
+  display: flex; align-items: center; gap: 6px;
+}
+.a-sidebar-logo .mark { font-family: 'Cinzel', serif; font-size: 8px; color: #c48a1c; }
+.a-sidebar-logo .name { font-family: 'IM Fell English', serif; font-size: 9px; color: #f0e0b0; }
+.a-nav-item {
+  padding: 6px 10px; display: flex; align-items: center; gap: 6px;
+  font-size: 7px; color: #7a6a50; cursor: pointer;
+  border-left: 2px solid transparent; transition: all 0.2s;
+  font-family: 'Cardo', serif;
+}
+.a-nav-item.active { color: #c48a1c; border-left-color: #c48a1c; background: rgba(196,138,28,0.08); }
+.a-nav-section {
+  padding: 10px 10px 4px; font-family: 'Cinzel', serif;
+  font-size: 5.5px; letter-spacing: 2px; color: rgba(196,138,28,0.4); text-transform: uppercase;
+}
+.a-nav-item .icon { font-size: 8px; }
+.a-adv-tab {
+  margin-top: auto; border-top: 1px solid rgba(196,138,28,0.12);
+  padding: 8px 10px;
+  display: flex; align-items: center; gap: 6px;
+  font-family: 'Cinzel', serif; font-size: 6px; letter-spacing: 1px;
+  color: rgba(196,138,28,0.5); cursor: pointer;
+}
+.a-adv-tab .seal {
+  font-size: 9px;
+  border: 1px solid rgba(196,138,28,0.2); border-radius: 50%;
+  width: 16px; height: 16px; display: flex; align-items: center; justify-content: center;
+}
+
+/* Content A */
+.a-content {
+  background: radial-gradient(ellipse at 20% 10%, rgba(196,138,28,0.04) 0%, transparent 50%), #130e06;
+  padding: 12px; display: flex; flex-direction: column; gap: 7px;
+}
+.a-page-title { font-family: 'IM Fell English', serif; font-size: 14px; color: #f5e8c0; line-height: 1; }
+.a-page-ref { font-family: 'Cinzel', serif; font-size: 5.5px; letter-spacing: 2px; color: #c48a1c; }
+.a-rule { height: 1px; background: linear-gradient(90deg, #c48a1c66, transparent); }
+.a-card-inner {
+  background: rgba(196,138,28,0.05); border: 1px solid rgba(196,138,28,0.15); border-radius: 8px;
+  padding: 8px; display: flex; flex-direction: column; gap: 4px;
+}
+.a-card-inner .label { font-family: 'Cinzel', serif; font-size: 5.5px; letter-spacing: 2px; color: #c48a1c; text-transform: uppercase; }
+.a-card-inner .value { font-family: 'Cardo', serif; font-size: 8px; color: #d4c090; line-height: 1.4; }
+.a-stat-row { display: flex; gap: 6px; }
+.a-stat { flex: 1; background: rgba(196,138,28,0.06); border: 1px solid rgba(196,138,28,0.12); border-radius: 6px; padding: 6px; text-align: center; }
+.a-stat .n { font-family: 'IM Fell English', serif; font-size: 16px; color: #c48a1c; line-height: 1; }
+.a-stat .l { font-family: 'Cinzel', serif; font-size: 5px; letter-spacing: 1px; color: #7a6a50; text-transform: uppercase; }
+
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   DIRECTION B — EDITORIAL DAYBREAK EVOLVED
+   White book pages. Generous margins. Printed devotional.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.b-card {
+  background: #f9f4ec;
+  border: 1px solid rgba(180,140,80,0.15);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06);
+}
+.b-card:hover { box-shadow: 0 28px 70px rgba(0,0,0,0.18), 0 0 0 2px rgba(184,90,48,0.2); }
+.b-num { color: #b85a30; }
+.b-title { color: #1a1208; font-family: 'Playfair Display', serif; }
+.b-desc { color: #7a6050; }
+.b-badge { background: rgba(184,90,48,0.08); color: #b85a30; border: 1px solid rgba(184,90,48,0.2); }
+
+.b-login {
+  background: #faf6f0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 14px; gap: 8px;
+}
+.b-login .chapter { font-family: 'Playfair Display', serif; font-size: 40px; color: rgba(184,90,48,0.1); line-height: 1; }
+.b-login h3 { font-family: 'Playfair Display', serif; font-size: 14px; color: #1a1208; }
+.b-login .sub { font-family: 'Jost', sans-serif; font-size: 6px; letter-spacing: 3px; color: #b85a30; text-transform: uppercase; }
+.b-rule-sm { width: 40px; height: 1px; background: rgba(184,90,48,0.3); }
+.b-field {
+  width: 100%; background: transparent;
+  border: none; border-bottom: 1px solid rgba(26,18,8,0.15);
+  padding: 4px 2px; font-size: 7px; color: #5a4030;
+  font-family: 'Crimson Pro', serif;
+}
+.b-btn {
+  width: 100%; background: #b85a30;
+  border: none; border-radius: 3px; padding: 6px; color: #fdf6e3;
+  font-family: 'Jost', sans-serif; font-size: 7px; letter-spacing: 2px; text-transform: uppercase; cursor: pointer;
+}
+
+.b-sidebar {
+  background: #f2ebe0;
+  border-right: 1px solid rgba(180,140,80,0.12);
+  display: flex; flex-direction: column; padding: 10px 0;
+}
+.b-sidebar-logo {
+  padding: 8px 10px 10px;
+  border-bottom: 1px solid rgba(180,140,80,0.12);
+}
+.b-sidebar-logo .name { font-family: 'Playfair Display', serif; font-size: 10px; color: #1a1208; font-style: italic; }
+.b-sidebar-logo .mark { font-family: 'Jost', sans-serif; font-size: 5.5px; letter-spacing: 3px; color: #b85a30; text-transform: uppercase; margin-top: 2px; }
+.b-nav-item {
+  padding: 5px 10px; display: flex; align-items: center; gap: 5px;
+  font-size: 7px; color: #8a7060; cursor: pointer;
+  font-family: 'Crimson Pro', serif; font-size: 8px;
+}
+.b-nav-item.active { color: #b85a30; background: rgba(184,90,48,0.06); border-right: 2px solid #b85a30; }
+.b-nav-section {
+  padding: 10px 10px 3px; font-family: 'Jost', sans-serif;
+  font-size: 5.5px; letter-spacing: 2px; color: rgba(90,64,48,0.4); text-transform: uppercase;
+}
+.b-adv-tab {
+  margin-top: auto; border-top: 1px solid rgba(180,140,80,0.15);
+  padding: 8px 10px;
+  display: flex; align-items: center; gap: 5px;
+  font-family: 'Jost', sans-serif; font-size: 6px; letter-spacing: 1px;
+  color: #b85a30; cursor: pointer;
+}
+
+.b-content {
+  background: #faf6f0;
+  padding: 12px; display: flex; flex-direction: column; gap: 6px;
+}
+.b-chapter-num { font-family: 'Playfair Display', serif; font-size: 32px; color: rgba(184,90,48,0.12); line-height: 1; margin-bottom: -8px; }
+.b-page-title { font-family: 'Playfair Display', serif; font-size: 14px; color: #1a1208; line-height: 1.1; }
+.b-page-ref { font-family: 'Jost', sans-serif; font-size: 5.5px; letter-spacing: 2.5px; color: #b85a30; text-transform: uppercase; }
+.b-rule { height: 1px; background: linear-gradient(90deg, rgba(184,90,48,0.3), transparent); }
+.b-card-inner {
+  background: white; border-left: 2px solid #b85a30;
+  padding: 6px 8px; display: flex; flex-direction: column; gap: 3px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+.b-card-inner .label { font-family: 'Jost', sans-serif; font-size: 5px; letter-spacing: 2px; color: #b85a30; text-transform: uppercase; }
+.b-card-inner .value { font-family: 'Crimson Pro', serif; font-size: 9px; color: #3a2818; line-height: 1.4; }
+.b-stat-row { display: flex; gap: 5px; }
+.b-stat { flex: 1; background: white; border: 1px solid rgba(184,90,48,0.12); padding: 5px; text-align: center; border-radius: 3px; }
+.b-stat .n { font-family: 'Playfair Display', serif; font-size: 14px; color: #b85a30; line-height: 1; }
+.b-stat .l { font-family: 'Jost', sans-serif; font-size: 5px; letter-spacing: 1px; color: #9a8070; text-transform: uppercase; }
+
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   DIRECTION C — CATHEDRAL GLASS
+   Deep indigo night. Stained glass jewel tones. Glow.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.c-card {
+  background: #080d18;
+  border: 1px solid rgba(100,140,220,0.15);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.7), inset 0 1px 0 rgba(120,160,255,0.08);
+}
+.c-card:hover { box-shadow: 0 32px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(120,180,255,0.25), 0 0 40px rgba(100,140,220,0.15); }
+.c-num { color: #7cb3ff; }
+.c-title { color: #e8f0ff; font-family: 'Libre Baskerville', serif; }
+.c-desc { color: #5870a0; }
+.c-badge { background: rgba(100,140,220,0.1); color: #7cb3ff; border: 1px solid rgba(100,140,220,0.25); }
+
+.c-login {
+  background: radial-gradient(ellipse at 50% 0%, rgba(80,120,200,0.12) 0%, transparent 60%), #060b15;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 12px; gap: 7px;
+}
+.c-login .rose { font-size: 28px; filter: drop-shadow(0 0 12px rgba(200,100,150,0.4)); line-height: 1; }
+.c-login h3 { font-family: 'Libre Baskerville', serif; font-size: 12px; color: #d0e4ff; }
+.c-login .sub { font-family: 'DM Sans', sans-serif; font-size: 6px; letter-spacing: 3px; color: #7cb3ff; text-transform: uppercase; }
+.c-field {
+  width: 100%; background: rgba(100,140,220,0.07);
+  border: 1px solid rgba(100,140,220,0.2); border-radius: 6px;
+  padding: 5px 8px; font-size: 7px; color: #8090c0;
+  font-family: 'DM Sans', sans-serif;
+}
+.c-btn {
+  width: 100%;
+  background: linear-gradient(135deg, rgba(80,120,200,0.8), rgba(100,60,180,0.8));
+  border: 1px solid rgba(120,160,255,0.2);
+  border-radius: 6px; padding: 6px; color: #d0e4ff;
+  font-family: 'DM Sans', sans-serif; font-size: 7px; letter-spacing: 2px; cursor: pointer;
+  box-shadow: 0 4px 20px rgba(80,120,200,0.25);
+}
+.c-glass-top {
+  display: flex; gap: 3px; width: 100%;
+}
+.c-glass-panel {
+  flex: 1; height: 8px; border-radius: 2px;
+}
+.c-g1 { background: rgba(200,80,100,0.3); }
+.c-g2 { background: rgba(80,160,120,0.3); }
+.c-g3 { background: rgba(100,130,210,0.3); }
+.c-g4 { background: rgba(200,160,60,0.3); }
+
+.c-sidebar {
+  background: linear-gradient(180deg, #08101e 0%, #060b15 100%);
+  border-right: 1px solid rgba(100,140,220,0.1);
+  display: flex; flex-direction: column; padding: 10px 0;
+}
+.c-sidebar-logo {
+  padding: 8px 10px 10px;
+  border-bottom: 1px solid rgba(100,140,220,0.1);
+  display: flex; align-items: center; gap: 5px;
+}
+.c-sidebar-logo .mark {
+  font-size: 12px;
+  filter: drop-shadow(0 0 6px rgba(200,100,150,0.5));
+}
+.c-sidebar-logo .name { font-family: 'Libre Baskerville', serif; font-size: 9px; color: #c0d4f0; }
+.c-sidebar-logo .sub { font-family: 'DM Sans', sans-serif; font-size: 5px; letter-spacing: 2px; color: #5870a0; }
+.c-nav-item {
+  padding: 5px 10px; display: flex; align-items: center; gap: 5px;
+  font-size: 7.5px; color: #4a6090; cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  border-left: 2px solid transparent;
+}
+.c-nav-item.active {
+  color: #7cb3ff; border-left-color: #7cb3ff;
+  background: rgba(100,140,220,0.08);
+  text-shadow: 0 0 10px rgba(124,179,255,0.4);
+}
+.c-nav-section {
+  padding: 9px 10px 3px; font-family: 'DM Sans', sans-serif;
+  font-size: 5.5px; letter-spacing: 2px; color: rgba(100,140,220,0.3); text-transform: uppercase;
+}
+.c-adv-tab {
+  margin-top: auto; border-top: 1px solid rgba(100,140,220,0.1);
+  padding: 8px 10px;
+  display: flex; align-items: center; gap: 5px;
+  font-family: 'DM Sans', sans-serif; font-size: 6px; letter-spacing: 1px;
+  color: rgba(100,140,220,0.5); cursor: pointer;
+}
+
+.c-content {
+  background: radial-gradient(ellipse at 80% 20%, rgba(80,60,160,0.06) 0%, transparent 50%), #060b15;
+  padding: 12px; display: flex; flex-direction: column; gap: 7px;
+}
+.c-window-bar { display: flex; gap: 4px; margin-bottom: 2px; }
+.c-pane { height: 4px; border-radius: 1px; }
+.c-p1 { flex: 2; background: rgba(200,80,100,0.25); }
+.c-p2 { flex: 3; background: rgba(80,160,120,0.25); }
+.c-p3 { flex: 2; background: rgba(200,160,60,0.25); }
+.c-page-title { font-family: 'Libre Baskerville', serif; font-size: 13px; color: #d0e4ff; line-height: 1.1; }
+.c-page-ref { font-family: 'DM Sans', sans-serif; font-size: 5.5px; letter-spacing: 2px; color: #7cb3ff; text-transform: uppercase; }
+.c-rule { height: 1px; background: linear-gradient(90deg, rgba(100,140,220,0.4), transparent); }
+.c-card-inner {
+  background: rgba(100,140,220,0.05);
+  border: 1px solid rgba(100,140,220,0.12);
+  border-radius: 8px;
+  padding: 7px; display: flex; flex-direction: column; gap: 4px;
+  backdrop-filter: blur(4px);
+}
+.c-card-inner .label { font-family: 'DM Sans', sans-serif; font-size: 5px; letter-spacing: 2px; color: #7cb3ff; text-transform: uppercase; }
+.c-card-inner .value { font-family: 'Spectral', serif; font-size: 8px; color: #9ab4e0; line-height: 1.5; }
+.c-stat-row { display: flex; gap: 6px; }
+.c-stat {
+  flex: 1; background: rgba(100,140,220,0.05);
+  border: 1px solid rgba(100,140,220,0.12);
+  padding: 5px; text-align: center; border-radius: 6px;
+  position: relative; overflow: hidden;
+}
+.c-stat::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+}
+.c-stat-a::before { background: rgba(200,80,100,0.4); }
+.c-stat-b::before { background: rgba(80,160,120,0.4); }
+.c-stat-c::before { background: rgba(200,160,60,0.4); }
+.c-stat .n { font-family: 'Libre Baskerville', serif; font-size: 16px; color: #8cb8ff; line-height: 1; }
+.c-stat .l { font-family: 'DM Sans', sans-serif; font-size: 5px; letter-spacing: 1px; color: #4a6090; text-transform: uppercase; }
+
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   DIRECTION D — LEATHER STUDY
+   Warm dark brown. Academic library. Scholar's desk.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.d-card {
+  background: #1c1008;
+  border: 1px solid rgba(160,100,50,0.2);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6), inset 0 1px 0 rgba(200,140,70,0.08);
+}
+.d-card:hover { box-shadow: 0 32px 80px rgba(0,0,0,0.65), 0 0 0 1px rgba(200,140,70,0.3); }
+.d-num { color: #c8843a; }
+.d-title { color: #f0debb; font-family: 'Libre Baskerville', serif; }
+.d-desc { color: #7a6040; }
+.d-badge { background: rgba(200,130,50,0.1); color: #c8843a; border: 1px solid rgba(200,130,50,0.25); }
+
+.d-login {
+  background:
+    repeating-linear-gradient(0deg, transparent, transparent 14px, rgba(120,80,30,0.04) 14px, rgba(120,80,30,0.04) 15px),
+    #160e06;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 12px; gap: 8px;
+}
+.d-login .lamp { font-size: 22px; filter: drop-shadow(0 0 8px rgba(220,160,60,0.5)); line-height: 1; }
+.d-login h3 { font-family: 'Libre Baskerville', serif; font-size: 13px; color: #f0debb; }
+.d-login .sub { font-family: 'Jost', sans-serif; font-size: 6px; letter-spacing: 3px; color: #c8843a; text-transform: uppercase; }
+.d-field {
+  width: 100%;
+  background: rgba(200,130,50,0.06);
+  border: 1px solid rgba(160,100,50,0.2);
+  border-radius: 4px;
+  padding: 5px 8px; font-size: 7px; color: #9a7850;
+  font-family: 'Cardo', serif;
+}
+.d-btn {
+  width: 100%;
+  background: #8B4513;
+  background: linear-gradient(135deg, #8B4513, #a0531a);
+  border: 1px solid rgba(200,130,50,0.3);
+  border-radius: 4px; padding: 6px; color: #f0debb;
+  font-family: 'Jost', sans-serif; font-size: 7px; letter-spacing: 2px; cursor: pointer;
+  box-shadow: 0 2px 10px rgba(139,69,19,0.4);
+}
+.d-tooling {
+  display: flex; justify-content: center; gap: 8px;
+  color: rgba(200,130,50,0.25); font-size: 7px;
+}
+
+.d-sidebar {
+  background:
+    repeating-linear-gradient(0deg, transparent, transparent 12px, rgba(100,60,20,0.06) 12px, rgba(100,60,20,0.06) 13px),
+    #100a04;
+  border-right: 1px solid rgba(160,100,50,0.15);
+  display: flex; flex-direction: column; padding: 10px 0;
+}
+.d-sidebar-logo {
+  padding: 8px 10px 10px;
+  border-bottom: 1px solid rgba(160,100,50,0.12);
+  display: flex; align-items: center; gap: 6px;
+}
+.d-sidebar-logo .mark { font-size: 14px; filter: drop-shadow(0 0 6px rgba(220,160,60,0.4)); }
+.d-sidebar-logo .name { font-family: 'Libre Baskerville', serif; font-size: 9px; color: #e8d4a0; }
+.d-nav-item {
+  padding: 5px 10px; display: flex; align-items: center; gap: 5px;
+  font-size: 7.5px; color: #6a5030; cursor: pointer;
+  font-family: 'Cardo', serif;
+  border-left: 2px solid transparent;
+}
+.d-nav-item.active { color: #c8843a; border-left-color: #8B4513; background: rgba(200,130,50,0.08); }
+.d-nav-section {
+  padding: 9px 10px 3px; font-family: 'Jost', sans-serif;
+  font-size: 5.5px; letter-spacing: 2px; color: rgba(200,130,50,0.3); text-transform: uppercase;
+}
+.d-adv-tab {
+  margin-top: auto; border-top: 1px solid rgba(160,100,50,0.12);
+  padding: 8px 10px;
+  display: flex; align-items: center; gap: 5px;
+  font-family: 'Cardo', serif; font-size: 7px;
+  color: rgba(200,130,50,0.5); cursor: pointer;
+}
+
+.d-content {
+  background:
+    repeating-linear-gradient(0deg, transparent, transparent 14px, rgba(100,60,20,0.03) 14px, rgba(100,60,20,0.03) 15px),
+    #130a04;
+  padding: 12px; display: flex; flex-direction: column; gap: 7px;
+}
+.d-page-title { font-family: 'Libre Baskerville', serif; font-size: 14px; color: #f0debb; line-height: 1.15; }
+.d-page-ref { font-family: 'Jost', sans-serif; font-size: 5.5px; letter-spacing: 2.5px; color: #c8843a; text-transform: uppercase; }
+.d-rule { height: 1px; background: linear-gradient(90deg, rgba(200,130,50,0.35), transparent); }
+.d-card-inner {
+  background: rgba(200,130,50,0.05);
+  border: 1px solid rgba(160,100,50,0.18);
+  border-radius: 6px;
+  padding: 7px; display: flex; flex-direction: column; gap: 4px;
+}
+.d-card-inner .label { font-family: 'Jost', sans-serif; font-size: 5px; letter-spacing: 2px; color: #c8843a; text-transform: uppercase; }
+.d-card-inner .value { font-family: 'Cardo', serif; font-size: 9px; color: #c4a870; line-height: 1.4; }
+.d-stat-row { display: flex; gap: 6px; }
+.d-stat { flex: 1; background: rgba(200,130,50,0.05); border: 1px solid rgba(160,100,50,0.15); padding: 5px; text-align: center; border-radius: 5px; }
+.d-stat .n { font-family: 'Libre Baskerville', serif; font-size: 16px; color: #c8843a; line-height: 1; }
+.d-stat .l { font-family: 'Jost', sans-serif; font-size: 5px; letter-spacing: 1px; color: #6a5030; text-transform: uppercase; }
+
+
+/* ━━━ SETTINGS TAB PREVIEW ━━━ */
+.settings-section {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 40px 80px;
+}
+.settings-section h2 {
+  font-family: 'Cormorant', serif;
+  font-size: 1.8rem;
+  font-weight: 300;
+  color: #f5ead0;
+  margin-bottom: 8px;
+  text-align: center;
+}
+.settings-section .sub {
+  font-family: 'Jost', sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 2px;
+  color: #c48a1c;
+  text-transform: uppercase;
+  text-align: center;
+  margin-bottom: 40px;
+}
+.settings-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+@media (max-width: 900px) { .settings-row { grid-template-columns: 1fr; } }
+
+.settings-preview {
+  background: #1a1108;
+  border: 1px solid rgba(196,138,28,0.15);
+  border-radius: 16px;
+  overflow: hidden;
+  padding: 20px;
+}
+.settings-preview h4 {
+  font-family: 'IM Fell English', serif;
+  font-size: 0.95rem;
+  color: #f5e8c0;
+  margin-bottom: 4px;
+}
+.settings-preview p {
+  font-family: 'Jost', sans-serif;
+  font-size: 0.7rem;
+  color: #6a5a40;
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+/* Admin nav approach mockup */
+.admin-nav-mock {
+  background: #0e0a04;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(196,138,28,0.1);
+}
+.anm-header {
+  background: rgba(196,138,28,0.06);
+  padding: 7px 12px;
+  font-family: 'Cinzel', serif;
+  font-size: 6px;
+  letter-spacing: 2px;
+  color: rgba(196,138,28,0.4);
+  text-transform: uppercase;
+  border-bottom: 1px solid rgba(196,138,28,0.1);
+}
+.anm-body { padding: 6px 0; }
+.anm-item {
+  padding: 5px 12px; display: flex; align-items: center; gap: 6px;
+  font-size: 7.5px; color: #7a6a50; font-family: 'Cardo', serif;
+}
+.anm-item.restricted { color: rgba(196,138,28,0.5); }
+.anm-badge {
+  background: rgba(196,138,28,0.12); color: #c48a1c;
+  border: 1px solid rgba(196,138,28,0.2);
+  border-radius: 10px; padding: 1px 5px;
+  font-family: 'Cinzel', serif; font-size: 5px; letter-spacing: 1px;
+}
+.anm-lock { font-size: 8px; opacity: 0.5; }
+
+/* Tab approach mockup */
+.settings-tab-mock {
+  background: #0e0a04;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(196,138,28,0.1);
+}
+.stm-tabs {
+  display: flex;
+  border-bottom: 1px solid rgba(196,138,28,0.12);
+  overflow: hidden;
+}
+.stm-tab {
+  padding: 6px 10px;
+  font-family: 'Cinzel', serif; font-size: 6px; letter-spacing: 1px;
+  color: rgba(196,138,28,0.35); cursor: pointer;
+  border-bottom: 1px solid transparent;
+  white-space: nowrap;
+}
+.stm-tab.active {
+  color: #c48a1c;
+  border-bottom-color: #c48a1c;
+  background: rgba(196,138,28,0.04);
+}
+.stm-body { padding: 10px 12px; }
+.stm-field {
+  margin-bottom: 8px;
+}
+.stm-label { font-family: 'Cinzel', serif; font-size: 5.5px; letter-spacing: 1px; color: rgba(196,138,28,0.5); text-transform: uppercase; margin-bottom: 3px; }
+.stm-input {
+  width: 100%; background: rgba(196,138,28,0.05); border: 1px solid rgba(196,138,28,0.15); border-radius: 4px;
+  padding: 4px 7px; font-size: 7px; color: #8a7850; font-family: 'Cardo', serif;
+}
+.stm-row { display: flex; gap: 6px; }
+.stm-btn-sm {
+  padding: 4px 8px; border-radius: 4px; font-size: 6px; letter-spacing: 1px; cursor: pointer;
+  font-family: 'Cinzel', serif; border: none;
+}
+.stm-primary { background: #c48a1c; color: #1a1108; }
+.stm-ghost { background: transparent; color: #c48a1c; border: 1px solid rgba(196,138,28,0.25) !important; }
+
+/* ━━━ DIVIDER ━━━ */
+.section-divider {
+  text-align: center;
+  padding: 40px 40px 32px;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+.section-divider h2 {
+  font-family: 'Cormorant', serif;
+  font-size: clamp(1.6rem, 3vw, 2.4rem);
+  font-weight: 300;
+  color: #f5ead0;
+  margin-bottom: 8px;
+}
+.section-divider p {
+  font-family: 'Jost', sans-serif;
+  font-size: 0.8rem;
+  color: #6a5a40;
+  max-width: 480px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+.divider-line {
+  width: 200px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(196,138,28,0.3), transparent);
+  margin: 24px auto 0;
+}
+
+/* ━━━ ANIMATION PREVIEW ━━━ */
+.anim-section {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 40px 80px;
+}
+.anim-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+@media (max-width: 900px) { .anim-grid { grid-template-columns: 1fr; } }
+.anim-card {
+  background: #1a1108;
+  border: 1px solid rgba(196,138,28,0.12);
+  border-radius: 14px;
+  padding: 20px;
+  position: relative; overflow: hidden;
+}
+.anim-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, #c48a1c, transparent);
+}
+.anim-card h4 {
+  font-family: 'IM Fell English', serif; font-size: 0.9rem; color: #f5e8c0; margin-bottom: 4px;
+}
+.anim-card p {
+  font-family: 'Jost', sans-serif; font-size: 0.7rem; color: #6a5a40; line-height: 1.5; margin-bottom: 12px;
+}
+.anim-demo {
+  background: #0e0a04; border-radius: 8px;
+  height: 60px;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid rgba(196,138,28,0.08);
+  overflow: hidden; position: relative;
+}
+.demo-bar {
+  height: 6px; background: linear-gradient(90deg, #c48a1c, #e0a030, #c48a1c);
+  border-radius: 3px; width: 70%;
+  animation: shimmer 2s ease-in-out infinite;
+  background-size: 200% 100%;
+}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.demo-fade {
+  width: 80%; display: flex; flex-direction: column; gap: 5px;
+  animation: fadeSlide 2s ease-in-out infinite;
+}
+.demo-fade-bar { height: 5px; border-radius: 2px; background: rgba(196,138,28,0.3); }
+.demo-fade-bar:nth-child(2) { width: 80%; }
+.demo-fade-bar:nth-child(3) { width: 60%; }
+@keyframes fadeSlide {
+  0%, 100% { opacity: 0.3; transform: translateY(4px); }
+  50% { opacity: 1; transform: translateY(0); }
+}
+.demo-glow {
+  font-family: 'IM Fell English', serif; font-size: 18px; color: #c48a1c;
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+@keyframes pulse-glow {
+  0%, 100% { text-shadow: 0 0 8px rgba(196,138,28,0.3); }
+  50% { text-shadow: 0 0 24px rgba(196,138,28,0.7), 0 0 48px rgba(196,138,28,0.3); }
+}
+
+.pro-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: rgba(196,138,28,0.1); border: 1px solid rgba(196,138,28,0.2);
+  border-radius: 12px; padding: 2px 8px;
+  font-family: 'Cinzel', serif; font-size: 7px; letter-spacing: 1px; color: #c48a1c;
+}
+</style>
+</head>
+<body>
+
+<!-- ── INTRO ── -->
+<div class="intro">
+  <div class="intro-tag">Logos Pulse · Design Directions</div>
+  <h1>Four Paths.<br>One Sacred App.</h1>
+  <p>Each direction is fully buildable in your existing Streamlit stack — same CSS injection approach, evolved aesthetics. Admin pages move to an Advanced tab in all four.</p>
+</div>
+
+<!-- ── DESIGN CARDS GRID ── -->
+<div class="grid">
+
+  <!-- ═══ A: ILLUMINATED CODEX ═══ -->
+  <div class="card a-card">
+    <div class="card-label">
+      <div>
+        <div class="card-num a-num">01</div>
+      </div>
+      <div>
+        <div class="card-title a-title">Illuminated Codex</div>
+        <div class="card-desc a-desc">Night-black parchment. Gold leaf. Medieval manuscript meets digital devotional. Every screen feels like opening an ancient holy book.</div>
+        <div class="card-badge a-badge">DARK · ORNATE · SACRED</div>
+      </div>
+    </div>
+    <div class="mockup-wrap three">
+      <!-- Login -->
+      <div class="screen a-login">
+        <div class="a-ornament">✦ ✦ ✦</div>
+        <div class="logo-drop">✟</div>
+        <div class="a-login-text">
+          <h3>Logos Pulse</h3>
+          <div class="sub">Spiritual Chronicle</div>
+        </div>
+        <div class="a-rule" style="width:40px;height:1px;background:rgba(196,138,28,0.3)"></div>
+        <div class="a-field">✉ Email address</div>
+        <div class="a-field">⬤ · · · · · · · ·</div>
+        <button class="a-btn">ENTER THE CHRONICLE</button>
+        <div class="a-ornament" style="font-size:7px">Forgot your passage? ›</div>
+      </div>
+      <!-- Sidebar -->
+      <div class="screen a-sidebar">
+        <div class="a-sidebar-logo">
+          <div class="mark">✟</div>
+          <div>
+            <div class="name">Logos Pulse</div>
+          </div>
+        </div>
+        <div class="a-nav-section">Daily</div>
+        <div class="a-nav-item active"><span class="icon">⬛</span> Dashboard</div>
+        <div class="a-nav-item"><span class="icon">📖</span> Daily Entry</div>
+        <div class="a-nav-item"><span class="icon">📜</span> Daily Log</div>
+        <div class="a-nav-section">Growth</div>
+        <div class="a-nav-item"><span class="icon">🕯</span> Sermon Notes</div>
+        <div class="a-nav-item"><span class="icon">🙏</span> Prayer Journal</div>
+        <div class="a-nav-item"><span class="icon">⚡</span> Streaks</div>
+        <div class="a-nav-section">Soul</div>
+        <div class="a-nav-item"><span class="icon">✨</span> Testimonies</div>
+        <div class="a-nav-item"><span class="icon">🎯</span> Personal Goals</div>
+        <div class="a-adv-tab">
+          <div class="seal">⚙</div>
+          <span>Scriptorium</span>
+        </div>
+      </div>
+      <!-- Content -->
+      <div class="screen a-content">
+        <div class="a-page-ref">CHAPTER I</div>
+        <div class="a-page-title">Morning Chronicle</div>
+        <div class="a-rule"></div>
+        <div class="a-card-inner">
+          <div class="label">Today's Verse</div>
+          <div class="value">"Be still and know that I am God."<br><span style="color:#c48a1c;font-size:7px">— Psalm 46:10</span></div>
+        </div>
+        <div class="a-stat-row">
+          <div class="a-stat"><div class="n">14</div><div class="l">Streak</div></div>
+          <div class="a-stat"><div class="n">87</div><div class="l">Score</div></div>
+          <div class="a-stat"><div class="n">🌲</div><div class="l">Forest</div></div>
+        </div>
+        <div class="a-card-inner">
+          <div class="label">Weekly Assignment</div>
+          <div class="value">Genesis 1–3 · John 1<br>5 prayers logged today</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ B: EDITORIAL DAYBREAK ═══ -->
+  <div class="card b-card">
+    <div class="card-label">
+      <div>
+        <div class="card-num b-num">02</div>
+      </div>
+      <div>
+        <div class="card-title b-title">Editorial Daybreak</div>
+        <div class="card-desc b-desc">Cream-white printed pages. Generous margins. Playfair chapter numbers. Evolves your existing terra palette into a premium devotional book.</div>
+        <div class="card-badge b-badge">LIGHT · EDITORIAL · REFINED</div>
+      </div>
+    </div>
+    <div class="mockup-wrap three">
+      <!-- Login -->
+      <div class="screen b-login">
+        <div class="chapter">I</div>
+        <h3>Logos Pulse</h3>
+        <div class="sub">Daily Spiritual Record</div>
+        <div class="b-rule-sm"></div>
+        <div class="b-field">Email address</div>
+        <div class="b-field">Password</div>
+        <button class="b-btn">OPEN THE RECORD</button>
+        <div style="font-family:'Crimson Pro',serif;font-size:7px;color:#b85a3080">Forgot your password?</div>
+      </div>
+      <!-- Sidebar -->
+      <div class="screen b-sidebar">
+        <div class="b-sidebar-logo">
+          <div>
+            <div class="name">Logos Pulse</div>
+            <div class="mark">Daily Spiritual Record</div>
+          </div>
+        </div>
+        <div class="b-nav-section">Today</div>
+        <div class="b-nav-item active">▪ Dashboard</div>
+        <div class="b-nav-item">▪ Daily Entry</div>
+        <div class="b-nav-item">▪ Daily Log</div>
+        <div class="b-nav-section">Formation</div>
+        <div class="b-nav-item">▪ Sermon Notes</div>
+        <div class="b-nav-item">▪ Prayer Journal</div>
+        <div class="b-nav-item">▪ Streaks & Stats</div>
+        <div class="b-nav-section">Devotion</div>
+        <div class="b-nav-item">▪ Testimonies</div>
+        <div class="b-nav-item">▪ Personal Goals</div>
+        <div class="b-adv-tab">⚙ &nbsp;Clergy Console</div>
+      </div>
+      <!-- Content -->
+      <div class="screen b-content">
+        <div class="b-chapter-num">I</div>
+        <div class="b-page-ref">Morning · May 22</div>
+        <div class="b-page-title">Today's Chronicle</div>
+        <div class="b-rule"></div>
+        <div class="b-card-inner">
+          <div class="label">Verse of the Day</div>
+          <div class="value">"Be still and know that I am God." — Psalm 46:10</div>
+        </div>
+        <div class="b-stat-row">
+          <div class="b-stat"><div class="n">14</div><div class="l">Streak</div></div>
+          <div class="b-stat"><div class="n">87</div><div class="l">Score</div></div>
+          <div class="b-stat"><div class="n">🌲</div><div class="l">Level</div></div>
+        </div>
+        <div class="b-card-inner">
+          <div class="label">Assignment Progress</div>
+          <div class="value">Genesis 1–3 · John 1<br>5 prayers logged today</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ C: CATHEDRAL GLASS ═══ -->
+  <div class="card c-card">
+    <div class="card-label">
+      <div>
+        <div class="card-num c-num">03</div>
+      </div>
+      <div>
+        <div class="card-title c-title">Cathedral Glass</div>
+        <div class="card-desc c-desc">Deep indigo night sky. Stained-glass jewel tones. Cards glow like light through cathedral windows. Dramatic and immersive.</div>
+        <div class="card-badge c-badge">DARK · JEWEL-TONE · DRAMATIC</div>
+      </div>
+    </div>
+    <div class="mockup-wrap three">
+      <!-- Login -->
+      <div class="screen c-login">
+        <div class="c-glass-top" style="width:80%">
+          <div class="c-glass-panel c-g1"></div>
+          <div class="c-glass-panel c-g2"></div>
+          <div class="c-glass-panel c-g3"></div>
+          <div class="c-glass-panel c-g4"></div>
+        </div>
+        <div class="rose">🌹</div>
+        <h3>Logos Pulse</h3>
+        <div class="sub">Enter the Sanctuary</div>
+        <div class="c-field">✉ Email address</div>
+        <div class="c-field">🔒 Password</div>
+        <button class="c-btn">ENTER THE SANCTUARY</button>
+        <div style="font-family:'DM Sans',sans-serif;font-size:7px;color:rgba(124,179,255,0.4)">Forgot password?</div>
+      </div>
+      <!-- Sidebar -->
+      <div class="screen c-sidebar">
+        <div class="c-sidebar-logo">
+          <div class="mark">✦</div>
+          <div>
+            <div class="name">Logos Pulse</div>
+            <div class="sub" style="font-family:'DM Sans',sans-serif;font-size:5px;letter-spacing:2px;color:#3a5080">SANCTUARY</div>
+          </div>
+        </div>
+        <div class="c-nav-section">Daily</div>
+        <div class="c-nav-item active">◈ Dashboard</div>
+        <div class="c-nav-item">◈ Daily Entry</div>
+        <div class="c-nav-item">◈ Daily Log</div>
+        <div class="c-nav-section">Growth</div>
+        <div class="c-nav-item">◈ Sermon Notes</div>
+        <div class="c-nav-item">◈ Prayer Journal</div>
+        <div class="c-nav-item">◈ Streaks</div>
+        <div class="c-nav-section">Soul</div>
+        <div class="c-nav-item">◈ Testimonies</div>
+        <div class="c-adv-tab">🔐 &nbsp;Sacred Admin</div>
+      </div>
+      <!-- Content -->
+      <div class="screen c-content">
+        <div class="c-window-bar">
+          <div class="c-pane c-p1"></div>
+          <div class="c-pane c-p2"></div>
+          <div class="c-pane c-p3"></div>
+        </div>
+        <div class="c-page-ref">Daily Chronicle</div>
+        <div class="c-page-title">Morning Watch</div>
+        <div class="c-rule"></div>
+        <div class="c-card-inner">
+          <div class="label">Verse of the Day</div>
+          <div class="value">"Be still and know that I am God." — Psalm 46:10</div>
+        </div>
+        <div class="c-stat-row">
+          <div class="c-stat c-stat-a"><div class="n">14</div><div class="l">Streak</div></div>
+          <div class="c-stat c-stat-b"><div class="n">87</div><div class="l">Score</div></div>
+          <div class="c-stat c-stat-c"><div class="n">🌲</div><div class="l">Level</div></div>
+        </div>
+        <div class="c-card-inner">
+          <div class="label">Assignment</div>
+          <div class="value">Genesis 1–3 · John 1<br>5 prayers logged</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ D: LEATHER STUDY ═══ -->
+  <div class="card d-card">
+    <div class="card-label">
+      <div>
+        <div class="card-num d-num">04</div>
+      </div>
+      <div>
+        <div class="card-title d-title">Leather Study</div>
+        <div class="card-desc d-desc">Rich warm mahogany. Lined paper texture. Scholar's lamp glow. Like working at a theologian's desk in a candlelit study.</div>
+        <div class="card-badge d-badge">DARK · WARM · SCHOLARLY</div>
+      </div>
+    </div>
+    <div class="mockup-wrap three">
+      <!-- Login -->
+      <div class="screen d-login">
+        <div class="lamp">🕯</div>
+        <h3>Logos Pulse</h3>
+        <div class="sub">The Scholar's Record</div>
+        <div style="height:1px;width:40px;background:rgba(200,130,50,0.3)"></div>
+        <div class="d-field">✉ Email address</div>
+        <div class="d-field">🔒 Password</div>
+        <button class="d-btn">OPEN THE STUDY</button>
+        <div class="d-tooling">— ⟡ — ⟡ — ⟡ —</div>
+      </div>
+      <!-- Sidebar -->
+      <div class="screen d-sidebar">
+        <div class="d-sidebar-logo">
+          <div class="mark">🕯</div>
+          <div>
+            <div class="name">Logos Pulse</div>
+          </div>
+        </div>
+        <div class="d-nav-section">Today's Study</div>
+        <div class="d-nav-item active">✦ Dashboard</div>
+        <div class="d-nav-item">✦ Daily Entry</div>
+        <div class="d-nav-item">✦ Daily Log</div>
+        <div class="d-nav-section">Formation</div>
+        <div class="d-nav-item">✦ Sermon Notes</div>
+        <div class="d-nav-item">✦ Prayer Journal</div>
+        <div class="d-nav-item">✦ Streaks & Stats</div>
+        <div class="d-nav-section">Devotion</div>
+        <div class="d-nav-item">✦ Testimonies</div>
+        <div class="d-adv-tab">⚙ &nbsp;Private Study</div>
+      </div>
+      <!-- Content -->
+      <div class="screen d-content">
+        <div class="d-page-ref">Chronicle · May 22</div>
+        <div class="d-page-title">Morning Devotion</div>
+        <div class="d-rule"></div>
+        <div class="d-card-inner">
+          <div class="label">Verse of the Day</div>
+          <div class="value">"Be still and know that I am God." — Psalm 46:10</div>
+        </div>
+        <div class="d-stat-row">
+          <div class="d-stat"><div class="n">14</div><div class="l">Streak</div></div>
+          <div class="d-stat"><div class="n">87</div><div class="l">Score</div></div>
+          <div class="d-stat"><div class="n">🌲</div><div class="l">Level</div></div>
+        </div>
+        <div class="d-card-inner">
+          <div class="label">Assignment</div>
+          <div class="value">Genesis 1–3 · John 1<br>5 prayers logged today</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+
+<!-- ── ADMIN / ADVANCED SETTINGS SECTION ── -->
+<div class="section-divider">
+  <div style="font-family:'Cinzel',serif;font-size:10px;letter-spacing:4px;color:#c48a1c;text-transform:uppercase;margin-bottom:16px">Admin Architecture</div>
+  <h2>Where Admin Pages Live</h2>
+  <p>Two approaches for organizing Admin Panel, Bishop Dashboard, Pastor Dashboard, and Wizard Assignment out of the main nav.</p>
+  <div class="divider-line"></div>
+</div>
+
+<div class="settings-section">
+  <div class="settings-row">
+
+    <!-- Approach 1: Bottom nav "Scriptorium" tab -->
+    <div class="settings-preview">
+      <h4>Option A — "Scriptorium" Sidebar Section</h4>
+      <p>Admin pages collapse into a special section at the bottom of the sidebar, locked behind a role check. Only Admins/Bishops/Pastors see it.</p>
+      <div class="admin-nav-mock">
+        <div class="anm-header">Sacred Records</div>
+        <div class="anm-body">
+          <div class="anm-item"><span class="icon">📊</span> Dashboard</div>
+          <div class="anm-item"><span class="icon">📖</span> Daily Entry</div>
+          <div class="anm-item"><span class="icon">🙏</span> Prayer Journal</div>
+          <div style="height:1px;background:rgba(196,138,28,0.1);margin:4px 0"></div>
+          <div class="anm-header" style="margin-top:2px">CLERGY TOOLS</div>
+          <div class="anm-item restricted"><span class="anm-lock">🔒</span> Admin Panel <span class="anm-badge">ADMIN</span></div>
+          <div class="anm-item restricted"><span class="anm-lock">🔒</span> Bishop Dashboard <span class="anm-badge">BISHOP+</span></div>
+          <div class="anm-item restricted"><span class="anm-lock">🔒</span> Pastor Dashboard <span class="anm-badge">PASTOR+</span></div>
+          <div class="anm-item restricted"><span class="anm-lock">🔒</span> Wizard Assign. <span class="anm-badge">PASTOR+</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Approach 2: Settings page with tabs -->
+    <div class="settings-preview">
+      <h4>Option B — Settings Page with Role Tabs</h4>
+      <p>All admin tools move inside the existing Settings page as gated tabs. The sidebar stays clean with just 9 regular pages.</p>
+      <div class="settings-tab-mock">
+        <div class="stm-tabs">
+          <div class="stm-tab">General</div>
+          <div class="stm-tab">Notif.</div>
+          <div class="stm-tab active">⚙ Admin</div>
+          <div class="stm-tab">👑 Clergy</div>
+        </div>
+        <div class="stm-body">
+          <div class="stm-field">
+            <div class="stm-label">User Management</div>
+            <div class="stm-input">Search members…</div>
+          </div>
+          <div class="stm-field">
+            <div class="stm-label">Create Account</div>
+          </div>
+          <div class="stm-row">
+            <button class="stm-btn-sm stm-primary">New Pastor</button>
+            <button class="stm-btn-sm stm-ghost">New Bishop</button>
+            <button class="stm-btn-sm stm-ghost">Reset Pass.</button>
+          </div>
+          <div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(196,138,28,0.1)">
+            <div class="stm-label" style="margin-bottom:4px">Impersonation</div>
+            <div class="stm-input">Select member to view as…</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ── TRANSITIONS SECTION ── -->
+<div class="section-divider">
+  <div style="font-family:'Cinzel',serif;font-size:10px;letter-spacing:4px;color:#c48a1c;text-transform:uppercase;margin-bottom:16px">Fleet Transitions</div>
+  <h2>Page Transition Options</h2>
+  <p>All three work inside Streamlit using CSS injected via <code style="background:rgba(196,138,28,0.1);padding:2px 6px;border-radius:3px;font-size:0.8em">st.markdown(unsafe_allow_html=True)</code></p>
+  <div class="divider-line"></div>
+</div>
+
+<div class="anim-section">
+  <div class="anim-grid">
+
+    <div class="anim-card">
+      <h4>Fade + Rise</h4>
+      <p>Each page load triggers a 350ms opacity+translateY fade-in. Smooth, subtle, feels like turning a page.</p>
+      <div class="anim-demo">
+        <div class="demo-fade">
+          <div class="demo-fade-bar"></div>
+          <div class="demo-fade-bar"></div>
+          <div class="demo-fade-bar"></div>
+        </div>
+      </div>
+      <div style="margin-top:12px;font-family:'Cinzel',serif;font-size:7px;letter-spacing:2px;color:rgba(196,138,28,0.4)">RECOMMENDED · LEAST CODE</div>
+    </div>
+
+    <div class="anim-card">
+      <h4>Gold Shimmer Bar</h4>
+      <p>A thin gold progress bar sweeps across the top on each navigation — like a page-load indicator but sacred.</p>
+      <div class="anim-demo">
+        <div class="demo-bar"></div>
+      </div>
+      <div style="margin-top:12px;font-family:'Cinzel',serif;font-size:7px;letter-spacing:2px;color:rgba(196,138,28,0.4)">VISUAL IMPACT · MEDIUM</div>
+    </div>
+
+    <div class="anim-card">
+      <h4>Cross-Dissolve</h4>
+      <p>The entire content area fades from black between pages. The most cinematic — requires a JS component wrapper.</p>
+      <div class="anim-demo">
+        <div class="demo-glow">✟</div>
+      </div>
+      <div style="margin-top:12px;font-family:'Cinzel',serif;font-size:7px;letter-spacing:2px;color:rgba(196,138,28,0.4)">MOST DRAMATIC · MOST CODE</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── FOOTER ── -->
+<div style="text-align:center;padding:40px;border-top:1px solid rgba(196,138,28,0.1)">
+  <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:3px;color:rgba(196,138,28,0.3);text-transform:uppercase">
+    Logos Pulse · Design Directions · 2026
+  </div>
+  <div style="font-family:'Cormorant',serif;font-size:1.2rem;font-style:italic;color:rgba(240,228,192,0.2);margin-top:8px">
+    "Thy word is a lamp unto my feet."
+  </div>
+</div>
+
+</body>
+</html>
